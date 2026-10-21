@@ -1,0 +1,115 @@
+{
+  "captured_on": "2026-10-22",
+  "root": "/Users/sonoma/Documents/ALOHA",
+  "policy": "Existing originals are preserved byte-for-byte. ZIP/PNG references are excluded from Git; copy them separately when cloning. Hashes describe the M1.0 start state.",
+  "missing_at_start": [
+    "snippets.php"
+  ],
+  "files": [
+    {
+      "path": "aloha-architecture-sources.zip",
+      "bytes": 47264,
+      "sha256": "96eb5afcf87d1d4c3fc7d9fc4a6ca2c066ffe6b3ed408f6c251c97044b82bc34"
+    },
+    {
+      "path": "docs/aloha-hello-architecture-feasibility.md",
+      "bytes": 174227,
+      "sha256": "15166f8cb6a562211add9344206d0cebad65cbcf4588a75f8ed66a5f70784b56"
+    },
+    {
+      "path": "docs/design-inventory.md",
+      "bytes": 41836,
+      "sha256": "4251a4a2efd08f6352a1711fdd76f9208e36e79ae9364a10c914d5bdb71b9833"
+    },
+    {
+      "path": "docs/m1-theme-implementation-plan.md",
+      "bytes": 30552,
+      "sha256": "7f94655455e66df20408743b44d1a1c69983f2c30e7805ed894e3112a7516b91"
+    },
+    {
+      "path": "макеты/04 Area — Mauna Lani-html.zip",
+      "bytes": 204941,
+      "sha256": "a5a3746f95a48f65793b82318d473e00d92f8b4dc2e7912fa56a218aac0e6e4f"
+    },
+    {
+      "path": "макеты/05 Community page-html.zip",
+      "bytes": 200800,
+      "sha256": "e4b792078bf318062640b6a689ce12ee82831466ce3e4be2c2052b3d18a6726a"
+    },
+    {
+      "path": "макеты/06 Guide article-html.zip",
+      "bytes": 196690,
+      "sha256": "e78e5c90961de96877092c375c9a8e46a9c6bf852aeeeeec3e8c292da5b68128"
+    },
+    {
+      "path": "макеты/Design v2 — Area Mauna Lani-html.zip",
+      "bytes": 2913037,
+      "sha256": "c20d44560173f9a32dedaeeca77f17c36897c47e80c1551997f37acb819e5741"
+    },
+    {
+      "path": "макеты/Design v2 — Area Mauna Lani@1x.png",
+      "bytes": 5903201,
+      "sha256": "a036e326c8d0cd9093e3f63ed8054c065df5b7e175e805c3c8bd3e2b88deca82"
+    },
+    {
+      "path": "макеты/Design v2 — Community Ka Milo-html.zip",
+      "bytes": 1483788,
+      "sha256": "6eee005779182bf12ca792fb5a673db4039ea71077ae1c3b9af437fb2913545b"
+    },
+    {
+      "path": "макеты/Design v2 — Community Ka Milo@1x.png",
+      "bytes": 1617549,
+      "sha256": "40cb753c63b767b7991fac76a92f092db3cb21b6ee0d92bebbed018a6e178071"
+    },
+    {
+      "path": "макеты/Design v2 — Guide article manta rays-html.zip",
+      "bytes": 1184229,
+      "sha256": "953410dc7120cd6ebee0cd999051c9d062069f0493c05e6c142758a326a787b9"
+    },
+    {
+      "path": "макеты/Design v2 — Guide article manta rays@1x.png",
+      "bytes": 2436091,
+      "sha256": "6dba0dc19ca7962059fea6e61de74565db0626c24107ccd1f9d41b0e7222288d"
+    },
+    {
+      "path": "макеты/Design v2 — Home page (unit)-html.zip",
+      "bytes": 1982440,
+      "sha256": "78aeafe9e7a1e30442e25a648724f728baeb81face374f9f5022ac5842ee532b"
+    },
+    {
+      "path": "макеты/Design v2 — Home page (unit)@1x.png",
+      "bytes": 3082177,
+      "sha256": "7fa5a18eff8fdb6ca6e7a7f3ad0d4162fa6ca71444b35454bc4fcbc7379b280f"
+    },
+    {
+      "path": "макеты/Design v2 — Home, mobile (390)-html.zip",
+      "bytes": 3663557,
+      "sha256": "163ee3122971b184ede28f278131dc5a94041aada3c4d3a99567af06dd3e9324"
+    },
+    {
+      "path": "макеты/Design v2 — Home, mobile (390)@1x.png",
+      "bytes": 2179231,
+      "sha256": "e989451cf706247e5441c9fbe05a459c0291d3cfadebc73c88b2f3dfc59f4def"
+    },
+    {
+      "path": "макеты/Design v2 — Home-html.zip",
+      "bytes": 3671373,
+      "sha256": "f28278445fe972411286658f1cb680eccc9acc6f52640d0502a376780b8a874f"
+    },
+    {
+      "path": "макеты/Design v2 — Home@1x.png",
+      "bytes": 5364231,
+      "sha256": "a48bc3ec51c3db1f58e19cbac081c062d093f14b4806dd76c06344374006f1f0"
+    },
+    {
+      "path": "макеты/Design v2 — Vacation rentals (catalog)-html.zip",
+      "bytes": 1955498,
+      "sha256": "b1c0bc2b73dc9c4b7d67a207afb3408456b5f1eb778d2e29a584d607e32f09a4"
+    },
+    {
+      "path": "макеты/Design v2 — Vacation rentals (catalog)@1x.png",
+      "bytes": 1543421,
+      "sha256": "a9a3efdd672f3207fdcc295b58f34f02458a7c8e26be206a3684773318410bb0"
+    }
+  ]
+}

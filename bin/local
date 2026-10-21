@@ -1,0 +1,99 @@
+#!/bin/bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+dc() { docker compose --project-name aloha-local --file compose.yaml "$@"; }
+wp() { dc run --rm --no-deps -T cli "$@"; }
+require_env() {
+  if [ ! -f .env ]; then
+    echo 'Run ./bin/local init first.' >&2
+    exit 1
+  fi
+}
+init() {
+  if [ -e .env ]; then
+    echo '.env already exists; credentials kept.'
+    return
+  fi
+  umask 077
+  python3 - <<'PY'
+from pathlib import Path
+import secrets
+values = {
+    'DB_PASSWORD': secrets.token_hex(24),
+    'DB_ROOT_PASSWORD': secrets.token_hex(24),
+    'WP_ADMIN_USER': 'aloha_local_admin',
+    'WP_ADMIN_PASSWORD': secrets.token_hex(24),
+    'WP_ADMIN_EMAIL': 'developer@example.test',
+}
+with Path('.env').open('x') as f:
+    f.write('# Generated only for ALOHA local development. Do not commit.\n')
+    for key, value in values.items():
+        f.write(f'{key}={value}\n')
+PY
+  echo 'Created private .env with random local credentials.'
+}
+up() {
+  require_env
+  dc up -d --wait --wait-timeout 180 db wordpress
+  if ! wp core is-installed >/dev/null 2>&1; then
+    # Expansion happens inside the ephemeral container; no password in host argv.
+    dc run --rm --no-deps -T --entrypoint sh cli -ec '
+      wp core install --url="http://127.0.0.1:8088" --title="ALOHA Local" \
+        --admin_user="$WP_ADMIN_USER" --admin_password="$WP_ADMIN_PASSWORD" \
+        --admin_email="$WP_ADMIN_EMAIL" --skip-email
+      wp option update blog_public 0
+      wp rewrite structure "/%postname%/" --hard
+    '
+  fi
+  echo 'ALOHA: http://127.0.0.1:8088 | Admin: http://127.0.0.1:8088/wp-admin/'
+}
+
+case "${1:-help}" in
+  init) init ;;
+  up|start) up ;;
+  stop|down) require_env; dc stop ;;
+  status) require_env; dc ps ;;
+  logs) require_env; dc logs --tail=100 -f db wordpress ;;
+  wp-log)
+    require_env
+    dc exec -T wordpress sh -c 'if [ -f wp-content/debug.log ]; then tail -n 100 wp-content/debug.log; else echo "No WordPress debug entries yet."; fi'
+    ;;
+  check)
+    require_env
+    dc ps
+    wp core is-installed
+    wp core version
+    curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8088/
+    curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8088/wp-login.php
+    echo 'WordPress, DB and local HTTP: OK'
+    ;;
+  wp) require_env; shift; wp "$@" ;;
+  backup)
+    require_env
+    umask 077
+    target=".local/backups/$(date +%Y%m%d-%H%M%S)-$$"
+    mkdir -p "$target"
+    dc exec -T db sh -ec 'exec mariadb-dump --single-transaction --user=root --password="$MARIADB_ROOT_PASSWORD" "$MARIADB_DATABASE"' > "$target/database.sql"
+    dc exec -T wordpress tar -czf - -C /var/www/html . > "$target/wordpress.tar.gz"
+    cp .env "$target/environment.env"
+    echo "Backup saved: $target (contains secrets; keep private)."
+    ;;
+  recover)
+    require_env
+    dc up -d --force-recreate --wait --wait-timeout 180 db wordpress
+    echo 'Containers recreated; existing WordPress and database volumes retained.'
+    ;;
+  reset)
+    require_env
+    if [ ! -t 0 ]; then echo 'Reset requires an interactive terminal and explicit confirmation.' >&2; exit 1; fi
+    echo 'This deletes ONLY the aloha-local WordPress and database volumes, including all local content.'
+    read -r -p 'Type DELETE ALOHA LOCAL DATA to confirm: ' answer
+    if [ "$answer" != 'DELETE ALOHA LOCAL DATA' ]; then echo 'Cancelled; data retained.'; exit 1; fi
+    dc down --volumes
+    echo 'Local volumes deleted. .env and original project files retained. Run ./bin/local up to reinstall.'
+    ;;
+  *)
+    echo 'Usage: ./bin/local {init|up|stop|status|check|logs|wp-log|backup|recover|reset|wp <args>}'
+    ;;
+esac
