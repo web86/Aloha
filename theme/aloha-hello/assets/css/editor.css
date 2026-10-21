@@ -1,0 +1,4 @@
+/* Post/page canvases have no template shell. Give them the same inner gutters.
+ * Site Editor templates already contain .aloha-container and keep their own geometry.
+ */
+body.post-type-page, body.post-type-post { padding-inline: var(--aloha-gutter); }

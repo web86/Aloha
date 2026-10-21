@@ -14,6 +14,7 @@ x-wordpress-env: &wordpress-env
     define('AUTOMATIC_UPDATER_DISABLED', true);
     define('DISABLE_WP_CRON', true);
     define('WP_HTTP_BLOCK_EXTERNAL', true);
+    define('ALOHA_DEV_SHOWCASE_BOOTSTRAP', '/var/www/aloha-dev/bootstrap.php');
 
 services:
   db:
@@ -41,6 +42,8 @@ services:
     volumes:
       - wordpress:/var/www/html
       - ./config/php-local.ini:/usr/local/etc/php/conf.d/zz-aloha-local.ini:ro
+      - ./theme/aloha-hello:/var/www/html/wp-content/themes/aloha-hello:ro
+      - ./dev:/var/www/aloha-dev:ro
     depends_on:
       db:
         condition: service_healthy
@@ -68,6 +71,7 @@ services:
       - wordpress:/var/www/html
       - ./config/php-local.ini:/usr/local/etc/php/conf.d/zz-aloha-local.ini:ro
       - ./config/wp-cli.yml:/etc/aloha/wp-cli.yml:ro
+      - ./theme/aloha-hello:/var/www/html/wp-content/themes/aloha-hello:ro
     depends_on:
       db:
         condition: service_healthy

@@ -1,0 +1,146 @@
+/* Presets are the source of truth. These aliases are the theme's presentation API. */
+:root {
+	--aloha-color-text: var(--wp--preset--color--mirage);
+	--aloha-color-brand: var(--wp--preset--color--deep-sea-green);
+	--aloha-color-surface: var(--wp--preset--color--white);
+	--aloha-color-surface-soft: var(--wp--preset--color--wild-sand);
+	--aloha-color-page: var(--wp--preset--color--page);
+	--aloha-color-accent: var(--wp--preset--color--orange);
+	--aloha-color-action-hover: var(--wp--custom--color--action-hover);
+	--aloha-color-border: var(--wp--custom--color--border);
+	--aloha-color-disabled: var(--wp--custom--color--disabled);
+	--aloha-container-max: 1280px;
+	--aloha-gutter: clamp(20px, calc(-0.63492px + 5.29101vw), 40px);
+	--aloha-radius-card: var(--wp--custom--radius--card);
+	--aloha-radius-field: var(--wp--custom--radius--field);
+	--aloha-radius-pill: var(--wp--custom--radius--pill);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
+img, svg, video { max-width: 100%; height: auto; }
+button, input, select, textarea { font: inherit; letter-spacing: inherit; }
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; overflow-wrap: break-word; }
+p, li, a { overflow-wrap: break-word; }
+strong, b { font-weight: 700; }
+a { text-underline-offset: .18em; text-decoration-thickness: .08em; }
+a:hover { text-decoration-thickness: .13em; }
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+	outline: 3px solid var(--aloha-color-brand);
+	outline-offset: 4px;
+	/* Two colours preserve the indicator on both light and dark surfaces. */
+	box-shadow: 0 0 0 4px var(--aloha-color-surface);
+}
+
+/* Opt-in shell: 1280 border-box -> 1200 usable at 1440, 350 at 390. */
+.aloha-container {
+	width: 100%;
+	max-width: var(--aloha-container-max);
+	margin-inline: auto;
+	padding-inline: var(--aloha-gutter);
+}
+.aloha-section { padding-block: var(--wp--preset--spacing--section); }
+.aloha-section--home { padding-block: var(--wp--preset--spacing--home); }
+.aloha-section--area { padding-block: var(--wp--preset--spacing--area); }
+.aloha-section--unit { padding-block: var(--wp--preset--spacing--unit); }
+.aloha-eyebrow { font-size: var(--wp--preset--font-size--eyebrow); font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
+.aloha-muted { color: var(--wp--custom--color--muted); }
+.aloha-stack > * + * { margin-block-start: var(--wp--preset--spacing--md); }
+
+/* Native button block, ordinary buttons, and future semantic presentation hooks. */
+.wp-element-button, .wp-block-button__link, .aloha-button, button:where(:not(.components-button)) {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wp--preset--spacing--xs);
+	min-height: 52px;
+	padding: 12px clamp(22px, 2vw, 28px);
+	border: 1.5px solid transparent;
+	border-radius: var(--aloha-radius-pill);
+	background: var(--aloha-color-accent);
+	color: var(--aloha-color-text);
+	font-family: var(--wp--preset--font-family--outfit);
+	font-size: var(--wp--preset--font-size--button);
+	font-weight: 600;
+	line-height: 1.25;
+	text-align: center;
+	text-decoration: none;
+	cursor: pointer;
+}
+:where(.wp-element-button, .wp-block-button__link, .aloha-button, button):hover {
+	background: var(--aloha-color-action-hover);
+	color: var(--aloha-color-text);
+}
+:where(.wp-element-button, .wp-block-button__link, .aloha-button, button):active { background: var(--aloha-color-text); color: var(--aloha-color-surface); }
+.is-style-secondary .wp-block-button__link, .is-style-outline .wp-block-button__link, .aloha-button--secondary {
+	border: 1.5px solid currentColor;
+	background: transparent;
+	color: inherit;
+}
+:where(.is-style-secondary, .is-style-outline) .wp-block-button__link:hover, .aloha-button--secondary:hover {
+	background: var(--aloha-color-surface-soft);
+	color: var(--aloha-color-text);
+}
+.is-style-text .wp-block-button__link, .aloha-button--text {
+	border-radius: 0;
+	padding-inline: 0;
+	background: transparent;
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: .18em;
+}
+.is-style-text .wp-block-button__link:hover, .aloha-button--text:hover { color: inherit; text-decoration-thickness: .13em; }
+button:disabled, .wp-element-button:disabled,
+.aloha-button[aria-disabled="true"], .wp-element-button[aria-disabled="true"], .wp-block-button__link[aria-disabled="true"] {
+	background: var(--aloha-color-surface-soft);
+	color: var(--aloha-color-disabled);
+	border-color: var(--aloha-color-disabled);
+	cursor: not-allowed;
+}
+
+/* These elements are shared by core blocks and future plugin forms. */
+label, legend { font-weight: 500; }
+fieldset { min-width: 0; margin: 0; padding: var(--wp--preset--spacing--md); border: 1px solid var(--aloha-color-border); border-radius: var(--aloha-radius-field); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):not([type="range"]):not([type="color"]), select, textarea {
+	display: block;
+	width: 100%;
+	min-width: 0;
+	min-height: 52px;
+	margin-block-start: var(--wp--preset--spacing--xs);
+	padding: 12px 16px;
+	border: 1px solid var(--aloha-color-border);
+	border-radius: var(--aloha-radius-field);
+	background: var(--aloha-color-surface);
+	color: var(--aloha-color-text);
+	line-height: 1.5;
+}
+textarea { min-height: 144px; resize: vertical; }
+input::placeholder, textarea::placeholder { color: var(--wp--custom--color--muted); opacity: 1; }
+input:hover, select:hover, textarea:hover { border-color: var(--aloha-color-brand); }
+input:disabled, select:disabled, textarea:disabled { background: var(--aloha-color-surface-soft); color: var(--aloha-color-disabled); border-color: var(--aloha-color-disabled); cursor: not-allowed; opacity: 1; }
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { border: 2px solid var(--aloha-color-brand); }
+input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; accent-color: var(--aloha-color-brand); vertical-align: middle; }
+.aloha-choice { display: flex; align-items: center; gap: var(--wp--preset--spacing--xs); min-height: 44px; }
+.aloha-field-help { display: block; margin-block-start: var(--wp--preset--spacing--xs); font-size: var(--wp--preset--font-size--small); color: var(--wp--custom--color--muted); }
+.aloha-field-error { color: var(--aloha-color-brand); font-weight: 600; }
+ul, ol { padding-inline-start: 1.4em; }
+li + li { margin-block-start: var(--wp--preset--spacing--xs); }
+hr, .wp-block-separator { border: 0; border-top: 1px solid var(--aloha-color-border); opacity: 1; }
+.aloha-card, .is-style-card {
+	min-width: 0;
+	padding: var(--wp--preset--spacing--lg);
+	border: 1px solid var(--aloha-color-surface-soft);
+	border-radius: var(--aloha-radius-card);
+	background: var(--aloha-color-surface);
+	color: var(--aloha-color-text);
+}
+.aloha-notice { padding: var(--wp--preset--spacing--md); border-inline-start: 4px solid var(--aloha-color-brand); border-radius: var(--aloha-radius-field); background: var(--aloha-color-surface-soft); color: var(--aloha-color-text); }
+.aloha-notice--warning { border-inline-start-color: var(--aloha-color-accent); }
+.aloha-notice--error { border-inline-start-color: var(--aloha-color-text); }
+.aloha-skip-link { position: absolute; inset-block-start: 8px; inset-inline-start: 8px; z-index: 100000; padding: 12px 20px; background: var(--aloha-color-surface); color: var(--aloha-color-text); transform: translateY(-200%); }
+.aloha-skip-link:focus { transform: none; }
+
+@media (max-width: 767px) { body { line-height: 1.55; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (forced-colors: active) { :focus-visible { outline: 3px solid Highlight; } }

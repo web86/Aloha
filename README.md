@@ -1,4 +1,4 @@
-# ALOHA — локальный WordPress, M1.0
+# ALOHA — локальный WordPress и тема, M1.1
 
 Рабочая папка: `/Users/sonoma/Documents/ALOHA`. Нужны работающий Docker Desktop/OrbStack с Compose, Bash, curl и Python 3. Системный PHP и Node для запуска не нужны. Не меняйте Docker context, если в нём работают другие проекты.
 
@@ -8,6 +8,7 @@
 cd /Users/sonoma/Documents/ALOHA
 ./bin/local init
 ./bin/local up
+./bin/local wp theme activate aloha-hello
 ./bin/local check
 ```
 
@@ -38,13 +39,13 @@ Compose project — `aloha-local`, volumes — `aloha-local_database` и `aloha-
 
 При проблеме: `status` → `logs` → `check`; затем `recover`. Если Docker daemon недоступен, запустите приложение Docker/OrbStack. `recover` устраняет проблемы контейнеров, но не восстанавливает повреждённую базу. Для потери/повреждения данных понадобится приватный backup; импорт SQL или замена volume требуют отдельного решения с проверкой копии. Автоматического разрушительного restore здесь нет. SQL backup согласован в рамках транзакционных таблиц; архив файлов не является атомарным snapshot вместе с SQL. Не используйте `docker volume prune`, `docker system prune` или `docker compose down -v` для обычной остановки.
 
-Ядро, стандартная тема, plugins и uploads находятся в Docker volume. Собственная тема и GuestyBridge ещё не созданы. Закреплённые images и запрет автоматических обновлений обеспечивают воспроизводимость; обновление версий выполняется отдельным изменением после backup. WP-Cron, внешние WordPress HTTP-запросы и отправка PHP mail отключены. Проверка внешних integrations в этой среде не предполагается.
+Ядро, стандартные темы, plugins и uploads находятся в Docker volume. Собственная block theme Aloha Hello хранится в `theme/aloha-hello/` и подключена read-only bind mount к WordPress и CLI. Редактируйте исходники на Mac; копировать файлы в volume не нужно. GuestyBridge ещё не создан. Закреплённые images и запрет автоматических обновлений обеспечивают воспроизводимость; обновление версий выполняется отдельным изменением после backup. WP-Cron, внешние WordPress HTTP-запросы и отправка PHP mail отключены. Проверка внешних integrations в этой среде не предполагается.
 
 Из-за блокировки внешнего HTTP в debug log возможны предупреждения WordPress о недоступности проверок обновлений и переводов WordPress.org. Это ожидаемое ограничение локальной конфигурации. Логи MariaDB могут сообщать о fallback `io_uring` → `libaio`, Apache — об отсутствии FQDN; глобальные настройки Mac ради этих сообщений не меняются.
 
 ## Git и референсы
 
-Git содержит конфигурацию, команды, README, отчёт и исходные Markdown-документы. `.env`, Docker data, backup, core, uploads, logs, dependencies и временные renders исключены. Оригиналы в `макеты/` и `aloha-architecture-sources.zip` остаются на диске и исключены из Git. При переносе скопируйте их отдельно по [manifest](docs/reference-manifest.json), где указаны пути, размеры и SHA-256. Не распаковывайте экспорты поверх оригиналов; используйте игнорируемую `.local/`.
+Git содержит конфигурацию, команды, исходники темы с licensed fonts и двумя SVG, local dev showcase, отчёты и исходные Markdown-документы. `.env`, Docker data, backup, core, uploads, logs, dependencies и временные renders исключены. Оригиналы в `макеты/` и `aloha-architecture-sources.zip` остаются на диске и исключены из Git. При переносе скопируйте их отдельно по [manifest](docs/reference-manifest.json), где указаны пути, размеры и SHA-256. Не распаковывайте экспорты поверх оригиналов; используйте игнорируемую `.local/`.
 
 Проверка сохранности существующих документов и референсов:
 
@@ -52,4 +53,6 @@ Git содержит конфигурацию, команды, README, отчё�
 python3 scripts/check-references.py
 ```
 
-Результат этапа и ограничения: [отчёт M1.0](docs/m1-0-local-baseline.md). Дальнейший scope: [план M1](docs/m1-theme-implementation-plan.md). M1.1 запускается отдельным заданием.
+Локальная дизайн-система: [showcase](http://127.0.0.1:8088/?aloha-style-showcase=1). Она использует настоящие WordPress blocks/styles, не создаёт Page в базе и отсутствует в публичной навигации. `dev/` монтируется отдельно вне web root; helper включён только для local environment через `ALOHA_DEV_SHOWCASE_BOOTSTRAP`. Удалите константу из Compose и выполните `up`, чтобы отключить showcase. Для production предназначен только каталог темы.
+
+Результаты и ограничения: [отчёт M1.1](docs/m1-1-theme-foundation.md), [baseline M1.0](docs/m1-0-local-baseline.md). Скриншоты и JSON — в игнорируемой `.local/evidence/m1-1/`. Frontend smoke: `PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node scripts/theme-smoke.cjs` при установленном Playwright Chromium; теме Node не нужен. Дальнейший scope: [план M1](docs/m1-theme-implementation-plan.md). M1.2 запускается отдельным заданием.

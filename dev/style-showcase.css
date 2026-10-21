@@ -1,0 +1,20 @@
+/* Showcase layout only. All component appearance comes from the theme. */
+.aloha-showcase .showcase-section { margin-block-start: var(--wp--preset--spacing--section); }
+.aloha-showcase .showcase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--wp--preset--spacing--lg); }
+.aloha-showcase .showcase-palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: var(--wp--preset--spacing--md); }
+.aloha-showcase .showcase-swatch { padding: var(--wp--preset--spacing--md); min-height: 120px; border-radius: var(--aloha-radius-card); display: flex; flex-direction: column; justify-content: end; }
+.aloha-showcase .showcase-swatch p { margin: 0; }
+.aloha-showcase .showcase-logos { display: flex; gap: var(--wp--preset--spacing--lg); flex-wrap: wrap; }
+.aloha-showcase .showcase-logos > div { flex: 1 1 260px; padding: var(--wp--preset--spacing--lg); border-radius: var(--aloha-radius-card); }
+.aloha-showcase .showcase-logos img { display: block; width: 225.4px; }
+.aloha-showcase .showcase-rule { padding-block: var(--wp--preset--spacing--md); border-block: 1px dashed var(--aloha-color-border); }
+.aloha-showcase .showcase-space { display: flex; flex-wrap: wrap; align-items: end; gap: var(--wp--preset--spacing--md); }
+.aloha-showcase .showcase-space > div { display: flex; flex-direction: column; align-items: start; gap: var(--wp--preset--spacing--xs); }
+.aloha-showcase .showcase-space span { display: block; width: 64px; background: var(--aloha-color-brand); }
+.aloha-showcase .showcase-section > :first-child { margin-block-start: 0; }
+.aloha-showcase .showcase-row { display: flex; gap: var(--wp--preset--spacing--md); flex-wrap: wrap; align-items: center; }
+.aloha-showcase .showcase-state { padding: var(--wp--preset--spacing--lg); border-radius: var(--aloha-radius-card); }
+.aloha-showcase .showcase-state-dark { background: var(--aloha-color-brand); color: var(--aloha-color-page); }
+.aloha-showcase .showcase-state-dark a:not(.wp-block-button__link):not(.aloha-button) { color: inherit; }
+.aloha-showcase code { font-size: .875em; overflow-wrap: anywhere; }
+.aloha-showcase figure { margin: 0; }
