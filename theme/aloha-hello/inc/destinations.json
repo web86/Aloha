@@ -1,0 +1,233 @@
+{
+  "destinations": {
+    "rentals": [
+      "All Rentals",
+      "/vacation-rentals/",
+      "M1.4 / M2 archive"
+    ],
+    "mauna-lani": [
+      "Mauna Lani",
+      "/big-island/mauna-lani/",
+      "M1.6"
+    ],
+    "waikoloa-resort": [
+      "Waikoloa Beach Resort",
+      "/big-island/waikoloa-beach-resort/",
+      "M1.6"
+    ],
+    "waikoloa-village": [
+      "Waikoloa Village",
+      "/big-island/waikoloa-village/",
+      "M1.6"
+    ],
+    "step-free": [
+      "Step-Free Stays",
+      "/vacation-rentals/?feature=step-free",
+      "M1.4 / proposed filter"
+    ],
+    "island": [
+      "Big Island",
+      "/big-island/",
+      "Hub / redirect decision pending"
+    ],
+    "communities": [
+      "Communities",
+      "/big-island/communities/",
+      "M1.6"
+    ],
+    "guide": [
+      "Big Island Guide",
+      "/big-island/guide/",
+      "M1.6"
+    ],
+    "things": [
+      "Things to Do",
+      "/big-island/guide/things-to-do/",
+      "M1.6"
+    ],
+    "food": [
+      "Food & Drink",
+      "/big-island/guide/food-and-drink/",
+      "M1.6"
+    ],
+    "spots": [
+      "Top Spots",
+      "/big-island/guide/top-spots/",
+      "M1.6"
+    ],
+    "events": [
+      "Events",
+      "/big-island/guide/events/",
+      "M1.6"
+    ],
+    "homeowners": [
+      "Property Management",
+      "/homeowners/",
+      "M1.6"
+    ],
+    "invest": [
+      "Invest in a Vacation Rental",
+      "/homeowners/invest/",
+      "M1.6"
+    ],
+    "calculator": [
+      "Investment Calculator",
+      "/homeowners/invest/calculator/",
+      "Later approved scope"
+    ],
+    "invest-guides": [
+      "Investor Guides",
+      "/homeowners/invest/guides/",
+      "Hub decision pending"
+    ],
+    "estimate": [
+      "Free Rental Estimate",
+      "/homeowners/estimate/",
+      "M1.6"
+    ],
+    "design": [
+      "Design & Renovation",
+      "/homeowners/design-renovation/",
+      "M1.6"
+    ],
+    "results": [
+      "Results & Reports",
+      "/homeowners/results/",
+      "M1.6"
+    ],
+    "faq": [
+      "Owner FAQ",
+      "/homeowners/faq/",
+      "M1.6"
+    ],
+    "about": [
+      "Our Team",
+      "/about/",
+      "M1.6"
+    ],
+    "guest": [
+      "Guest Info",
+      "/guest-info/",
+      "M1.6"
+    ],
+    "contact": [
+      "Contact",
+      "/contact/",
+      "M1.6"
+    ],
+    "privacy": [
+      "Privacy Policy",
+      "/privacy-policy/",
+      "Content approval"
+    ],
+    "terms": [
+      "Terms of Use",
+      "/terms/",
+      "Content approval"
+    ],
+    "agreement": [
+      "Rental Agreement",
+      "/rental-agreement/",
+      "Content approval"
+    ]
+  },
+  "primary": [
+    [
+      "rentals",
+      "Vacation Rentals",
+      [
+        "rentals",
+        "mauna-lani",
+        "waikoloa-resort",
+        "waikoloa-village"
+      ]
+    ],
+    [
+      "island",
+      "Big Island",
+      [
+        "mauna-lani",
+        "waikoloa-resort",
+        "waikoloa-village",
+        "communities",
+        "guide"
+      ]
+    ],
+    [
+      "homeowners",
+      "Homeowners",
+      [
+        "homeowners",
+        "estimate",
+        "design",
+        "results",
+        "faq"
+      ]
+    ],
+    [
+      "invest",
+      "Invest",
+      []
+    ],
+    [
+      "about",
+      "About",
+      [
+        "about",
+        "guest",
+        "contact"
+      ]
+    ]
+  ],
+  "footer": [
+    [
+      "rentals",
+      "Vacation Rentals",
+      [
+        "rentals",
+        "mauna-lani",
+        "waikoloa-resort",
+        "waikoloa-village",
+        "step-free"
+      ]
+    ],
+    [
+      "island",
+      "Big Island",
+      [
+        "mauna-lani",
+        "waikoloa-resort",
+        "waikoloa-village",
+        "communities",
+        "guide"
+      ]
+    ],
+    [
+      "homeowners",
+      "Homeowners",
+      [
+        "homeowners",
+        "invest",
+        "estimate",
+        "design",
+        "results",
+        "faq"
+      ]
+    ],
+    [
+      "about",
+      "About",
+      [
+        "about",
+        "guest",
+        "contact",
+        "privacy"
+      ]
+    ]
+  ],
+  "legal": [
+    "privacy",
+    "terms",
+    "agreement"
+  ]
+}

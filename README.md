@@ -1,4 +1,4 @@
-# ALOHA — локальный WordPress и тема, M1.1
+# ALOHA — локальный WordPress и тема, M1.2
 
 Рабочая папка: `/Users/sonoma/Documents/ALOHA`. Нужны работающий Docker Desktop/OrbStack с Compose, Bash, curl и Python 3. Системный PHP и Node для запуска не нужны. Не меняйте Docker context, если в нём работают другие проекты.
 
@@ -9,6 +9,7 @@ cd /Users/sonoma/Documents/ALOHA
 ./bin/local init
 ./bin/local up
 ./bin/local wp theme activate aloha-hello
+./bin/local wp aloha-shell install
 ./bin/local check
 ```
 
@@ -55,4 +56,15 @@ python3 scripts/check-references.py
 
 Локальная дизайн-система: [showcase](http://127.0.0.1:8088/?aloha-style-showcase=1). Она использует настоящие WordPress blocks/styles, не создаёт Page в базе и отсутствует в публичной навигации. `dev/` монтируется отдельно вне web root; helper включён только для local environment через `ALOHA_DEV_SHOWCASE_BOOTSTRAP`. Удалите константу из Compose и выполните `up`, чтобы отключить showcase. Для production предназначен только каталог темы.
 
-Результаты и ограничения: [отчёт M1.1](docs/m1-1-theme-foundation.md), [baseline M1.0](docs/m1-0-local-baseline.md). Скриншоты и JSON — в игнорируемой `.local/evidence/m1-1/`. Frontend smoke: `PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node scripts/theme-smoke.cjs` при установленном Playwright Chromium; теме Node не нужен. Дальнейший scope: [план M1](docs/m1-theme-implementation-plan.md). M1.2 запускается отдельным заданием.
+Результаты и ограничения: [отчёт M1.1](docs/m1-1-theme-foundation.md), [baseline M1.0](docs/m1-0-local-baseline.md). Скриншоты и JSON — в игнорируемой `.local/evidence/m1-1/`. Frontend smoke: `PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node scripts/theme-smoke.cjs` при установленном Playwright Chromium; теме Node не нужен. Дальнейший scope: [план M1](docs/m1-theme-implementation-plan.md). M1.2 реализован ниже; M1.3 запускается отдельным заданием.
+
+
+## Header / Footer / Navigation — M1.2
+
+[Shell preview](http://127.0.0.1:8088/?aloha-shell-preview=1) использует реальные template parts и длинный нейтральный контент; это отдельная local-only noindex-проверка. Предыдущий showcase дизайн-системы сохранён.
+
+Меню: **Appearance → Editor → Navigation** (`Aloha Primary`, `Aloha Footer`, `Aloha Legal`). Primary один для desktop/mobile; Footer один для колонок/disclosures. Контакты: **Settings → Aloha shell**; значения не публикуются без отметки подтверждения. По умолчанию Call и Book Now показывают безопасное demo-пояснение. Не копируйте контакты из макета как подтверждённые.
+
+`./bin/local wp aloha-shell install` идемпотентно создаёт отсутствующие Navigation posts и обновляет pattern cache; существующие меню не перезаписывает. Нужна при обновлении уже активной темы M1.1; на свежей активации меню создаются автоматически. Изменения меню/контактов хранятся в базе WordPress и входят в backup.
+
+[Отчёт M1.2](docs/m1-2-header-footer-navigation.md) содержит URL registry, отличия от PNG и результаты QA. Browser smoke: `PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node scripts/shell-smoke.cjs`; evidence — `.local/evidence/m1-2/`. Следующий отдельный этап — M1.3, автоматически не запускается.

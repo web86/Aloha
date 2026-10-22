@@ -1,0 +1,109 @@
+/* Site shell, isolated from M1.1 foundation tokens. */
+.aloha-site-header, .aloha-site-footer { margin-block: 0; }
+.wp-block-template-part:has(> .aloha-site-header) { position: sticky; top: var(--wp-admin--admin-bar--height, 0px); z-index: 50; }
+.aloha-site-header { position: relative; isolation: isolate; color: var(--aloha-color-text); box-shadow: 0 1px 0 #16232a14; }
+.aloha-site-header::before { content: ''; position: absolute; inset: 0; z-index: -1; background: #fff; }
+.aloha-site-header.is-scrolled::before { background: #ffffffeb; backdrop-filter: blur(16px); }
+.aloha-header-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; min-height: 92px; padding-block: 18px; }
+.aloha-brand { display: flex; flex: 0 0 auto; align-items: center; }
+.aloha-brand img { display: block; height: 56px; width: auto; max-width: 100%; }
+.aloha-header-actions { display: flex; align-items: center; gap: 24px; margin: 0; }
+.aloha-header-call { display: flex; align-items: center; gap: 8px; }
+.aloha-header-call > span { display: flex; flex-direction: column; font-size: 1.0625rem; line-height: 1.25; }
+.aloha-header-call small { font-size: .6875rem; letter-spacing: .16em; color: #4B5A60; }
+.aloha-header-call .aloha-icon-action { width: 44px; min-height: 44px; padding: 0; border: 1px solid var(--aloha-color-border); background: transparent; }
+.aloha-header-call .aloha-icon-action:hover, .aloha-primary-nav .wp-block-navigation__submenu-icon:hover { background: var(--aloha-color-surface-soft); }
+@media (min-width: 1280px) { .aloha-header-call .aloha-icon-action { width: 28px; min-height: 44px; border: 0; } }
+.aloha-header-book button { white-space: nowrap; font-size: 1.125rem; font-weight: 700; }
+.aloha-primary-nav { margin: 0; font-size: .9375rem; font-weight: 500; }
+.aloha-primary-nav .wp-block-navigation__container { gap: 16px; flex-wrap: nowrap; }
+.aloha-primary-nav li { margin: 0; }
+.aloha-primary-nav a { min-height: 44px; display: flex; align-items: center; text-decoration: none; }
+.aloha-primary-nav a.wp-block-navigation-item__content { display: flex; align-items: center; }
+.aloha-primary-nav a:hover { text-decoration: underline; text-underline-offset: .3em; }
+.aloha-primary-nav button { background: transparent; color: inherit; padding: 0; min-height: 44px; border-radius: 4px; }
+.aloha-primary-nav .wp-block-navigation__submenu-icon { width: 24px; height: 44px; min-height: 44px; margin: 0; }
+.aloha-primary-nav .wp-block-navigation__submenu-icon svg { width: 12px; height: 12px; }
+.aloha-primary-nav .wp-block-navigation__submenu-container { background: var(--aloha-color-surface); color: var(--aloha-color-text); border: 1px solid var(--aloha-color-surface-soft); border-radius: 8px; box-shadow: 0 8px 24px #16232a1f; padding: 8px; min-width: 240px; }
+.aloha-primary-nav .wp-block-navigation__submenu-container a { font-size: .9375rem; }
+.aloha-primary-nav.wp-block-navigation .has-child:not(:has(> button[aria-expanded="true"])) > .wp-block-navigation__submenu-container { visibility: hidden; opacity: 0; height: 0; width: 0; min-width: 0; overflow: hidden; }
+@media (min-width: 1280px) { .aloha-primary-nav .wp-block-navigation__container > li:nth-last-child(-n+2) > ul { left: auto; right: 0; } }
+.aloha-primary-nav [aria-current="page"] { font-weight: 600; text-decoration: underline; }
+.aloha-primary-nav .wp-block-navigation__responsive-container-open, .aloha-primary-nav .wp-block-navigation__responsive-container-close { width: 44px; height: 44px; min-height: 44px; border: 1px solid var(--aloha-color-border); border-radius: 50%; background: var(--aloha-color-surface); }
+.aloha-primary-nav .wp-block-navigation__responsive-container-open svg, .aloha-primary-nav .wp-block-navigation__responsive-container-close svg { width: 20px; height: 20px; }
+.aloha-primary-nav .wp-block-navigation__responsive-container-open:hover, .aloha-primary-nav .wp-block-navigation__responsive-container-close:hover { background: var(--aloha-color-surface-soft); }
+.aloha-site-footer { background: var(--aloha-color-text); color: var(--aloha-color-page); }
+.aloha-footer-inner { padding-block: 88px 40px; }
+.aloha-footer-top { display: grid; grid-template-columns: calc((100% - 160px) / 5) minmax(0, 1fr); gap: 40px; }
+.aloha-footer-identity p { font-size: .875rem; line-height: 1.8; margin: 20px 0; color: #d0dadd; }
+.aloha-footer-identity .aloha-brand img { max-width: none; }
+.aloha-site-footer a { color: inherit; text-decoration: none; }
+.aloha-site-footer a:hover { text-decoration: underline; }
+.aloha-footer-groups { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px; }
+.aloha-footer-group { min-width: 0; }
+.aloha-footer-group summary { font-size: .8125rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--aloha-color-accent); list-style: none; }
+.aloha-footer-group summary::-webkit-details-marker { display: none; }
+.aloha-footer-group summary:hover { text-decoration: underline; }
+.aloha-footer-group ul { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.aloha-footer-group li { margin: 0; display: block; }
+.aloha-footer-group a { font-size: .9375rem; line-height: 1.6; color: #d0dadd; }
+.aloha-footer-legal { border-top: 1px solid #f3f6f62e; padding-top: 24px; margin-top: 72px; display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 20px; font-size: .8125rem; color: #d0dadd; }
+.aloha-legal { font-size: .8125rem; }
+.aloha-legal .wp-block-navigation__container { gap: 24px; }
+.aloha-legal li { margin: 0; }
+.aloha-bottom-bar { display: none; }
+.aloha-demo-dialog { max-width: min(560px, calc(100% - 40px)); max-height: calc(100dvh - 40px); overflow: auto; border: 0; border-radius: 12px; padding: 32px; color: var(--aloha-color-text); background: var(--aloha-color-page); }
+.aloha-demo-dialog::backdrop { background: #16232a99; }
+.aloha-demo-dialog h2 { font-size: clamp(32px, 3vw, 44px); }
+.aloha-demo-dialog p { overflow-wrap: anywhere; }
+@media (min-width: 768px) {
+ .aloha-footer-group::details-content { content-visibility: visible; }
+ .aloha-footer-group:not([open]) > ul { display: flex; }
+ .aloha-footer-group summary { pointer-events: none; }
+}
+@media (max-width: 1279px) {
+ .aloha-footer-top { grid-template-columns: minmax(0, 1fr); }
+ .aloha-header-inner { min-height: 68px; padding-block: 12px; gap: 8px; }
+ .aloha-header-inner .aloha-brand img { height: 40px; }
+ .aloha-header-actions { order: 1; margin-left: auto; }
+ .aloha-editor-slot--header-actions { order: 1; margin-left: auto; }
+ .aloha-primary-nav { order: 2; }
+ .aloha-header-call > span, .aloha-header-book { display: none; }
+ .aloha-primary-nav .wp-block-navigation__responsive-container:not(.is-menu-open) { display: none; }
+ .aloha-primary-nav .wp-block-navigation__responsive-container-open:not(.always-shown) { display: inline-flex; }
+ .aloha-primary-nav .wp-block-navigation__responsive-container.is-menu-open { position: fixed; inset: 0; padding: 24px var(--aloha-gutter) max(32px, env(safe-area-inset-bottom)); background: var(--aloha-color-page); color: var(--aloha-color-text); overflow-y: auto; }
+ .aloha-primary-nav .is-menu-open .wp-block-navigation__responsive-container-content { align-items: stretch; padding-top: 68px; }
+ .aloha-primary-nav .is-menu-open .wp-block-navigation__responsive-container-close { position: fixed; top: max(20px, env(safe-area-inset-top)); right: var(--aloha-gutter); }
+ .aloha-primary-nav .is-menu-open .wp-block-navigation__container { width: 100%; align-items: stretch; gap: 20px; }
+ .aloha-primary-nav .is-menu-open .wp-block-navigation-item { width: 100%; align-items: start; }
+ .aloha-primary-nav .is-menu-open .wp-block-navigation__container > li > a { font-size: 1.5rem; font-weight: 600; }
+ .aloha-primary-nav .is-menu-open .wp-block-navigation__submenu-container { box-shadow: none; border: 0; border-left: 2px solid var(--aloha-color-surface-soft); border-radius: 0; padding: 0 0 0 16px; margin: 8px 0 0; background: transparent; align-items: start; }
+ .aloha-primary-nav .is-menu-open .wp-block-navigation__submenu-container a { font-size: 1.125rem; padding: 8px; }
+ .aloha-primary-nav .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__responsive-container-content .has-child > .wp-block-navigation__submenu-container { padding: 0 0 0 16px; min-width: 0; width: 100%; gap: 4px; }
+ .aloha-primary-nav .is-menu-open .wp-block-navigation-item__label { min-width: 0; overflow-wrap: anywhere; }
+}
+@media (max-width: 767px) {
+ body:has(.aloha-bottom-bar) { padding-bottom: var(--aloha-bottom-height, calc(76px + env(safe-area-inset-bottom))); }
+ .aloha-footer-inner { padding-block: 48px 44px; }
+ .aloha-footer-top, .aloha-footer-groups { display: flex; flex-direction: column; gap: 0; }
+ .aloha-footer-identity { margin-bottom: 28px; }
+ .aloha-footer-identity .aloha-brand img { height: 46px; }
+ .aloha-footer-group { border-top: 1px solid #f3f6f62e; }
+ .aloha-footer-group:last-child { border-bottom: 1px solid #f3f6f62e; }
+ .aloha-footer-group summary { padding: 16px 0; min-height: 56px; font-size: 1rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: inherit; cursor: pointer; display: flex; justify-content: space-between; }
+ .aloha-footer-group summary::after { content: '+'; }
+ .aloha-footer-group[open] summary::after { content: '−'; }
+ .aloha-footer-group ul { margin: 0 0 16px; }
+ .aloha-footer-group a { display: inline-flex; align-items: center; min-height: 44px; }
+ .aloha-footer-legal { margin-top: 24px; padding-top: 0; border: 0; }
+ .aloha-legal .wp-block-navigation__container { gap: 8px 18px; }
+ .aloha-bottom-bar { display: flex; position: fixed; z-index: 40; inset: auto 0 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); gap: 10px; background: var(--aloha-color-surface); box-shadow: 0 -1px 0 #16232a14; }
+ .aloha-bottom-bar > * { min-width: 0; flex: 1 1 0; }
+ .aloha-bottom-bar > :last-child { flex-grow: 1.4; }
+ html.has-modal-open .aloha-bottom-bar, body.aloha-field-focused .aloha-bottom-bar { visibility: hidden; pointer-events: none; }
+ body:has(.aloha-site-header) { scroll-padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: no-preference) { .aloha-site-header::before { transition: background-color .15s ease; } }
+
+@media (max-width: 767px) { html:has(.aloha-bottom-bar) { scroll-padding-bottom: calc(var(--aloha-bottom-height, 76px) + 24px); } }
+html:has(.aloha-demo-dialog[open]) { overflow: hidden; }

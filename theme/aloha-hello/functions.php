@@ -1,6 +1,7 @@
 <?php
 /** Theme presentation only; integrations belong to plugins. */
 defined( 'ABSPATH' ) || exit;
+require_once __DIR__ . '/inc/shell.php';
 
 add_action( 'after_setup_theme', function () {
 	add_theme_support( 'editor-styles' );
@@ -10,6 +11,10 @@ add_action( 'after_setup_theme', function () {
 add_action( 'wp_enqueue_scripts', function () {
 	$file = get_theme_file_path( 'assets/css/foundation.css' );
 	wp_enqueue_style( 'aloha-foundation', get_theme_file_uri( 'assets/css/foundation.css' ), array(), (string) filemtime( $file ) );
+	if ( ! function_exists( 'aloha_is_style_showcase' ) || ! aloha_is_style_showcase() ) {
+		wp_enqueue_style( 'aloha-shell', get_theme_file_uri( 'assets/css/shell.css' ), array( 'aloha-foundation' ), (string) filemtime( get_theme_file_path( 'assets/css/shell.css' ) ) );
+		wp_enqueue_script( 'aloha-shell', get_theme_file_uri( 'assets/js/shell.js' ), array(), (string) filemtime( get_theme_file_path( 'assets/js/shell.js' ) ), true );
+	}
 } );
 
 add_action( 'init', function () {

@@ -36,3 +36,4 @@ add_action( 'wp_enqueue_scripts', function () {
 		wp_add_inline_style( 'aloha-foundation', file_get_contents( __DIR__ . '/style-showcase.css' ) );
 	}
 }, 20 );
+require_once __DIR__ . '/shell-bootstrap.php';

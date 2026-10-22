@@ -389,5 +389,17 @@
         }
       }
     }
-  }
+  },
+  "templateParts": [
+    {
+      "name": "header",
+      "title": "Aloha Header",
+      "area": "header"
+    },
+    {
+      "name": "footer",
+      "title": "Aloha Footer",
+      "area": "footer"
+    }
+  ]
 }
