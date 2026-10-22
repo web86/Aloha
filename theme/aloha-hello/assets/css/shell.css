@@ -121,32 +121,32 @@ html:has(.aloha-demo-dialog[open]) { overflow: hidden; }
  .aloha-primary-nav, .aloha-primary-nav .wp-block-navigation__responsive-container, .aloha-primary-nav .wp-block-navigation__responsive-dialog, .aloha-primary-nav .wp-block-navigation__responsive-close, .aloha-primary-nav .wp-block-navigation__responsive-container-content, .aloha-primary-nav .wp-block-navigation__container, .aloha-primary-nav.aloha-nav-ready .aloha-mega-item { position: static; }
  .aloha-primary-nav .wp-block-navigation__container { gap: clamp(18px, 2.3vw, 34px); }
  /* Disclosure stays reachable by Tab and assistive technology; no visible desktop arrows. */
- .aloha-primary-nav.aloha-nav-ready .aloha-mega-item > button { position: absolute; width: 1px; min-height: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
- .aloha-primary-nav.aloha-nav-ready .aloha-mega-item > button:focus-visible { width: auto; height: auto; min-height: 36px; clip-path: none; z-index: 2; top: 100%; padding: 8px 16px; background: var(--aloha-color-surface); }
- .aloha-primary-nav.aloha-nav-ready .aloha-mega-item > button:focus-visible::before { content: attr(aria-label); }
- .aloha-primary-nav.aloha-nav-ready .aloha-mega-item > button svg { display: none; }
+ nav.aloha-primary-nav .wp-block-navigation__container > .has-child > button { position: absolute; width: 1px; min-height: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+ nav.aloha-primary-nav .wp-block-navigation__container > .has-child > button:focus-visible { width: auto; height: auto; min-height: 36px; clip-path: none; z-index: 2; top: 100%; padding: 8px 16px; background: var(--aloha-color-surface); }
+ nav.aloha-primary-nav .wp-block-navigation__container > .has-child > button:focus-visible::before { content: attr(aria-label); }
+ nav.aloha-primary-nav .wp-block-navigation__container > .has-child > button svg { display: none; }
  .aloha-primary-nav.aloha-nav-ready.wp-block-navigation .aloha-mega-item > .aloha-mega-panel {
-  position: absolute; inset: 100% auto auto 50%; transform: translate(-50%, 6px);
+  position: absolute; inset: 100% auto auto 50%; transform: translateX(-50%);
   width: min(1200px, calc(100% - 2 * var(--aloha-gutter))); min-width: 0;
   max-height: max(120px, calc(100dvh - var(--aloha-header-bottom, 92px) - 20px)); overflow: auto;
   display: grid; grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto;
   gap: 8px 32px; align-items: start; align-content: start; padding: 36px 40px;
-  border: 1px solid var(--aloha-color-border); border-top-color: #16232a0d; border-radius: 0 0 10px 10px;
+  border: 1px solid #16232a14; border-radius: 0 0 10px 10px;
   background: var(--aloha-color-page); color: var(--aloha-color-text); box-shadow: 0 18px 32px -12px #16232a30;
   visibility: hidden; opacity: 0; pointer-events: none; height: auto; z-index: 1;
  }
  .aloha-primary-nav.aloha-nav-ready.wp-block-navigation .aloha-mega-item > .aloha-mega-panel.has-editorial { grid-template-columns: minmax(0, 1.15fr) minmax(0, 2fr); }
  .aloha-primary-nav.aloha-nav-ready .aloha-mega-links-list { display: grid; grid-template-columns: repeat(var(--aloha-mega-columns), minmax(0, 1fr)); grid-template-rows: repeat(var(--aloha-mega-rows), max-content); grid-auto-flow: column; align-items: start; gap: 8px 32px; }
  .aloha-primary-nav.aloha-nav-ready .aloha-mega-panel > li { width: auto; min-width: 0; align-self: start; }
- .aloha-primary-nav.aloha-nav-ready .aloha-mega-panel > .aloha-mega-editorial { display: block; padding-right: 32px; border-right: 1px solid var(--aloha-color-border); }
+ .aloha-primary-nav.aloha-nav-ready .aloha-mega-panel > .aloha-mega-editorial { display: block; container: aloha-editorial / inline-size; padding-right: 32px; border-right: 1px solid #16232a14; }
  .aloha-primary-nav.aloha-nav-ready .aloha-mega-links-list > li > a { padding: 12px 16px; width: 100%; font-size: 1.0625rem; line-height: 1.5; border-radius: 6px; transition: background-color .15s ease; }
  .aloha-primary-nav.aloha-nav-ready .aloha-mega-links-list > li > a:is(:hover, :focus-visible) { background: var(--aloha-color-surface); text-decoration: none; color: var(--aloha-color-brand); }
- .aloha-primary-nav.aloha-nav-ready.wp-block-navigation .aloha-mega-item.is-aloha-open > .aloha-mega-panel { visibility: visible; opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+ .aloha-primary-nav.aloha-nav-ready.wp-block-navigation .aloha-mega-item.is-aloha-open > .aloha-mega-panel { visibility: visible; opacity: 1; pointer-events: auto; transform: translateX(-50%); }
  .aloha-primary-nav.aloha-nav-ready .aloha-mega-item.is-aloha-open > a { text-decoration: underline; text-underline-offset: .4em; }
 }
 @media (min-width: 1280px) and (prefers-reduced-motion: no-preference) {
- .aloha-primary-nav.aloha-nav-ready.wp-block-navigation .aloha-mega-item > .aloha-mega-panel { transition: opacity .17s ease, transform .17s ease, visibility .17s; }
+ .aloha-primary-nav.aloha-nav-ready.wp-block-navigation .aloha-mega-item > .aloha-mega-panel { transition: opacity .17s ease; }
 }
 @media (max-width: 1279px) {
  .aloha-primary-nav.aloha-nav-ready .is-menu-open .aloha-submenu { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: start; }
@@ -157,8 +157,8 @@ html:has(.aloha-demo-dialog[open]) { overflow: hidden; }
  .aloha-primary-nav.aloha-nav-ready .is-menu-open .aloha-submenu:not(.is-aloha-open) > ul { display: none !important; }
  .aloha-primary-nav.aloha-nav-ready .is-menu-open .aloha-mega-editorial { display: none; }
 }
-/* Without JavaScript, keep every destination reachable as a simple expanded hierarchy. */
-nav.aloha-primary-nav:not(.aloha-nav-ready) .has-child > ul { position: static !important; visibility: visible !important; opacity: 1 !important; height: auto !important; width: auto !important; min-width: 0 !important; overflow: visible !important; }
+/* Closed before initialization too; the separate noscript rules provide the fallback. */
+nav.aloha-primary-nav:not(.aloha-nav-ready) .has-child > ul { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .aloha-primary-nav.aloha-nav-ready * { transition: none !important; } }
 @media (min-width: 1280px) {
  /* Core's desktop :not() rule otherwise makes this wrapper the panel's containing block. */
@@ -170,3 +170,28 @@ nav.aloha-primary-nav:not(.aloha-nav-ready) .has-child > ul { position: static !
 
 .aloha-primary-nav .aloha-mega-links-list { list-style: none; margin: 0; padding: 0; width: 100%; }
 @media (max-width: 1279px) { .aloha-primary-nav .aloha-mega-links { width: 100%; } .aloha-primary-nav .aloha-mega-links-list { display: flex; flex-direction: column; gap: 4px; } }
+
+/* The image and copy have independent, bounded tracks; no empty copy slot is rendered. */
+.aloha-mega-photo, .aloha-mega-copy { min-width: 0; }
+.aloha-primary-nav .aloha-mega-copy > :first-child { margin-top: 0; }
+@media (min-width: 1280px) {
+ .aloha-mega-feature.has-image-left { display: grid; grid-template-columns: clamp(96px, 30%, 124px) minmax(0, 1fr); align-items: start; gap: 20px; }
+ .aloha-mega-feature.has-image-left .aloha-mega-image { height: auto; aspect-ratio: 4 / 5; margin-bottom: 0; }
+ .aloha-primary-nav .aloha-mega-links-list > li > a { justify-content: space-between; gap: 16px; }
+ .aloha-primary-nav .aloha-mega-links-list > li > a::after { content: ''; width: 16px; height: 16px; flex: 0 0 16px; background: var(--aloha-color-brand); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 8h11M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+ .aloha-primary-nav .aloha-mega-links-list > li > a:is(:hover, :focus-visible)::after { transform: translateX(3px); }
+}
+@container aloha-editorial (max-width: 320px) {
+ .aloha-mega-feature.has-image-left { grid-template-columns: minmax(0, 1fr); }
+ .aloha-mega-feature.has-image-left .aloha-mega-image { height: 128px; aspect-ratio: auto; }
+}
+@media (min-width: 1280px) and (prefers-reduced-motion: no-preference) { .aloha-mega-links-list > li > a::after { transition: transform .17s ease; } }
+@media (min-width: 1280px) {
+ /* Keep a typical sixth/seventh section in the existing header row; identity never uses position. */
+ nav.aloha-primary-nav:has(.wp-block-navigation__container > li:nth-child(6)) .wp-block-navigation__container { gap: 16px; }
+}
+.aloha-primary-nav .aloha-mega-links-list > li > a > .wp-block-navigation-item__label { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+@media (min-width: 1280px) {
+ /* The hover bridge must never cover the lower edge of the logo or header actions. */
+ .aloha-site-header .aloha-brand, .aloha-header-actions { position: relative; z-index: 2; }
+}

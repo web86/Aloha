@@ -1,4 +1,4 @@
-# ALOHA — локальный WordPress и тема, M1.2.1
+# ALOHA — локальный WordPress и тема, M1.2.2
 
 Рабочая папка: `/Users/sonoma/Documents/ALOHA`. Нужны работающий Docker Desktop/OrbStack с Compose, Bash, curl и Python 3. Системный PHP и Node для запуска не нужны. Не меняйте Docker context, если в нём работают другие проекты.
 
@@ -79,3 +79,12 @@ Desktop от 1280px: hover mega menu без видимых стрелок, об�
 На обновлённой активной теме выполнить `./bin/local wp aloha-shell install`: однократная безопасная миграция добавит классы исходным родителям и отсутствующий Step-Free Stays, сохранив редакторские изменения. Повторные install не перезаписывают меню/настройки.
 
 [Полная архитектура, инструкция и QA M1.2.1](docs/m1-2-1-mega-menu.md). Актуальный frontend check: `PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node scripts/mega-menu-smoke.cjs`; evidence — `.local/evidence/m1-2-1/`. M1.3 не начинался и автоматически не запускается.
+
+
+## Mega Menu fixes & Dynamic Settings — M1.2.2
+
+Список Mega Menu settings теперь автоматически следует текущим верхним Submenu blocks в Aloha Primary. Новые разделы получают устойчивый UUID при редактировании/сохранении; названия, URL и порядок редактируются только в Site Editor. Копии получают отдельные IDs. Существующие четыре ключа и пользовательские данные сохранены; удаление пункта не удаляет его editorial content.
+
+В Settings → Aloha shell → Mega Menu добавлен **Show image on the left** (по умолчанию выключен). Исправлены hover boundaries/timers, Firefox visibility/focus race и начальное раскрытие до JS; no-JS fallback выделен отдельно. Граница светлая, дочерние desktop links получили декоративные стрелки. Полный [отчёт M1.2.2](docs/m1-2-2-mega-menu-fixes.md) содержит инструкции, подтверждённые причины, результаты Chromium/Firefox/initial-frame QA и ограничения. Он заменяет прежние инструкции M1.2.1 о ручном назначении классов новым разделам.
+
+Evidence — `.local/evidence/m1-2-2/`, вне Git. Тема 0.2.2; M1.3 и GuestyBridge не начинались.

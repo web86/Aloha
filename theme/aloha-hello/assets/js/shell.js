@@ -69,6 +69,8 @@
   hint.textContent = 'Use Arrow Down to explore links. On touch, tap once to expand and again to visit.'; nav.append(hint);
   let active = null, touchArmed = null, opening, closing, pointer = 'mouse', pointerAt = 0;
   const clearTimers = () => { clearTimeout(opening); clearTimeout(closing); };
+  const inGroup = (g, target) => target instanceof Node && (g.li.contains(target) || g.panel.contains(target));
+  const cancelClose = () => clearTimeout(closing);
   const setState = (g, open) => {
    g.li.classList.toggle('is-aloha-open', open);
    g.panel.inert = !open;
@@ -88,6 +90,13 @@
    if (g.top) g.li.style.setProperty('--aloha-bridge-top', `${g.link.getBoundingClientRect().bottom - header.getBoundingClientRect().top}px`);
    if (g.top && !media.matches) g.panel.querySelectorAll('template.aloha-mega-media').forEach(t => t.replaceWith(t.content.cloneNode(true)));
   };
+  const leaveGroup = (g, e) => {
+   if (e.pointerType !== 'mouse' || media.matches || touchArmed || inGroup(g, e.relatedTarget)) return;
+   clearTimeout(opening); cancelClose();
+   closing = setTimeout(() => {
+    if (active === g && !g.li.matches(':hover') && !g.panel.matches(':hover') && !inGroup(g, document.activeElement) && !dialog?.open) close();
+   }, 200);
+  };
   groups.forEach(g => {
    setState(g, false);
    g.link.addEventListener('pointerenter', e => {
@@ -96,11 +105,9 @@
     if (active && active !== g && !active.panel.contains(document.activeElement)) close();
     opening = setTimeout(() => open(g, 'mouse'), 110);
    });
-   g.li.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') clearTimeout(closing); });
-   g.li.addEventListener('pointerleave', e => {
-    if (e.pointerType !== 'mouse' || media.matches || touchArmed) return;
-    clearTimeout(opening);
-    closing = setTimeout(() => { if (!active?.li.contains(document.activeElement) && !dialog?.open) close(); }, 200);
+   [g.li, g.panel].forEach(region => {
+    region.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') cancelClose(); });
+    region.addEventListener('pointerleave', e => leaveGroup(g, e));
    });
    g.button.addEventListener('click', () => {
     if (g.li.classList.contains('is-aloha-open')) close(); else open(g, 'keyboard');
@@ -128,7 +135,7 @@
    if (active && !dialog?.open && !active.li.contains(e.target) && !(control && nav.contains(control))) close();
   }, true);
   nav.addEventListener('pointerover', e => {
-   if (e.pointerType !== 'mouse' || media.matches || touchArmed) return;
+   if (e.pointerType !== 'mouse' || media.matches || touchArmed || e.target.closest('.aloha-mega-panel')) return;
    const top = e.target.closest('.wp-block-navigation__container > li');
    if (top && !top.classList.contains('aloha-mega-item')) close();
   });

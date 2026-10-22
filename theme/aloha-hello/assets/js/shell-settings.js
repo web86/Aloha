@@ -2,7 +2,7 @@
 (() => {
  'use strict';
  document.querySelectorAll('.aloha-media-field').forEach(field => {
-  const input = field.querySelector('input'), preview = field.querySelector('.aloha-media-preview');
+  const input = field.querySelector('input[type=hidden]'), preview = field.querySelector('.aloha-media-preview');
   const status = field.querySelector('.aloha-media-status');
   let frame;
   field.querySelector('.aloha-media-select').addEventListener('click', () => {
@@ -19,7 +19,7 @@
      img.style.cssText = 'max-width:150px;height:auto'; preview.replaceChildren(img);
      status.textContent = 'Image selected. Save Changes to apply.';
     });
-    frame.on('open', () => { if (+input.value) frame.state().get('selection').add(wp.media.attachment(+input.value)); });
+    frame.on('open', () => { const selection = frame.state().get('selection'); selection.reset(); if (+input.value) selection.add(wp.media.attachment(+input.value)); });
    }
    frame.open();
   });

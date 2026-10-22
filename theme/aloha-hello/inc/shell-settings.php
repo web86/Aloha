@@ -50,7 +50,7 @@ function aloha_mega_settings_field( $args ) {
 	$id = absint( $value['image_id'] ?? 0 );
 	echo '<div class="aloha-media-field"><p>Image</p><div class="aloha-media-preview">';
 	if ( aloha_mega_image_valid( $id ) ) { echo wp_get_attachment_image( $id, 'thumbnail', false, array( 'style' => 'max-width:150px;height:auto' ) ); }
-	echo '</div><input type="hidden" name="aloha_shell_mega_menu[' . esc_attr( $key ) . '][image_id]" value="' . esc_attr( $id ) . '"><button type="button" class="button aloha-media-select">Choose / replace image</button> <button type="button" class="button aloha-media-remove">Remove image</button><p class="description">Media Library attachment; alternative text is edited in Media Library.</p><p class="aloha-media-status" role="status"></p></div></fieldset>';
+	echo '</div><p><label><input type="checkbox" name="aloha_shell_mega_menu[' . esc_attr( $key ) . '][image_left]" value="1" ' . checked( ! empty( $value['image_left'] ), true, false ) . '> Show image on the left</label></p><input type="hidden" name="aloha_shell_mega_menu[' . esc_attr( $key ) . '][image_id]" value="' . esc_attr( $id ) . '"><button type="button" class="button aloha-media-select">Choose / replace image</button> <button type="button" class="button aloha-media-remove">Remove image</button><p class="description">Media Library attachment; alternative text is edited in Media Library.</p><p class="aloha-media-status" role="status"></p></div></fieldset>';
 }
 
 add_action( 'admin_enqueue_scripts', function ( $hook ) {

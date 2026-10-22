@@ -2,7 +2,7 @@
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const {chromium, firefox, webkit} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const type = {chromium, firefox, webkit}[process.env.SHELL_BROWSER || 'chromium'];
-const base = 'http://127.0.0.1:8088', out = '.local/evidence/m1-2-1';
+const base = 'http://127.0.0.1:8088', out = process.env.EVIDENCE_DIR || '.local/evidence/m1-2-1';
 fs.mkdirSync(out, {recursive:true});
 (async () => {
  const browser = await type.launch({headless:true});
@@ -114,7 +114,7 @@ fs.mkdirSync(out, {recursive:true});
   report.checks.push('mobile overlay 320/390/768/1024, two-tap and child link','Core focus trap/Escape/Back/scroll lock/bottom bar','footer disclosure regression');
   assert.equal(await p.locator('a[href^="tel:"],a[href^="mailto:"]').count(),0);
   await reset(390);await p.locator('.aloha-bottom-bar [data-aloha-action=call]').click();assert.match(await p.locator('#aloha-demo-message').textContent(),/No call/);await dismiss();
-  await reset(1440);await p.locator('.aloha-header-book button').click();assert.match(await p.locator('#aloha-demo-message').textContent(),/No booking or payment/);await p.screenshot({path:`${out}/book-demo.png`});await dismiss();
+  await reset(1440);await parent('rentals').hover();await settle();const book=p.locator('.aloha-header-book button'),bookBox=await book.boundingBox();await book.click({position:{x:bookBox.width/2,y:bookBox.height-2}});assert.match(await p.locator('#aloha-demo-message').textContent(),/No booking or payment/);await p.screenshot({path:`${out}/book-demo.png`});await dismiss();
   report.checks.push('verified-contact protection, Call/Book demo, bottom field focus and footer clearance');
   // Ordinary navigation outside the local preview retains real href behavior (future URLs may 404).
   const actual=await context.newPage();const actualParent=()=>actual.locator('li.aloha-mega-rentals > a');
