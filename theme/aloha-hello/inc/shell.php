@@ -26,6 +26,7 @@ function aloha_shell_install() {
 		$ids[ $location ] = $id;
 	}
 	update_option( 'aloha_shell_menus', $ids );
+	aloha_mega_install();
 	return $ids;
 }
 
@@ -39,7 +40,7 @@ function aloha_shell_menu_content( $location ) {
 	foreach ( $registry[ $location ] as $entry ) {
 		if ( 'legal' === $location ) { $content .= $link( $entry ); continue; }
 		if ( empty( $entry[2] ) ) { $content .= $link( $entry[0], $entry[1] ); continue; }
-		$content .= '<!-- wp:navigation-submenu ' . wp_json_encode( array( 'label' => $entry[1], 'url' => $registry['destinations'][ $entry[0] ][1], 'kind' => 'custom' ) ) . ' -->';
+		$content .= '<!-- wp:navigation-submenu ' . wp_json_encode( array( 'label' => $entry[1], 'url' => $registry['destinations'][ $entry[0] ][1], 'kind' => 'custom', 'className' => 'primary' === $location ? 'aloha-mega-' . $entry[0] : '' ) ) . ' -->';
 		foreach ( $entry[2] as $key ) { $content .= $link( $key ); }
 		$content .= '<!-- /wp:navigation-submenu -->';
 	}
@@ -169,18 +170,6 @@ function aloha_mark_planned_link( $html, $block ) {
 add_filter( 'render_block_core/navigation-link', 'aloha_mark_planned_link', 10, 2 );
 add_filter( 'render_block_core/navigation-submenu', 'aloha_mark_planned_link', 10, 2 );
 
-// Keep separate parent links + Core disclosure buttons, with explicit activation.
-// A hover-open popup would remain under the pointer after Escape in Core's hover mode.
-add_filter( 'render_block_core/navigation', function ( $html, $block ) {
-	if ( ! str_contains( $block['attrs']['className'] ?? '', 'aloha-primary-nav' ) ) {
-		return $html;
-	}
-	$p = new WP_HTML_Tag_Processor( $html );
-	while ( $p->next_tag( 'LI' ) ) {
-		$p->remove_attribute( 'data-wp-on--pointerenter' );
-		$p->remove_attribute( 'data-wp-on--pointerleave' );
-	}
-	return $p->get_updated_html();
-}, 20, 2 );
+require_once __DIR__ . '/mega-menu.php';
 
 require_once __DIR__ . '/shell-settings.php';

@@ -1,4 +1,4 @@
-# ALOHA — локальный WordPress и тема, M1.2
+# ALOHA — локальный WordPress и тема, M1.2.1
 
 Рабочая папка: `/Users/sonoma/Documents/ALOHA`. Нужны работающий Docker Desktop/OrbStack с Compose, Bash, curl и Python 3. Системный PHP и Node для запуска не нужны. Не меняйте Docker context, если в нём работают другие проекты.
 
@@ -68,3 +68,14 @@ python3 scripts/check-references.py
 `./bin/local wp aloha-shell install` идемпотентно создаёт отсутствующие Navigation posts и обновляет pattern cache; существующие меню не перезаписывает. Нужна при обновлении уже активной темы M1.1; на свежей активации меню создаются автоматически. Изменения меню/контактов хранятся в базе WordPress и входят в backup.
 
 [Отчёт M1.2](docs/m1-2-header-footer-navigation.md) содержит URL registry, отличия от PNG и результаты QA. Browser smoke: `PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node scripts/shell-smoke.cjs`; evidence — `.local/evidence/m1-2/`. Следующий отдельный этап — M1.3, автоматически не запускается.
+
+
+## Desktop Mega Menu — M1.2.1
+
+Desktop от 1280px: hover mega menu без видимых стрелок, обычный переход по родительской ссылке, ArrowDown для раскрытия с клавиатуры. Touch на любой ширине: первое касание раскрывает, второе переходит. До 1279px сохранён Core overlay с компактными disclosures.
+
+**Settings → Aloha shell → Mega Menu**: heading, description, Media Library image и CTA Label. Все URL/названия/порядок — исключительно **Site Editor → Navigation → Aloha Primary**. Связь сохраняется через классы `aloha-mega-rentals`, `aloha-mega-island`, `aloha-mega-homeowners`, `aloha-mega-about` в Advanced родительских Submenu blocks. Не удаляйте эти классы при редактировании.
+
+На обновлённой активной теме выполнить `./bin/local wp aloha-shell install`: однократная безопасная миграция добавит классы исходным родителям и отсутствующий Step-Free Stays, сохранив редакторские изменения. Повторные install не перезаписывают меню/настройки.
+
+[Полная архитектура, инструкция и QA M1.2.1](docs/m1-2-1-mega-menu.md). Актуальный frontend check: `PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node scripts/mega-menu-smoke.cjs`; evidence — `.local/evidence/m1-2-1/`. M1.3 не начинался и автоматически не запускается.

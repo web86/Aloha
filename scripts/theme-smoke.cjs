@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = 'http://127.0.0.1:8088';
-const evidence = '.local/evidence/m1-1';
+const evidence = process.env.EVIDENCE_DIR || '.local/evidence/m1-1';
 fs.mkdirSync(evidence, { recursive: true });
 
 async function geometry(page) {
