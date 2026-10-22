@@ -43,6 +43,7 @@ services:
       - wordpress:/var/www/html
       - ./config/php-local.ini:/usr/local/etc/php/conf.d/zz-aloha-local.ini:ro
       - ./theme/aloha-hello:/var/www/html/wp-content/themes/aloha-hello:ro
+      - ./plugins/aloha-content:/var/www/html/wp-content/plugins/aloha-content:ro
       - ./dev:/var/www/aloha-dev:ro
     depends_on:
       db:
@@ -72,6 +73,7 @@ services:
       - ./config/php-local.ini:/usr/local/etc/php/conf.d/zz-aloha-local.ini:ro
       - ./config/wp-cli.yml:/etc/aloha/wp-cli.yml:ro
       - ./theme/aloha-hello:/var/www/html/wp-content/themes/aloha-hello:ro
+      - ./plugins/aloha-content:/var/www/html/wp-content/plugins/aloha-content:ro
     depends_on:
       db:
         condition: service_healthy

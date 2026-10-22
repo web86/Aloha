@@ -1,4 +1,4 @@
-# ALOHA — локальный WordPress и тема, M1.2.2
+# ALOHA — локальный WordPress, тема и Aloha Content, M1.4-B3-C
 
 Рабочая папка: `/Users/sonoma/Documents/ALOHA`. Нужны работающий Docker Desktop/OrbStack с Compose, Bash, curl и Python 3. Системный PHP и Node для запуска не нужны. Не меняйте Docker context, если в нём работают другие проекты.
 
@@ -9,6 +9,7 @@ cd /Users/sonoma/Documents/ALOHA
 ./bin/local init
 ./bin/local up
 ./bin/local wp theme activate aloha-hello
+./bin/local wp plugin activate aloha-content
 ./bin/local wp aloha-shell install
 ./bin/local check
 ```
@@ -54,7 +55,7 @@ Git содержит конфигурацию, команды, исходник�
 python3 scripts/check-references.py
 ```
 
-Локальная дизайн-система: [showcase](http://127.0.0.1:8088/?aloha-style-showcase=1). Она использует настоящие WordPress blocks/styles, не создаёт Page в базе и отсутствует в публичной навигации. `dev/` монтируется отдельно вне web root; helper включён только для local environment через `ALOHA_DEV_SHOWCASE_BOOTSTRAP`. Удалите константу из Compose и выполните `up`, чтобы отключить showcase. Для production предназначен только каталог темы.
+Локальная дизайн-система: [showcase](http://127.0.0.1:8088/?aloha-style-showcase=1). Она использует настоящие WordPress blocks/styles, не создаёт Page в базе и отсутствует в публичной навигации. `dev/` монтируется отдельно вне web root; helper включён только для local environment через `ALOHA_DEV_SHOWCASE_BOOTSTRAP`. Удалите константу из Compose и выполните `up`, чтобы отключить showcase. Дистрибутивы проекта — тема и отдельный Aloha Content; dev tooling в них не входит.
 
 Результаты и ограничения: [отчёт M1.1](docs/m1-1-theme-foundation.md), [baseline M1.0](docs/m1-0-local-baseline.md). Скриншоты и JSON — в игнорируемой `.local/evidence/m1-1/`. Frontend smoke: `PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node scripts/theme-smoke.cjs` при установленном Playwright Chromium; теме Node не нужен. Дальнейший scope: [план M1](docs/m1-theme-implementation-plan.md). M1.2 реализован ниже; M1.3 запускается отдельным заданием.
 
@@ -88,3 +89,41 @@ Desktop от 1280px: hover mega menu без видимых стрелок, об�
 В Settings → Aloha shell → Mega Menu добавлен **Show image on the left** (по умолчанию выключен). Исправлены hover boundaries/timers, Firefox visibility/focus race и начальное раскрытие до JS; no-JS fallback выделен отдельно. Граница светлая, дочерние desktop links получили декоративные стрелки. Полный [отчёт M1.2.2](docs/m1-2-2-mega-menu-fixes.md) содержит инструкции, подтверждённые причины, результаты Chromium/Firefox/initial-frame QA и ограничения. Он заменяет прежние инструкции M1.2.1 о ручном назначении классов новым разделам.
 
 Evidence — `.local/evidence/m1-2-2/`, вне Git. Тема 0.2.2; M1.3 и GuestyBridge не начинались.
+
+## Editorial Areas / Communities — M1.4-A
+
+Плагин `plugins/aloha-content` монтируется в WordPress/CLI отдельно от темы. После обновления выполнить `./bin/local up` и `./bin/local wp plugin activate aloha-content`. В админке доступны **Areas** и **Communities**, обычный Gutenberg, excerpt, featured image и revisions. В Community → **Area** выбирается район по названию. Черновик допускает пустую связь; публикация требует опубликованный Area. Используемый Area защищён от удаления, а опубликованные/запланированные Community — от потери опубликованного района.
+
+Публичные маршруты CPT отключены до M1.4-B. Rental, GuestyBridge, starter patterns и новые page templates не создаются. Дистрибутив Aloha Content хранится отдельно от дистрибутива темы; `dev/` и тестовые fixtures не входят ни в один из них.
+
+Технические детали, инструкция редактора и результаты проверок: [M1.4-A Aloha Content](docs/m1-4-a-aloha-content.md). Автотесты: `./scripts/test-aloha-content.sh`; с уже установленным Playwright Chromium: `CONTENT_BROWSER_TEST=1 PLAYWRIGHT_MODULE=/path/to/node_modules/playwright ./scripts/test-aloha-content.sh`. Используется отдельная временная WP/DB на порту **8091**, затем fixtures/контейнеры/volumes удаляются. Главная локальная БД на 8088 не используется для fixtures.
+
+## Area routing — M1.4-B1
+
+Aloha Content **0.2.0** включает только публичные singles Area: `/big-island/{post_name}/`, без archive и без отдельных Pages районов. Guide/Communities и Core service slugs исключены из Area matcher; существующие Pages продолжают использовать Core Page rules. Community остаётся backend-only, связь и проверки M1.4-A сохранены. Полная [документация B1](docs/m1-4-b1-area-routing.md) описывает PHP-конфигурацию базы, one-time soft flush, canonical/preview и ограничения до B4.
+
+Обновление уже активного плагина применяет rewrite signature один раз; сохранять Permalinks или переустанавливать меню не требуется. Реальные районы/Guide/Communities Pages этим этапом не создаются. Маршрутные и регрессионные tests входят в прежний runner; evidence теперь в `.local/evidence/m1-4-b1/`. M1.4-B2/B3, M1.5 и GuestyBridge не запускались; push/deployment не выполнялись.
+
+## Community routing — M1.4-B2
+
+Aloha Content **0.3.0** добавляет `/big-island/{area-slug}/{community-slug}/` через единственное вложенное правило и native `post_type_link`. Area берётся из `aloha_area_id`; смена связи меняет permalink без flush и без сохранённых URL. Несуществующие/неопубликованные/неверно связанные объекты дают 404; чужой или прежний Area не вызывает автоматический redirect. Reserved секции B1 и будущие Guide routes исключены из matcher. Archive Community нет.
+
+Серверные, HTTP и Gutenberg проверки расширяют прежний runner, evidence — `.local/evidence/m1-4-b2/`. Архитектура, результаты и ограничения: [M1.4-B2 Community routing](docs/m1-4-b2-community-routing.md). Основная база не используется для fixtures; B3/B4, M1.5, GuestyBridge, push и deployment не выполняются.
+
+## Big Island Guide — M1.4-B3-A
+
+Aloha Content **0.4.0** использует стандартные Posts/Categories для `/big-island/guide/{rubric}/` и `/big-island/guide/{rubric}/{post_name}/`. Четыре approved рубрики, native архивная пагинация, scoped `post_link`/`term_link`, canonical и устранение текущих Core aliases. Неоднозначная публикация Guide блокируется; native Gutenberg Categories/preview и обычные Posts сохраняются. Global permalink structure не меняется.
+
+Идемпотентная установка/проверка категорий: `./bin/local wp aloha-content guide-categories install --user=1` / `check --user=1` (указать пользователя с `manage_categories`). Конфликтующие существующие категории не присваиваются и не перезаписываются. Hub Pages и демо-статьи не создаются. [Отчёт B3-A](docs/m1-4-b3-a-guide-routing.md), evidence `.local/evidence/m1-4-b3-a/`. Investor Guides/B3-B, B4, frontend templates и GuestyBridge не реализованы; push/deployment не выполняются.
+
+## Investor Guides — M1.4-B3-B
+
+Aloha Content **0.5.0** добавляет `/homeowners/invest/guides/{post_name}/` для стандартных Posts в независимой категории `investor-guides`. Переиспользованы category installer, `post_link`, публикационные guards, canonical и rewrite lifecycle B3-A. Смешанная Guide/Investor публикация блокируется; ordinary Posts сохраняют URL. Investor category archive закрыт 404 и исключён из Core taxonomy sitemap; hub Page не создаётся.
+
+Установка/проверка: `./bin/local wp aloha-content investor-category install --user=1` / `check --user=1`, с capability `manage_categories`. База — PHP filter `aloha_content_investor_base`. [Отчёт B3-B](docs/m1-4-b3-b-investor-routing.md), evidence `.local/evidence/m1-4-b3-b/`. Демо-статей, дополнительных Pages, frontend templates/Patterns, B3-C/B4/M1.5/GuestyBridge и push/deployment нет.
+
+## Routing Overview — M1.4-B3-C
+
+Aloha Content **0.6.0** добавляет **Tools → Aloha Content: Routing**, доступный с `manage_options`. Экран только читает фактическую конфигурацию, permastructs, сохранённые rules, category bindings и состояние контента. Отсутствующий Hub Page отличается от ошибки конфигурации. Нет HTTP probes, кнопок настройки, flush или вызовов lifecycle. Работающая маршрутизация B1–B3-B не изменена.
+
+[Открыть локальный Routing Overview](http://127.0.0.1:8088/wp-admin/tools.php?page=aloha-content-routing). [Отчёт B3-C](docs/m1-4-b3-c-routing-overview.md); screenshots и test reports — `.local/evidence/m1-4-b3-c/`. Новые проверки включены в прежний `scripts/test-aloha-content.sh`, включая опциональный Chromium запуск.
