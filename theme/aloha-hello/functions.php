@@ -2,6 +2,7 @@
 /** Theme presentation only; integrations belong to plugins. */
 defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/inc/shell.php';
+require_once __DIR__ . '/inc/area.php';
 
 add_action( 'after_setup_theme', function () {
 	add_theme_support( 'editor-styles' );

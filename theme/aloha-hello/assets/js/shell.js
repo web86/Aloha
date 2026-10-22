@@ -181,7 +181,7 @@
   const planned = event.target.closest('[data-aloha-destination]');
   if (action) {
    showInfo(action.dataset.alohaAction === 'call' ? 'Contact · demo' : 'Book Now · demo', action.dataset.alohaAction === 'call' ? 'A phone number has not been verified. No call has been initiated.' : 'This is a local demo. The catalog and booking flow are not available yet. No booking or payment has been made.', action);
-  } else if (planned && document.body.classList.contains('aloha-shell-preview')) {
+  } else if (planned && (document.body.classList.contains('aloha-shell-preview') || planned.closest('.aloha-area-planned-link'))) {
    event.preventDefault();
    showInfo('Destination preview', `${planned.textContent.trim()} — ${planned.getAttribute('href')} · ${planned.dataset.alohaStage}. This destination is planned; no empty page has been created.`, planned);
   }

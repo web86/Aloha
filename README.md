@@ -127,3 +127,9 @@ Aloha Content **0.5.0** добавляет `/homeowners/invest/guides/{post_name
 Aloha Content **0.6.0** добавляет **Tools → Aloha Content: Routing**, доступный с `manage_options`. Экран только читает фактическую конфигурацию, permastructs, сохранённые rules, category bindings и состояние контента. Отсутствующий Hub Page отличается от ошибки конфигурации. Нет HTTP probes, кнопок настройки, flush или вызовов lifecycle. Работающая маршрутизация B1–B3-B не изменена.
 
 [Открыть локальный Routing Overview](http://127.0.0.1:8088/wp-admin/tools.php?page=aloha-content-routing). [Отчёт B3-C](docs/m1-4-b3-c-routing-overview.md); screenshots и test reports — `.local/evidence/m1-4-b3-c/`. Новые проверки включены в прежний `scripts/test-aloha-content.sh`, включая опциональный Chromium запуск.
+
+## Area presentation — M1.5-A
+
+Aloha Hello **0.3.0** добавляет нативный `templates/single-area.html`, однократный Gutenberg starter `area-start` и восемь редакционных Patterns. Hero использует поля текущей Area, Communities выбираются по `aloha_area_id`. Rentals остаётся пустым слотом до будущего GuestyBridge; Aloha Content **0.6.0** и маршрутизация не изменены.
+
+[Локальная Mauna Lani](http://127.0.0.1:8088/big-island/mauna-lani/) сохранена как редактируемая Area; reference media и неподтверждённый copy явно помечены. [Отчёт, тесты и visual QA](docs/m1-5-a-area-mauna-lani.md). Дополнительный прогон: `CONTENT_AREA_TEST=1 CONTENT_BROWSER_TEST=1 ./scripts/test-aloha-content.sh` (нужны локальные исходные JPG и Playwright). Изменения находятся в отдельной ветке, push/deployment M1.5-A не выполнялись.

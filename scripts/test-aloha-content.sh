@@ -68,6 +68,10 @@ c['networks']['default'].pop('name',None)
 c['networks']['default']['ipam']['config']=[{'subnet':subnet}]
 c['services']['wordpress']['ports']=[{'host_ip':'127.0.0.1','published':'8091','target':80,'protocol':'tcp'}]
 c['services']['cli']['environment'].update(WP_ADMIN_USER='aloha_test_admin',WP_ADMIN_PASSWORD=adminpass,WP_ADMIN_EMAIL='test@example.test')
+if os.environ.get('CONTENT_AREA_TEST') == '1':
+ media=Path(os.environ.get('ALOHA_AREA_MEDIA_DIR',str(root/'.local/reference-area/assets'))).resolve()
+ if not media.is_dir(): raise SystemExit('Extract the supplied Area design assets locally, or set ALOHA_AREA_MEDIA_DIR.')
+ c['services']['cli']['volumes'].append({'type':'bind','source':str(media),'target':'/var/www/aloha-area-media','read_only':True})
 (target/'compose.json').write_text(json.dumps(c))
 (target/'auth.json').write_text(json.dumps({'url':'http://127.0.0.1:8091','user':'aloha_test_admin','password':adminpass}))
 print('Isolated test project prepared; HTTP port 8091, private disposable volumes.')
@@ -91,6 +95,9 @@ dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/g
 dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/guide-routing.php
 dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/investor-routing.php
 dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/routing-overview.php
+if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
+  dc exec -T wordpress sh -c 'for file in wp-content/themes/aloha-hello/inc/area*.php wp-content/themes/aloha-hello/patterns/area-*.php /var/www/aloha-tests/area-*.php /var/www/aloha-tests/seed-area-mauna-lani.php; do php -l "$file" || exit 1; done'
+fi
 wp eval-file /var/www/aloha-tests/aloha-content-check.php
 # Exercise actual WP-CLI commands (not just PHP calls through eval-file).
 area_id="$(wp post create --post_type=area --post_status=publish --post_title='CLI test Area' --porcelain)"
@@ -161,11 +168,32 @@ python3 - "$run_dir/routing-overview-server-report.json" <<'PY'
 import json,sys
 print('PASS:',len(json.load(open(sys.argv[1]))['checks']),'Routing Overview server checks.')
 PY
+if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
+  wp eval-file /var/www/aloha-tests/area-presentation-check.php setup > "$run_dir/area-presentation-fixtures.json"
+  python3 - "$run_dir" <<'AREA_REPORT'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]); data=json.loads((p/'area-presentation-fixtures.json').read_text())
+(p/'area-presentation-server-report.json').write_text(json.dumps({'checks':data['checks']},indent=2)+'\n')
+print('PASS:',len(data['checks']),'Area presentation server checks.')
+AREA_REPORT
+fi
 if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
   ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_AREA_TEST_FIXTURES="$run_dir/area-fixtures.json" ALOHA_GUIDE_TEST_FIXTURES="$run_dir/guide-fixtures.json" ALOHA_INVESTOR_TEST_FIXTURES="$run_dir/investor-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/aloha-content-editor.cjs
   wp eval 'if (is_wp_error(wp_insert_user(array("user_login"=>"aloha_routing_reader", "user_pass"=>getenv("WP_ADMIN_PASSWORD"), "role"=>"subscriber")))) { WP_CLI::error("Test reader creation failed."); }'
   ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" EVIDENCE_DIR="$run_dir" node scripts/aloha-routing-overview-browser.cjs
   wp eval 'require_once ABSPATH . "wp-admin/includes/user.php"; wp_delete_user(get_user_by("login", "aloha_routing_reader")->ID);'
+  if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_AREA_PRESENTATION_FIXTURES="$run_dir/area-presentation-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/area-presentation-browser.cjs
+  fi
+fi
+if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
+  wp eval-file /var/www/aloha-tests/area-presentation-check.php prepare-switch
+  wp theme activate twentytwentyfive
+  wp eval-file /var/www/aloha-tests/area-presentation-check.php verify-other-theme
+  wp theme activate aloha-hello
+  wp eval-file /var/www/aloha-tests/area-presentation-check.php verify-restored-theme
+  wp eval-file /var/www/aloha-tests/area-presentation-check.php cleanup
 fi
 wp eval-file /var/www/aloha-tests/aloha-investor-check.php cleanup
 wp eval-file /var/www/aloha-tests/aloha-guide-check.php cleanup

@@ -40,7 +40,12 @@ async function save() {
 }
 async function chooseArea(title) {
   const combo = page.getByRole('combobox', {name: 'Area', exact: true});
-  if (!await combo.isVisible()) await page.getByRole('button', {name: 'Area', exact: true}).click();
+  const toggle = page.getByRole('button', {name: 'Area', exact: true});
+  await toggle.waitFor({state:'visible'});
+  // A reopened expanded panel can still be fetching Areas. Do not collapse it
+  // just because the Combobox has not replaced its loading Spinner yet.
+  if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
+  await combo.waitFor({state:'visible'});
   await combo.fill(title);
   await page.getByRole('option', {name: title, exact: true}).click();
 }
