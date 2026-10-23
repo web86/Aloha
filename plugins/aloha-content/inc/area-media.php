@@ -2,6 +2,7 @@
 /** Area-owned editorial media. No presentation, routes or automatic content writes. */
 namespace Aloha\Content;
 defined( 'ABSPATH' ) || exit;
+const AREA_FILM_LABEL_DEFAULT = 'Watch the area film · 2 min';
 
 function area_loop_video_id( $value ) {
 	if ( ! is_scalar( $value ) || is_bool( $value ) || false === filter_var( $value, FILTER_VALIDATE_INT ) || (int) $value < 0 ) { return 0; }
@@ -31,13 +32,13 @@ function sanitize_area_film_url( $url ) {
 }
 
 function register_area_media() {
-	foreach ( array( 'aloha_area_loop_video_id' => 'integer', 'aloha_area_film_url' => 'string' ) as $key => $type ) {
-		$schema = array( 'type' => $type, 'default' => 'integer' === $type ? 0 : '' );
+	foreach ( array( 'aloha_area_loop_video_id' => 'integer', 'aloha_area_film_url' => 'string', 'aloha_area_film_label' => 'string' ) as $key => $type ) {
+		$schema = array( 'type' => $type, 'default' => 'integer' === $type ? 0 : ( 'aloha_area_film_label' === $key ? AREA_FILM_LABEL_DEFAULT : '' ) );
 		if ( 'integer' === $type ) { $schema['minimum'] = 0; }
 		register_post_meta( 'area', $key, array(
 			'type' => $type, 'single' => true, 'default' => $schema['default'],
 			'show_in_rest' => array( 'schema' => $schema ), 'revisions_enabled' => true,
-			'sanitize_callback' => __NAMESPACE__ . ( 'integer' === $type ? '\\area_loop_video_id' : '\\sanitize_area_film_url' ),
+			'sanitize_callback' => 'aloha_area_film_label' === $key ? 'sanitize_text_field' : __NAMESPACE__ . ( 'integer' === $type ? '\\area_loop_video_id' : '\\sanitize_area_film_url' ),
 			'auth_callback' => fn( $allowed, $meta_key, $post_id ) => current_user_can( 'edit_post', $post_id ),
 		) );
 	}

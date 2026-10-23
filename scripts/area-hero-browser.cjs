@@ -61,11 +61,14 @@ async function uploadVideo(name,colour){
   await page.goto(auth.url+'/wp-login.php?redirect_to='+encodeURIComponent(auth.url+`/wp-admin/post.php?post=${fixture.area}&action=edit`));await page.waitForTimeout(400);
   await page.locator('#user_login').fill(auth.user);await page.locator('#user_pass').fill(auth.password);assert.ok(await page.locator('#user_pass').inputValue()===auth.password);await page.locator('#wp-submit').click();await page.waitForURL('**/wp-admin/**');
   await editor(fixture.area);
+  assert.equal(await page.getByLabel('Film Label',{exact:true}).inputValue(),'Watch the area film · 2 min');
   const original=(await api('GET',`area/${fixture.area}?context=edit`)).content.raw;
   const blue=await uploadVideo('Hero blue TEST fixture','#075056'),green=await uploadVideo('Hero green TEST fixture','#23572c');
-  await chooseVideo(blue.id);await page.getByLabel('YouTube film URL',{exact:true}).fill('https://youtu.be/AlohaTest01');await save();
+  await chooseVideo(blue.id);await page.getByLabel('YouTube film URL',{exact:true}).fill('https://youtu.be/AlohaTest01');await page.getByLabel('Film Label',{exact:true}).fill('Discover our island film');await save();
   await editor(fixture.area);assert.equal(await page.getByLabel('YouTube film URL',{exact:true}).inputValue(),'https://www.youtube.com/watch?v=AlohaTest01');
   assert.equal(await page.locator('.interface-complementary-area video').getAttribute('src'),blue.source_url);
+  assert.equal(await page.getByLabel('Film Label',{exact:true}).inputValue(),'Discover our island film');
+  check('Default Film Label is editable and its custom value saves and reopens in Area Media');
   check('Area Media selects a native Library video, saves and reopens both revisioned fields');
   await chooseVideo(green.id);await save();await editor(fixture.area);assert.equal((await api('GET',`area/${fixture.area}?context=edit`)).meta.aloha_area_loop_video_id,green.id);
   await page.getByRole('button',{name:'Remove background video',exact:true}).click();await save();await editor(fixture.area);
@@ -78,7 +81,7 @@ async function uploadVideo(name,colour){
   const invalid=await page.evaluate(async id=>{try{await wp.apiFetch({path:'/wp/v2/area/'+id,method:'POST',data:{meta:{aloha_area_film_url:'https://example.test/not-youtube'}}});return null;}catch(e){return e.code;}},fixture.area);
   assert.equal(invalid,'aloha_invalid_area_film');
   const valid=await page.evaluate(()=>{const all=bs=>bs.flatMap(b=>[b,...all(b.innerBlocks||[])]);return all(wp.data.select('core/block-editor').getBlocks()).every(b=>b.isValid!==false&&b.name!=='core/missing');});assert.ok(valid);
-  await editor(fixture.area);await page.getByLabel('YouTube film URL',{exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:out+'/hero-editor.png',fullPage:true});
+  await editor(fixture.area);await page.getByLabel('Film Label',{exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:out+'/hero-editor.png',fullPage:true});
   check('Invalid film URL produces a REST error; existing starter blocks stay valid');
   await api('POST',`area/${fixture.other}`,{meta:{aloha_area_loop_video_id:green.id,aloha_area_film_url:'https://youtube.com/watch?v=AlohaTest02'}});
   assert.equal((await api('GET',`area/${fixture.area}?context=edit`)).meta.aloha_area_loop_video_id,blue.id);
@@ -90,16 +93,37 @@ async function uploadVideo(name,colour){
   assert.equal(youtube.length,0);assert.equal(await front.locator('iframe').count(),0);
   assert.equal(await video.evaluate(v=>v.muted&&v.loop&&v.autoplay&&v.playsInline),true);assert.ok(await video.getAttribute('poster'));
   assert.equal(await front.locator('.aloha-area-hero-image').getAttribute('fetchpriority'),'high');
+  assert.equal(await front.getByRole('button',{name:'Discover our island film',exact:true}).count(),1);
+  await front.screenshot({path:out+'/hero-custom-film-label.png'});
+  await api('POST',`area/${fixture.area}`,{meta:{aloha_area_film_label:''}});await front.reload();
+  await front.waitForFunction(()=>document.querySelector('.aloha-area-hero-video')?.classList.contains('is-playing'));
+  assert.equal(await front.getByRole('button',{name:'Watch the area film · 2 min',exact:true}).count(),1);
+  assert.equal(await front.locator('.aloha-area-image-note').count(),0);
+  assert.ok(!(await front.locator('body').innerText()).includes('Design reference photograph — location and usage rights require editorial review.'));
+  assert.match((await api('GET',`media/${presentation.media.hero}`)).caption.rendered,/Design reference photograph/);
+  check('Custom and empty/default film labels render correctly; provenance stays in Media Library without a public badge');
   check('Native muted loop plays over its prioritized poster; no YouTube request or iframe before activation');
-  await front.getByRole('button',{name:'Pause background video',exact:true}).click();assert.equal(await video.evaluate(v=>v.paused),true);
-  await front.getByRole('button',{name:'Play background video',exact:true}).click();await front.waitForFunction(()=>!document.querySelector('video').paused);
+  const control=front.getByRole('button',{name:'Pause background video',exact:true});
+  assert.equal((await control.innerText()).trim(),'');assert.equal(await control.locator('svg').count(),1);assert.equal(await control.getAttribute('title'),'Pause background video');
+  assert.equal(await control.evaluate(el=>el.getBoundingClientRect().width),40);
+  await control.click();assert.equal(await video.evaluate(v=>v.paused),true);
+  const resume=front.getByRole('button',{name:'Resume background video',exact:true});assert.equal(await resume.getAttribute('title'),'Resume background video');
+  await front.evaluate(()=>scrollTo(0,document.body.scrollHeight));await front.waitForTimeout(100);await front.evaluate(()=>scrollTo(0,0));await front.waitForTimeout(150);assert.equal(await video.evaluate(v=>v.paused),true);assert.equal(await resume.isVisible(),true);
+  await front.getByRole('button',{name:'Resume background video',exact:true}).click();await front.waitForFunction(()=>!document.querySelector('video').paused);
   await front.evaluate(()=>scrollTo(0,document.body.scrollHeight));await front.waitForFunction(()=>document.querySelector('.aloha-area-hero-video').paused);
   await front.evaluate(()=>scrollTo(0,0));await front.waitForFunction(()=>!document.querySelector('.aloha-area-hero-video').paused);
-  check('Background loop has a keyboard-accessible pause control and pauses outside the viewport');
-  const film=front.getByRole('button',{name:'Watch the 2-min area film',exact:true});
+  check('Compact labelled icon pauses/resumes, preserves manual pause during scroll and still pauses outside the viewport');
+  const film=front.getByRole('button',{name:'Watch the area film · 2 min',exact:true});
+  const rect=await film.boundingBox();await film.hover();await front.waitForTimeout(220);
+  assert.deepEqual(await film.boundingBox(),rect);assert.ok(await film.evaluate(el=>Number(getComputedStyle(el).opacity)<1));
+  await front.screenshot({path:out+'/hero-film-hover.png'});
+  check('Film hover changes opacity gently without resizing or moving the control');
   for(let i=0;i<40&&!await film.evaluate(el=>el===document.activeElement);i++)await front.keyboard.press('Tab');
   assert.equal(await film.evaluate(el=>el===document.activeElement),true);
-  assert.notEqual(await film.evaluate(el=>getComputedStyle(el).outlineStyle),'none');await front.keyboard.press('Enter');
+  await front.mouse.move(0,0);await front.waitForTimeout(220);
+  assert.notEqual(await film.evaluate(el=>getComputedStyle(el).outlineStyle),'none');
+  assert.deepEqual(await film.boundingBox(),rect);assert.ok(await film.evaluate(el=>Number(getComputedStyle(el).opacity)<1));
+  await front.screenshot({path:out+'/hero-film-focus.png'});await front.keyboard.press('Enter');
   const dialog=front.locator('.aloha-media-dialog[open]');await dialog.waitFor();assert.equal(await dialog.locator('iframe').count(),1);
   await front.waitForFunction(()=>document.querySelector('.aloha-area-hero-video').paused);assert.equal(youtube.length,1);
   await front.getByRole('button',{name:'Close',exact:true}).waitFor();
@@ -119,26 +143,26 @@ async function uploadVideo(name,colour){
    await front.setViewportSize({width,height:1000});await front.evaluate(()=>scrollTo(0,0));
    assert.ok(await front.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Hero overflow at '+width);
    const geometry=await video.evaluate(v=>{const a=v.getBoundingClientRect(),b=v.parentElement.getBoundingClientRect();return{w:a.width,h:a.height,pw:b.width,ph:b.height,fit:getComputedStyle(v).objectFit};});assert.equal(geometry.w,geometry.pw);assert.equal(geometry.h,geometry.ph);assert.equal(geometry.fit,'cover');
-   if(width<768)assert.ok(await front.locator('.aloha-area-video-toggle').evaluate(el=>el.getBoundingClientRect().top>el.parentElement.querySelector('.aloha-area-hero-actions').getBoundingClientRect().bottom+8),'Mobile pause control must not overlap the CTA');
+   assert.ok(await front.locator('.aloha-area-video-toggle').evaluate(el=>{const a=el.getBoundingClientRect(),b=el.parentElement.querySelector('.aloha-area-hero-actions').getBoundingClientRect();return a.bottom<=b.top||a.top>=b.bottom||a.right<=b.left||a.left>=b.right;}),'Pause icon must not overlap the CTA');
    report.contrast=report.contrast||{};report.contrast[width]=await whiteBackdropContrast(front);
    await front.screenshot({path:out+'/hero-'+width+'.png'});report.viewports.push(width);
   }
   await film.click();await dialog.waitFor();await front.screenshot({path:out+'/hero-modal-mobile.png'});await front.keyboard.press('Escape');
-  await front.evaluate(()=>document.documentElement.style.fontSize='200%');assert.ok(await front.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.ok(await front.locator('.aloha-area-video-toggle').evaluate(el=>el.getBoundingClientRect().top>el.parentElement.querySelector('.aloha-area-hero-actions').getBoundingClientRect().bottom+8),'200% text pause control must not overlap the CTA');report.contrast.text200=await whiteBackdropContrast(front);await front.screenshot({path:out+'/hero-text-200.png'});
+  await front.evaluate(()=>document.documentElement.style.fontSize='200%');assert.ok(await front.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.ok(await front.locator('.aloha-area-video-toggle').evaluate(el=>el.getBoundingClientRect().bottom<el.parentElement.querySelector('.aloha-area-hero-actions').getBoundingClientRect().top),'200% text pause control must not overlap the CTA');report.contrast.text200=await whiteBackdropContrast(front);await front.screenshot({path:out+'/hero-text-200.png'});
   check('Five responsive Hero sizes and 200% text retain cover framing and no horizontal overflow');
   await front.goto(fixture.other_url);await front.waitForFunction(()=>document.querySelector('.aloha-area-hero-video')?.classList.contains('is-playing'));assert.equal(await front.locator('.aloha-area-hero-image').count(),0);
   check('Video also works without a Featured Image over the brand-color fallback');
   const reduced=await browser.newContext({reducedMotion:'reduce'}),rp=await reduced.newPage();const reducedRequests=[];rp.on('request',r=>{if(r.url()===blue.source_url)reducedRequests.push(r.url());});
-  await rp.goto(fixture.url);await rp.waitForTimeout(500);assert.equal(await rp.locator('video').getAttribute('src'),null);assert.equal(reducedRequests.length,0);assert.equal(await rp.locator('.aloha-area-hero-image').evaluate(i=>i.naturalWidth>0),true);
+  await rp.goto(fixture.url);await rp.waitForTimeout(500);assert.equal(await rp.locator('video').getAttribute('src'),null);assert.equal(reducedRequests.length,0);assert.equal(await rp.locator('.aloha-area-video-toggle').isVisible(),false);assert.equal(await rp.locator('.aloha-area-film').evaluate(el=>getComputedStyle(el).transitionDuration),'0s');assert.equal(await rp.locator('.aloha-area-hero-image').evaluate(i=>i.naturalWidth>0),true);
   await rp.emulateMedia({reducedMotion:'no-preference'});await rp.waitForFunction(()=>document.querySelector('.aloha-area-hero-video').classList.contains('is-playing'));
   await rp.emulateMedia({reducedMotion:'reduce'});await rp.waitForFunction(()=>!document.querySelector('.aloha-area-hero-video').hasAttribute('src'));await rp.screenshot({path:out+'/hero-reduced-motion.png'});await reduced.close();
   check('Reduced motion makes no video request; live preference changes stop and unload the loop');
   for(const signal of [{saveData:true,type:'wifi',effectiveType:'4g'},{saveData:false,type:'cellular',effectiveType:'4g'},{saveData:false,type:'wifi',effectiveType:'2g'}]){
-   const cx=await browser.newContext();await cx.addInitScript(signal=>{const c=new EventTarget();Object.assign(c,signal);Object.defineProperty(navigator,'connection',{value:c});},signal);const p=await cx.newPage();let requests=0;p.on('request',r=>{if(r.url()===blue.source_url)requests++;});await p.goto(fixture.url);await p.waitForTimeout(350);assert.equal(await p.locator('video').getAttribute('src'),null);assert.equal(requests,0);await cx.close();
+   const cx=await browser.newContext();await cx.addInitScript(signal=>{const c=new EventTarget();Object.assign(c,signal);Object.defineProperty(navigator,'connection',{value:c});},signal);const p=await cx.newPage();let requests=0;p.on('request',r=>{if(r.url()===blue.source_url)requests++;});await p.goto(fixture.url);await p.waitForTimeout(350);assert.equal(await p.locator('video').getAttribute('src'),null);assert.equal(requests,0);assert.equal(await p.locator('.aloha-area-video-toggle').isVisible(),false);await cx.close();
   }
   check('Save-Data, known cellular and slow connections suppress video loading/autoplay');
   const broken=await browser.newContext();await broken.route(blue.source_url,route=>route.abort());const bp=await broken.newPage();await bp.goto(fixture.url);await bp.waitForFunction(()=>!!document.querySelector('.aloha-area-hero-video').error);
-  assert.equal(await bp.locator('video').evaluate(v=>v.classList.contains('is-playing')),false);assert.equal(await bp.locator('.aloha-area-hero-image').evaluate(i=>i.naturalWidth>0),true);await bp.screenshot({path:out+'/hero-video-error.png'});await broken.close();
+  assert.equal(await bp.locator('video').evaluate(v=>v.classList.contains('is-playing')),false);assert.equal(await bp.locator('.aloha-area-hero-image').evaluate(i=>i.naturalWidth>0),true);assert.equal(await bp.locator('.aloha-area-video-toggle').isVisible(),false);await bp.screenshot({path:out+'/hero-video-error.png'});await broken.close();
   check('Failed video loading leaves the intact fallback poster');
   const denied=await browser.newContext();await denied.addInitScript(()=>{
    // Model a policy declining both declarative autoplay and explicit play().
@@ -147,7 +171,7 @@ async function uploadVideo(name,colour){
    HTMLMediaElement.prototype.play=()=>Promise.reject(new DOMException('Fixture autoplay declined','NotAllowedError'));
   });const dp=await denied.newPage();await dp.goto(fixture.url);await dp.waitForTimeout(500);assert.equal(await dp.locator('video').evaluate(v=>v.classList.contains('is-playing')),false);await denied.close();
   check('Browser autoplay rejection leaves the poster visible without a blank frame');
-  await api('POST',`area/${fixture.other}`,{meta:{aloha_area_loop_video_id:0,aloha_area_film_url:''}});await front.goto(fixture.other_url);assert.equal(await front.locator('.aloha-area-hero video,.aloha-area-hero img,.aloha-area-film').count(),0);assert.ok(await front.locator('.aloha-area-hero').evaluate(el=>getComputedStyle(el).backgroundColor!=='rgba(0, 0, 0, 0)'));
+  await api('POST',`area/${fixture.other}`,{meta:{aloha_area_loop_video_id:0,aloha_area_film_url:''}});await front.goto(fixture.other_url);assert.equal(await front.locator('.aloha-area-hero video,.aloha-area-hero img,.aloha-area-film,.aloha-area-video-toggle').count(),0);assert.ok(await front.locator('.aloha-area-hero').evaluate(el=>getComputedStyle(el).backgroundColor!=='rgba(0, 0, 0, 0)'));
   assert.equal(await front.getByRole('link',{name:'Explore the area',exact:true}).getAttribute('href'),'#area-content');assert.equal(await front.getByText(/See \d+ homes/).count(),0);await front.screenshot({path:out+'/hero-no-media.png'});
   assert.equal((await api('GET',`area/${fixture.area}?context=edit`)).content.raw,original);assert.deepEqual(report.pageErrors,[]);
   check('Empty media gives the text Hero, neutral CTA and no fabricated home count; saved body remains intact');

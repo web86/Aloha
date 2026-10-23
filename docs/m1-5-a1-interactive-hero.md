@@ -1,5 +1,7 @@
 # M1.5-A.1 — Interactive Area Hero
 
+Позднейшие изменения и результаты production polish описаны в [M1.5-A.1.1](m1-5-a1-1-hero-polish.md): компактный иконочный video control, скрытый публичный caption overlay и редакционный Film Label.
+
 23.10.2026. Aloha Hello **0.3.1**, Aloha Content **0.7.0**. Ветка `codex/m1-5-a1-interactive-hero`. Перед началом проверены и сохранены изменения M1.5-A отдельным локальным коммитом **`9a6ac66`** (`feat(aloha): add editable Area presentation and starter patterns`). Исходный handoff PDF, `.local/`, медиа и credentials в коммит не включались. Push/deployment не выполняются.
 
 ## Архитектура и дизайн

@@ -49,16 +49,16 @@ function aloha_area_hero( $attrs, $content, $block ) {
 		// The responsive fallback stays underneath. JS reuses its loaded currentSrc
 		// as the video poster, avoiding another full-resolution image download.
 		$html .= '<video class="aloha-area-hero-video" muted autoplay loop playsinline preload="none" aria-hidden="true" tabindex="-1" data-aloha-loop-src="' . esc_url( $video_url ) . '"></video>';
-		$html .= '<button class="aloha-area-video-toggle" type="button" hidden>Pause background video</button>';
+		$html .= '<button class="aloha-area-video-toggle" type="button" aria-label="Pause background video" title="Pause background video" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path class="aloha-video-pause-icon" d="M7 5h4v14H7zM14 5h4v14h-4z"/><path class="aloha-video-resume-icon" d="M8 5v14l11-7z"/></svg></button>';
 	}
-	$caption = get_the_post_thumbnail_caption( $post );
-	if ( $caption ) { $html .= '<p class="aloha-area-image-note">' . esc_html( $caption ) . '</p>'; }
 	$html .= '<div class="aloha-container aloha-area-hero-content"><nav class="aloha-area-breadcrumb" aria-label="Breadcrumb"><a href="' . esc_url( home_url( '/' ) ) . '">Home</a><span aria-hidden="true"> › </span><span>Big Island</span><span aria-hidden="true"> › </span><span aria-current="page">' . esc_html( get_the_title( $post ) ) . '</span></nav>';
 	$html .= '<h1>' . esc_html( get_the_title( $post ) ) . ' <em>vacation rentals</em></h1><div class="aloha-area-hero-bottom">';
 	if ( $post->post_excerpt ) { $html .= '<p>' . esc_html( $post->post_excerpt ) . '</p>'; }
 	$html .= '<div class="aloha-area-hero-actions">';
 	if ( $film_id ) {
-		$html .= '<button class="aloha-area-film" type="button" data-aloha-youtube="' . esc_attr( $film_id ) . '" data-aloha-media-title="' . esc_attr( get_the_title( $post ) . ' — area film' ) . '" aria-haspopup="dialog"><span aria-hidden="true">▶</span>Watch the 2-min area film</button>';
+		$film_label = sanitize_text_field( get_post_meta( $post->ID, 'aloha_area_film_label', true ) );
+		if ( '' === $film_label ) { $film_label = \Aloha\Content\AREA_FILM_LABEL_DEFAULT; }
+		$html .= '<button class="aloha-area-film" type="button" data-aloha-youtube="' . esc_attr( $film_id ) . '" data-aloha-media-title="' . esc_attr( get_the_title( $post ) . ' — area film' ) . '" aria-haspopup="dialog"><span aria-hidden="true">▶</span>' . esc_html( $film_label ) . '</button>';
 	}
 	// GuestyBridge will supply a verified collection/count/target; none exists yet.
 	$html .= '<a class="aloha-button" href="#area-content">Explore the area</a></div></div></div></section>';

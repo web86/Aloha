@@ -15,6 +15,11 @@
 		const hero = video.closest('.aloha-area-hero');
 		const toggle = hero.querySelector('.aloha-area-video-toggle');
 		let visible = false, ready = false, failed = false, userPaused = false, hasPlayed = false;
+		const labelControl = () => {
+			const label = userPaused ? 'Resume background video' : 'Pause background video';
+			toggle.classList.toggle('is-paused', userPaused);
+			toggle.setAttribute('aria-label', label); toggle.title = label;
+		};
 		const allowed = () => !motion.matches && !connection?.saveData && connection?.type !== 'cellular' && !['slow-2g', '2g', '3g'].includes(connection?.effectiveType);
 		const sync = () => {
 			if (!allowed()) {
@@ -39,12 +44,12 @@
 			if (!allowed()) { sync(); return; }
 			hasPlayed = true;
 			video.classList.add('is-playing'); toggle.hidden = false;
-			toggle.textContent = 'Pause background video';
+			labelControl();
 		});
 		video.addEventListener('error', () => { failed = true; video.classList.remove('is-playing'); toggle.hidden = true; });
 		toggle.addEventListener('click', () => {
 			userPaused = !userPaused;
-			toggle.textContent = userPaused ? 'Play background video' : 'Pause background video'; sync();
+			labelControl(); sync();
 		});
 		if ('IntersectionObserver' in window) {
 			new IntersectionObserver(entries => { visible = entries[0].isIntersecting; sync(); }, {threshold: 0.05}).observe(hero);

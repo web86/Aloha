@@ -29,9 +29,10 @@ $rest = function ( $meta, $id = null ) use ( $one ) {
  $req = new WP_REST_Request( 'POST', '/wp/v2/area/' . ( $id ?? $one ) ); $req->set_param( 'meta', $meta ); return rest_do_request( $req );
 };
 $registered = get_registered_meta_keys( 'post', 'area' );
-foreach ( array( 'aloha_area_loop_video_id' => 'integer', 'aloha_area_film_url' => 'string' ) as $field => $type ) {
+foreach ( array( 'aloha_area_loop_video_id' => 'integer', 'aloha_area_film_url' => 'string', 'aloha_area_film_label' => 'string' ) as $field => $type ) {
  $check( $registered[$field]['type'] === $type && $registered[$field]['show_in_rest'] && $registered[$field]['revisions_enabled'], 'Registered REST/revisioned ' . $field );
 }
+$check( Aloha\Content\AREA_FILM_LABEL_DEFAULT === get_post_meta( $one, 'aloha_area_film_label', true ) && ! metadata_exists( 'post', $one, 'aloha_area_film_label' ), 'Default film label is available without backfilling postmeta' );
 foreach ( array( -2, 1.5, true, array(), $wrong, $one, 999999 ) as $value ) {
  $check( 0 === Aloha\Content\area_loop_video_id( $value ), 'Invalid video input normalizes safely: ' . wp_json_encode( $value ) );
 }
@@ -43,20 +44,23 @@ foreach ( array( 'javascript:alert(1)', 'https://youtube.com.evil.test/watch?v=A
  $check( '' === Aloha\Content\area_youtube_id( $url ), 'Invalid film rejected: ' . $url );
 }
 $before = get_post( $one )->to_array();
-foreach ( array( array( 'aloha_area_loop_video_id' => $wrong ), array( 'aloha_area_loop_video_id' => -1 ), array( 'aloha_area_loop_video_id' => 'bad' ), array( 'aloha_area_film_url' => 'https://example.test/video' ) ) as $invalid ) {
+foreach ( array( array( 'aloha_area_loop_video_id' => $wrong ), array( 'aloha_area_loop_video_id' => -1 ), array( 'aloha_area_loop_video_id' => 'bad' ), array( 'aloha_area_film_url' => 'https://example.test/video' ), array( 'aloha_area_film_label' => array( 'bad' ) ) ) as $invalid ) {
  $response = $rest( $invalid );
  $check( 400 === $response->get_status() && get_post( $one )->to_array() === $before, 'REST rejects invalid media before post changes' );
 }
-$response = $rest( array( 'aloha_area_loop_video_id' => $video, 'aloha_area_film_url' => 'https://youtu.be/AlohaTest01?si=discard' ) );
+$response = $rest( array( 'aloha_area_loop_video_id' => $video, 'aloha_area_film_url' => 'https://youtu.be/AlohaTest01?si=discard', 'aloha_area_film_label' => '<b>Discover & explore</b>' ) );
 $check( 200 === $response->get_status() && $video === (int) get_post_meta( $one, 'aloha_area_loop_video_id', true ), 'Administrator saves video through native REST' );
 $check( 'https://www.youtube.com/watch?v=AlohaTest01' === get_post_meta( $one, 'aloha_area_film_url', true ), 'YouTube URL sanitized to canonical video link' );
+$check( 'Discover & explore' === get_post_meta( $one, 'aloha_area_film_label', true ), 'Film label saves as plain sanitized text' );
 $revisions = wp_get_post_revisions( $one ); $saved_revision = 0;
 foreach ( $revisions as $revision ) { if ( 'https://www.youtube.com/watch?v=AlohaTest01' === get_post_meta( $revision->ID, 'aloha_area_film_url', true ) ) { $saved_revision = $revision->ID; break; } }
 $check( $saved_revision > 0 && $video === (int) get_post_meta( $saved_revision, 'aloha_area_loop_video_id', true ), 'Native revisions capture media-only REST changes' );
-$rest( array( 'aloha_area_loop_video_id' => 0, 'aloha_area_film_url' => '' ) );
+$check( 'Discover & explore' === get_post_meta( $saved_revision, 'aloha_area_film_label', true ), 'Core revision captures the custom film label' );
+$rest( array( 'aloha_area_loop_video_id' => 0, 'aloha_area_film_url' => '', 'aloha_area_film_label' => '' ) );
 $check( 0 === (int) get_post_meta( $one, 'aloha_area_loop_video_id', true ) && '' === get_post_meta( $one, 'aloha_area_film_url', true ), 'Both media values can be removed' );
 wp_restore_post_revision( $saved_revision );
 $check( $video === (int) get_post_meta( $one, 'aloha_area_loop_video_id', true ) && 'https://www.youtube.com/watch?v=AlohaTest01' === get_post_meta( $one, 'aloha_area_film_url', true ), 'Core revision restore recovers both fields' );
+$check( 'Discover & explore' === get_post_meta( $one, 'aloha_area_film_label', true ), 'Native revision restore also restores film label' );
 $check( $body === get_post_field( 'post_content', $one ), 'Media save/remove/restore preserves native Area body' );
 $check( 0 === (int) get_post_meta( $two, 'aloha_area_loop_video_id', true ) && '' === get_post_meta( $two, 'aloha_area_film_url', true ), 'Second Area has independent empty media' );
 wp_set_current_user( 0 );
@@ -65,12 +69,22 @@ $auth = $registered['aloha_area_film_url']['auth_callback'];
 $check( ! $auth( false, 'aloha_area_film_url', $one ), 'Meta capability rejects users without edit_post' );
 wp_set_current_user( get_user_by( 'login', 'aloha_test_admin' )->ID );
 $context = new WP_Block( array( 'blockName' => 'aloha/area-hero', 'attrs' => array(), 'innerBlocks' => array(), 'innerHTML' => '', 'innerContent' => array() ), array( 'postId' => $one, 'postType' => 'area' ) );
+$poster = get_option( 'aloha_area_presentation_fixtures' )['manifest']['media']['hero'];
+set_post_thumbnail( $one, $poster );
+$caption = get_the_post_thumbnail_caption( $one );
 $html = aloha_area_hero( array(), '', $context );
+$check( ! str_contains( $html, 'aloha-area-image-note' ) && $caption && $caption === get_the_post_thumbnail_caption( $one ), 'Frontend omits the reference badge while Media Library caption is preserved' );
+$check( str_contains( $html, 'Discover &amp; explore' ) && ! str_contains( $html, '<b>' ), 'Custom film label is escaped in the Hero' );
+$check( str_contains( $html, 'aria-label="Pause background video" title="Pause background video" hidden><svg' ), 'Background control is a hidden-by-default accessible icon button' );
+$rest( array( 'aloha_area_film_label' => '' ) );
+$check( str_contains( aloha_area_hero( array(), '', $context ), 'Watch the area film · 2 min' ), 'Cleared optional film label falls back to the default' );
 $check( str_contains( $html, 'muted autoplay loop playsinline preload="none"' ) && str_contains( $html, 'data-aloha-loop-src=' ) && ! str_contains( $html, '<video src=' ), 'Video deferred until browser motion/data checks' );
 $check( str_contains( $html, 'data-aloha-youtube="AlohaTest01"' ) && ! str_contains( $html, '<iframe' ), 'Validated film trigger without eager iframe' );
 $check( str_contains( $html, 'Explore the area' ) && ! str_contains( $html, 'See 0 homes' ) && ! post_type_exists( 'rental' ), 'Neutral CTA without fake Rentals provider/count' );
 $rest( array( 'aloha_area_loop_video_id' => 0, 'aloha_area_film_url' => '' ) );
 $context->context['postId'] = $two;
-$check( ! str_contains( aloha_area_hero( array(), '', $context ), '<video' ) && ! str_contains( aloha_area_hero( array(), '', $context ), 'data-aloha-youtube' ), 'Empty media leaves plain Hero and no dead film control' );
+$check( ! str_contains( aloha_area_hero( array(), '', $context ), '<video' ) && ! str_contains( aloha_area_hero( array(), '', $context ), 'data-aloha-youtube' ) && ! str_contains( aloha_area_hero( array(), '', $context ), 'aloha-area-video-toggle' ), 'Empty media leaves plain Hero and no dead film control' );
+// Start the editor scenario like an existing Area with no stored label override.
+delete_post_meta( $one, 'aloha_area_film_label' );
 $manifest = array( 'area' => $one, 'other' => $two, 'url' => get_permalink( $one ), 'other_url' => get_permalink( $two ), 'checks' => $checks );
 echo wp_json_encode( $manifest, JSON_PRETTY_PRINT );

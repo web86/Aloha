@@ -34,7 +34,8 @@
 				}),
 				!!id && el(Button, {variant: 'tertiary', isDestructive: true, onClick: () => update({aloha_area_loop_video_id: 0})}, 'Remove background video')
 			),
-			el(TextControl, {label: 'YouTube film URL', type: 'url', value: meta.aloha_area_film_url || '', onChange: url => update({aloha_area_film_url: url}), help: 'Optional full film. Paste a YouTube video URL, not iframe code. YouTube loads only after a visitor opens the film.', __next40pxDefaultSize: true, __nextHasNoMarginBottom: true})
+			el(TextControl, {label: 'YouTube film URL', type: 'url', value: meta.aloha_area_film_url || '', onChange: url => update({aloha_area_film_url: url}), help: 'Optional full film. Paste a YouTube video URL, not iframe code. YouTube loads only after a visitor opens the film.', __next40pxDefaultSize: true, __nextHasNoMarginBottom: true}),
+			el(TextControl, {label: 'Film Label', value: meta.aloha_area_film_label ?? '', onChange: label => update({aloha_area_film_label: label}), help: 'Optional button text. Leave empty to use the default film label.', __next40pxDefaultSize: true, __nextHasNoMarginBottom: true})
 		);
 	}
 	wp.plugins.registerPlugin('aloha-area-media', {render: AreaMediaPanel});

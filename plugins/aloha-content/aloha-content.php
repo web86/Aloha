@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Aloha Content
  * Description: Areas, Communities, Big Island Guide and Investor Guides with validated public routes.
- * Version: 0.7.0
+ * Version: 0.7.1
  * Requires at least: 6.6
  * Requires PHP: 8.3
  * Text Domain: aloha-content
