@@ -50,6 +50,10 @@ function content( $media ) {
 	$blocks = parse_blocks( $html ); $photo = 0;
 	$walk = function ( &$blocks ) use ( &$walk, $media, &$photo ) {
 		foreach ( $blocks as &$block ) {
+			if ( 'aloha/media-gallery' === $block['blockName'] ) {
+				$block['attrs']['ids'] = array_map( fn( $key ) => $media[$key], array( 'bay', 'golf', 'hero', 'manta', 'whale' ) );
+				continue;
+			}
 			if ( 'core/gallery' === $block['blockName'] ) {
 				$images = '';
 				foreach ( array( 'bay', 'golf', 'hero', 'manta', 'whale' ) as $key ) { $images .= image_block( $media[ $key ] ); }

@@ -71,8 +71,8 @@ async function validBlocks() {
       const store = wp.data.select('core/block-editor'), actions = wp.data.dispatch('core/block-editor');
       const all = bs => bs.flatMap(b => [b, ...all(b.innerBlocks || [])]);
       const blocks = all(store.getBlocks());
-      const gallery = blocks.find(b => b.name === 'core/gallery');
-      actions.replaceInnerBlocks(gallery.clientId, images.map(a => wp.blocks.createBlock('core/image', a)), false);
+      const gallery = blocks.find(b => b.name === 'aloha/media-gallery');
+      actions.updateBlockAttributes(gallery.clientId, {ids:images.map(a=>a.id)});
       const faq = blocks.find(b => b.attributes.className === 'aloha-area-faq');
       actions.insertBlocks(Array.from({length:7},(_,i) => wp.blocks.createBlock('core/details', {summary:'Additional question '+i}, [wp.blocks.createBlock('core/paragraph',{content:'An editable verified-answer placeholder.'})])), faq.innerBlocks.length, faq.clientId);
       actions.removeBlocks(faq.innerBlocks.find(b => b.name === 'core/details').clientId, false);
@@ -96,22 +96,22 @@ async function validBlocks() {
     // Remove and restore a gallery image through native block actions, preserving order.
     await page.evaluate(() => {
       const all=bs=>bs.flatMap(b=>[b,...all(b.innerBlocks||[])]);
-      const gallery=all(wp.data.select('core/block-editor').getBlocks()).find(b=>b.name==='core/gallery');
-      wp.data.dispatch('core/block-editor').removeBlocks(gallery.innerBlocks[1].clientId,false);
+      const gallery=all(wp.data.select('core/block-editor').getBlocks()).find(b=>b.name==='aloha/media-gallery');
+      wp.data.dispatch('core/block-editor').updateBlockAttributes(gallery.clientId,{ids:gallery.attributes.ids.filter((_,i)=>i!==1)});
     });
     await save();
     await page.evaluate(image => {
       const all=bs=>bs.flatMap(b=>[b,...all(b.innerBlocks||[])]);
-      const gallery=all(wp.data.select('core/block-editor').getBlocks()).find(b=>b.name==='core/gallery');
-      wp.data.dispatch('core/block-editor').insertBlocks(wp.blocks.createBlock('core/image',image),0,gallery.clientId);
+      const gallery=all(wp.data.select('core/block-editor').getBlocks()).find(b=>b.name==='aloha/media-gallery');
+      wp.data.dispatch('core/block-editor').updateBlockAttributes(gallery.clientId,{ids:[image.id,...gallery.attributes.ids]});
     },images[1]);
     await save();
     const saved = (await api('GET','area/'+second+'?context=edit')).content.raw;
     await editor(second); await validBlocks();
     assert.equal((await api('GET','area/'+second+'?context=edit')).content.raw,saved);
     const blocks=await page.evaluate(()=>wp.data.select('core/block-editor').getBlocks());
-    const gallery=flatten(blocks).find(b=>b.name==='core/gallery');
-    assert.deepEqual(gallery.innerBlocks.map(b=>b.attributes.id),[imageIds[1],imageIds[0],imageIds[2]]);
+    const gallery=flatten(blocks).find(b=>b.name==='aloha/media-gallery');
+    assert.deepEqual(gallery.attributes.ids,[imageIds[1],imageIds[0],imageIds[2]]);
     check('Gallery add/remove/reorder, photograph and all edits survive saving and reopening');
     const previewUrl=await page.evaluate(()=>wp.data.select('core/editor').getEditedPostPreviewLink());
     let front=await context.newPage();
@@ -150,15 +150,15 @@ async function validBlocks() {
     assert.equal(await front.locator('h1').count(),1);
     assert.equal(await front.locator('.aloha-area-community').count(),3);
     assert.equal(await front.locator('.aloha-area-hero-image').getAttribute('fetchpriority'),'high');
-    assert.equal(await front.locator('.aloha-area-gallery img').first().getAttribute('loading'),'lazy');
+    assert.equal(await front.locator('.aloha-gallery-mosaic img').first().getAttribute('loading'),'lazy');
     for(const width of [1440,1024,768,390,320]) {
       await front.setViewportSize({width,height:1000});
       await front.locator('img[loading="lazy"]').evaluateAll(imgs=>imgs.forEach(img=>img.loading='eager'));
       await front.waitForFunction(()=>[...document.images].every(img=>img.complete));
       assert.ok(await front.evaluate(()=>document.documentElement.scrollWidth<=innerWidth), 'Horizontal overflow at '+width);
       assert.equal(await front.locator('img').evaluateAll(imgs=>imgs.filter(img=>!img.naturalWidth).length),0);
-      if(width===1440) assert.ok(await front.locator('.aloha-area-gallery figure').first().evaluate(el=>el.clientWidth>el.parentElement.clientWidth*.45),'The gallery lead photograph must fill its large grid column');
-      assert.ok(await front.locator('.aloha-area-gallery figure').evaluateAll(figures=>figures.every(f=>Math.abs(f.querySelector('img').getBoundingClientRect().width-f.getBoundingClientRect().width)<2)),'Gallery photographs must fill their grid cells');
+      if(width===1440) assert.ok(await front.locator('.aloha-gallery-mosaic figure').first().evaluate(el=>el.clientWidth>el.parentElement.clientWidth*.45),'The gallery lead photograph must fill its large grid column');
+      assert.ok(await front.locator('.aloha-gallery-mosaic figure').evaluateAll(figures=>figures.every(f=>Math.abs(f.querySelector('img').getBoundingClientRect().width-f.getBoundingClientRect().width)<2)),'Gallery photographs must fill their grid cells');
       await front.screenshot({path:out+'/area-'+width+'.png',fullPage:true});
       report.viewports.push(width);
     }

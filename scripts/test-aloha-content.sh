@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 umask 077
+if [ "${CONTENT_GALLERY_TEST:-0}" = 1 ]; then export CONTENT_HERO_TEST=1; fi
 if [ "${CONTENT_HERO_TEST:-0}" = 1 ]; then export CONTENT_AREA_TEST=1; fi
 run_dir="$(mktemp -d "$PWD/.local/content-test-XXXXXX")"
 project="aloha-content-test-$(basename "$run_dir" | tr '[:upper:]' '[:lower:]')"
@@ -203,6 +204,21 @@ HERO_REPORT
   fi
   wp eval-file /var/www/aloha-tests/area-hero-check.php cleanup
 fi
+if [ "${CONTENT_GALLERY_TEST:-0}" = 1 ]; then
+  dc exec -T wordpress sh -c 'for file in wp-content/themes/aloha-hello/inc/media-gallery.php wp-content/themes/aloha-hello/blocks/media-gallery/render.php /var/www/aloha-tests/*gallery*.php; do php -l "$file" || exit 1; done'
+  wp eval-file /var/www/aloha-tests/media-gallery-check.php setup > "$run_dir/media-gallery-fixtures.json"
+  python3 - "$run_dir" <<'GALLERY_REPORT'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);data=json.loads((p/'media-gallery-fixtures.json').read_text())
+(p/'media-gallery-server-report.json').write_text(json.dumps({'checks':data['checks']},indent=2)+'\n')
+print('PASS:',len(data['checks']),'Media Gallery server checks.')
+GALLERY_REPORT
+  if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_MEDIA_GALLERY_FIXTURES="$run_dir/media-gallery-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/media-gallery-browser.cjs
+  fi
+  wp eval-file /var/www/aloha-tests/media-gallery-check.php cleanup
+fi
 if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
   wp eval-file /var/www/aloha-tests/area-presentation-check.php prepare-switch
   wp theme activate twentytwentyfive
@@ -220,7 +236,7 @@ dc exec -T wordpress sh -c 'if [ -f wp-content/debug.log ]; then cat wp-content/
 python3 - "$run_dir/wp-debug.log" <<'PY'
 import re,sys
 log=open(sys.argv[1]).read()
-if re.search(r'PHP (Fatal error|Warning|Parse error)',log):
+if re.search(r'PHP (Fatal error|Warning|Parse error|Notice|Deprecated)',log):
  print(log); sys.exit(1)
 PY
 evidence_dir="${CONTENT_EVIDENCE_DIR:-.local/evidence/m1-4-b3-c}"

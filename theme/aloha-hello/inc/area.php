@@ -25,7 +25,9 @@ add_action( 'after_setup_theme', function () { add_editor_style( 'assets/css/are
 add_action( 'wp_enqueue_scripts', function () {
 	if ( is_singular( 'area' ) ) {
 		wp_enqueue_style( 'aloha-area', get_theme_file_uri( 'assets/css/area.css' ), array( 'aloha-foundation' ), (string) filemtime( get_theme_file_path( 'assets/css/area.css' ) ) );
-		foreach ( array( 'media-dialog', 'area-hero' ) as $script ) {
+		wp_enqueue_style( 'aloha-media-dialog' );
+		wp_enqueue_script( 'aloha-media-dialog' );
+		foreach ( array( 'area-hero' ) as $script ) {
 			wp_enqueue_script( 'aloha-' . $script, get_theme_file_uri( 'assets/js/' . $script . '.js' ), array(), (string) filemtime( get_theme_file_path( 'assets/js/' . $script . '.js' ) ), true );
 		}
 	}

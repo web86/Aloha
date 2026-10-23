@@ -1,5 +1,7 @@
 # M1.5-A — Area Mauna Lani и Gutenberg starter patterns
 
+Позднейшее обновление: [M1.5-A.2 — Media Gallery](m1-5-a2-media-gallery.md) заменяет галерею в новых starter/Patterns на один динамический блок. Остальные секции и сохранённые Core Gallery не переписываются автоматически.
+
 22.10.2026. Тема **Aloha Hello 0.3.0**, Aloha Content **0.6.0**. Ветка `codex/m1-5-a-area-mauna-lani` от опубликованного M1.4 `ad5fe8a2bea1a022dcdd23b24dd39fb02e4c8e9d`. После уточнения задания используется **HTML**, не PHP display template.
 
 ## Архитектура

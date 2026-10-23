@@ -1,0 +1,20 @@
+body.aloha-media-open { overflow: hidden; }
+.aloha-media-dialog { width: min(1100px,calc(100% - 32px)); max-width: none; max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--aloha-color-border); border-radius: 10px; overflow: auto; color: var(--aloha-color-text); background: var(--aloha-color-page); }
+.aloha-media-dialog::backdrop { background: #101b24d9; }
+.aloha-media-inner { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 16px; padding: 20px; }
+.aloha-media-inner h2 { margin: 0; font-family: var(--wp--preset--font-family--instrument-serif); font-size: clamp(1.5rem,3vw,2rem); overflow-wrap: anywhere; }
+.aloha-media-inner > button { padding: 10px 16px; border: 1px solid currentColor; border-radius: 999px; color: inherit; background: transparent; font: inherit; cursor: pointer; }
+.aloha-media-stage { grid-column: 1 / -1; aspect-ratio: 16 / 9; width: 100%; background: #101b24; }
+.aloha-media-stage iframe { display: block; width: 100%; height: 100%; border: 0; }
+.aloha-media-dialog button:focus-visible { outline: 3px solid var(--aloha-color-accent,#b46f48); outline-offset: 3px; }
+.aloha-media-dialog.is-photo { width: min(1600px,calc(100% - 32px)); height: calc(100dvh - 32px); }
+.aloha-media-dialog.is-photo .aloha-media-inner { height: 100%; box-sizing: border-box; grid-template-rows: auto minmax(0,1fr) auto; }
+.aloha-media-dialog.is-photo .aloha-media-stage { display: grid; place-items: center; height: 100%; min-height: 0; aspect-ratio: auto; touch-action: pan-y pinch-zoom; color: #fff; }
+.aloha-media-stage img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+.aloha-media-photo-footer { grid-column: 1 / -1; min-width: 0; }
+.aloha-media-photo-footer[hidden] { display: none; }
+.aloha-media-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: center; }
+.aloha-media-controls button { padding: 10px 16px; border: 1px solid currentColor; border-radius: 999px; color: inherit; background: transparent; font: inherit; cursor: pointer; }
+.aloha-media-caption { margin: 12px 0 0; max-height: 20dvh; overflow: auto; overflow-wrap: anywhere; text-align: center; }
+.aloha-media-caption:empty { display: none; }
+@media (max-width: 767px) { .aloha-media-inner { padding: 12px; gap: 12px; } .aloha-media-dialog.is-photo { width: calc(100% - 16px); height: calc(100dvh - 16px); max-height: calc(100dvh - 16px); } }

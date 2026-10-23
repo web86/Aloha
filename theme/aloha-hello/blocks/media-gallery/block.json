@@ -1,0 +1,16 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "aloha/media-gallery",
+  "title": "Media Gallery",
+  "description": "An ordered photo collection with a mosaic and accessible fullscreen viewer.",
+  "category": "media",
+  "icon": "format-gallery",
+  "attributes": { "ids": { "type": "array", "items": { "type": "integer" }, "default": [] } },
+  "usesContext": ["postId", "postType"],
+  "supports": { "html": false, "anchor": true },
+  "editorScript": "aloha-media-gallery-editor",
+  "style": ["aloha-media-gallery", "aloha-media-dialog"],
+  "viewScript": "aloha-media-dialog",
+  "render": "file:./render.php"
+}

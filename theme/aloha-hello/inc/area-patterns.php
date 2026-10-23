@@ -33,7 +33,7 @@ function aloha_area_pattern_content( $name ) {
 		return aloha_area_group( 'aloha-area-facts', $rows );
 	}
 	if ( 'area-gallery' === $name ) {
-		return aloha_area_group( 'aloha-area-section aloha-area-gallery-section', aloha_area_group( 'aloha-container', aloha_area_heading( 'The area <em>in pictures</em>' ) . '<!-- wp:gallery {"columns":3,"linkTo":"none","className":"aloha-area-gallery"} --><figure class="wp-block-gallery has-nested-images columns-3 is-cropped aloha-area-gallery"></figure><!-- /wp:gallery -->' ), 'section' );
+		return aloha_area_group( 'aloha-area-section aloha-area-gallery-section', aloha_area_group( 'aloha-container', aloha_area_heading( 'The area <em>in pictures</em>' ) . '<!-- wp:aloha/media-gallery /-->' ), 'section' );
 	}
 	if ( 'area-beaches' === $name ) {
 		$cards = '';
