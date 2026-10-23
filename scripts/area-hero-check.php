@@ -45,8 +45,12 @@ foreach ( array( 'javascript:alert(1)', 'https://youtube.com.evil.test/watch?v=A
 }
 $before = get_post( $one )->to_array();
 foreach ( array( array( 'aloha_area_loop_video_id' => $wrong ), array( 'aloha_area_loop_video_id' => -1 ), array( 'aloha_area_loop_video_id' => 'bad' ), array( 'aloha_area_film_url' => 'https://example.test/video' ), array( 'aloha_area_film_label' => array( 'bad' ) ) ) as $invalid ) {
+ // Cross a clock tick so a late REST failure cannot hide post_modified writes.
+ usleep( 1100000 );
  $response = $rest( $invalid );
- $check( 400 === $response->get_status() && get_post( $one )->to_array() === $before, 'REST rejects invalid media before post changes' );
+ $current = get_post( $one )->to_array();
+ $changed = array_keys( array_filter( $current, fn( $value, $field ) => ! array_key_exists( $field, $before ) || $before[$field] !== $value, ARRAY_FILTER_USE_BOTH ) );
+ $check( 400 === $response->get_status() && $current === $before, 'REST rejects invalid media before post changes: ' . wp_json_encode( array( 'input' => $invalid, 'status' => $response->get_status(), 'changed' => $changed, 'error' => $response->get_data()['code'] ?? '' ) ) );
 }
 $response = $rest( array( 'aloha_area_loop_video_id' => $video, 'aloha_area_film_url' => 'https://youtu.be/AlohaTest01?si=discard', 'aloha_area_film_label' => '<b>Discover & explore</b>' ) );
 $check( 200 === $response->get_status() && $video === (int) get_post_meta( $one, 'aloha_area_loop_video_id', true ), 'Administrator saves video through native REST' );

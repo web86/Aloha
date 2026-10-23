@@ -54,5 +54,8 @@ add_filter( 'rest_pre_insert_area', function ( $prepared, $request ) {
 	if ( ! empty( $meta['aloha_area_film_url'] ) && ! area_youtube_id( $meta['aloha_area_film_url'] ) ) {
 		return new \WP_Error( 'aloha_invalid_area_film', 'Enter a valid YouTube video URL, or leave the film URL empty.', array( 'status' => 400 ) );
 	}
+	if ( isset( $meta['aloha_area_film_label'] ) && ! is_string( $meta['aloha_area_film_label'] ) ) {
+		return new \WP_Error( 'aloha_invalid_area_film_label', 'Enter the film label as plain text.', array( 'status' => 400 ) );
+	}
 	return $prepared;
 }, 20, 2 );

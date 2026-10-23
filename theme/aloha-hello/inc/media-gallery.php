@@ -56,12 +56,13 @@ function aloha_media_gallery_render( $attrs, $block ) {
 		if ( 0 === $index && $film_id ) {
 			$html .= '<button class="aloha-gallery-film" type="button" data-aloha-youtube="' . esc_attr( $film_id ) . '" data-aloha-media-title="' . esc_attr( $title . ' — area film' ) . '" aria-haspopup="dialog"><span aria-hidden="true">▶</span>' . esc_html( $film_label ) . '</button>';
 		}
-		if ( 4 === $index && $count > 5 ) {
-			$html .= '<a class="aloha-gallery-more" href="#' . esc_attr( $id . '-photos' ) . '" data-aloha-photo="5" aria-haspopup="dialog">+' . ( $count - 5 ) . ' photos</a>';
+		if ( 4 === $index ) {
+			$label = $count > 5 ? '+' . ( $count - 5 ) . ' photos' : 'View all photos (' . $count . ')';
+			$html .= '<a class="aloha-gallery-more" href="#' . esc_attr( $id . '-photos' ) . '" data-aloha-photo="0" aria-label="' . esc_attr( 'View all ' . $count . ' photos' ) . '" aria-haspopup="dialog">' . esc_html( $label ) . '</a>';
 		}
 		$html .= '</figure>';
 	}
-	$html .= '</div><a class="aloha-gallery-all" href="#' . esc_attr( $id . '-photos' ) . '" data-aloha-photo="0" aria-haspopup="dialog">View all photos <span>(' . $count . ')</span></a>';
+	$html .= '</div>';
 	$html .= '<script type="application/json" class="aloha-gallery-data">' . wp_json_encode( $photos, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . '</script>';
 	$html .= '<noscript><div id="' . esc_attr( $id . '-photos' ) . '"><p>All photos</p><ol>';
 	foreach ( $photos as $index => $photo ) { $html .= '<li><a href="' . esc_url( $photo['url'] ) . '">' . esc_html( $photo['alt'] ?: 'Photo ' . ( $index + 1 ) ) . '</a></li>'; }
