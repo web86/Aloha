@@ -133,3 +133,9 @@ Aloha Content **0.6.0** добавляет **Tools → Aloha Content: Routing**,
 Aloha Hello **0.3.0** добавляет нативный `templates/single-area.html`, однократный Gutenberg starter `area-start` и восемь редакционных Patterns. Hero использует поля текущей Area, Communities выбираются по `aloha_area_id`. Rentals остаётся пустым слотом до будущего GuestyBridge; Aloha Content **0.6.0** и маршрутизация не изменены.
 
 [Локальная Mauna Lani](http://127.0.0.1:8088/big-island/mauna-lani/) сохранена как редактируемая Area; reference media и неподтверждённый copy явно помечены. [Отчёт, тесты и visual QA](docs/m1-5-a-area-mauna-lani.md). Дополнительный прогон: `CONTENT_AREA_TEST=1 CONTENT_BROWSER_TEST=1 ./scripts/test-aloha-content.sh` (нужны локальные исходные JPG и Playwright). Изменения находятся в отдельной ветке, push/deployment M1.5-A не выполнялись.
+
+## Interactive Area Hero — M1.5-A.1
+
+Aloha Hello **0.3.1** расширяет существующий Hero нативным background video и YouTube dialog. Aloha Content **0.7.0** регистрирует два revisioned meta конкретной Area; панель **Area Media** в Gutenberg выбирает MP4/WebM через Media Library и хранит необязательный YouTube URL. Постер, reduced motion, экономия трафика, пауза и загрузка YouTube только по клику поддерживаются без стороннего плеера.
+
+У Mauna Lani видео/film URL оставлены пустыми: проверенных ресурсов нет, текущий контент сохранён. [Отчёт и screenshots](docs/m1-5-a1-interactive-hero.md). Полный тестовый прогон: `CONTENT_HERO_TEST=1 CONTENT_BROWSER_TEST=1 ./scripts/test-aloha-content.sh` с локальными JPG и Playwright; fixtures создаются только на 8091. Push/deployment не выполнялись.

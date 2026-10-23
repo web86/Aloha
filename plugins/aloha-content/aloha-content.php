@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Aloha Content
  * Description: Areas, Communities, Big Island Guide and Investor Guides with validated public routes.
- * Version: 0.6.0
+ * Version: 0.7.0
  * Requires at least: 6.6
  * Requires PHP: 8.3
  * Text Domain: aloha-content
@@ -14,6 +14,7 @@ namespace Aloha\Content;
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/inc/integrity.php';
+require_once __DIR__ . '/inc/area-media.php';
 require_once __DIR__ . '/inc/area-routing.php';
 require_once __DIR__ . '/inc/community-routing.php';
 require_once __DIR__ . '/inc/guide-categories.php';
@@ -50,6 +51,7 @@ function register_content_types() {
 			'query_var'          => $type,
 		) );
 	}
+	register_area_media();
 	register_post_meta( 'community', 'aloha_area_id', array(
 		'type'              => 'integer',
 		'single'            => true,

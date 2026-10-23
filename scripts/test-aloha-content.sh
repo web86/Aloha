@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 umask 077
+if [ "${CONTENT_HERO_TEST:-0}" = 1 ]; then export CONTENT_AREA_TEST=1; fi
 run_dir="$(mktemp -d "$PWD/.local/content-test-XXXXXX")"
 project="aloha-content-test-$(basename "$run_dir" | tr '[:upper:]' '[:lower:]')"
 test_compose="$run_dir/compose.json"
@@ -88,6 +89,7 @@ wp plugin activate aloha-content
 wp eval 'wp_version_check(); wp_update_plugins(); wp_update_themes(); require_once ABSPATH . "wp-admin/includes/translation-install.php"; if (is_wp_error(translations_api("core", array("version"=>get_bloginfo("version"))))) { WP_CLI::error("Offline Core fixture failed."); } WP_CLI::success("Offline Core update/translation fixture is valid.");'
 dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/aloha-content.php
 dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/integrity.php
+dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/area-media.php
 dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/area-routing.php
 dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/community-routing.php
 dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/guide-categories.php
@@ -186,6 +188,20 @@ if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
   if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
     ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_AREA_PRESENTATION_FIXTURES="$run_dir/area-presentation-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/area-presentation-browser.cjs
   fi
+fi
+if [ "${CONTENT_HERO_TEST:-0}" = 1 ]; then
+  wp eval-file /var/www/aloha-tests/area-hero-check.php setup > "$run_dir/area-hero-fixtures.json"
+  python3 - "$run_dir" <<'HERO_REPORT'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);data=json.loads((p/'area-hero-fixtures.json').read_text())
+(p/'area-hero-server-report.json').write_text(json.dumps({'checks':data['checks']},indent=2)+'\n')
+print('PASS:',len(data['checks']),'Interactive Hero server checks.')
+HERO_REPORT
+  if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_AREA_HERO_FIXTURES="$run_dir/area-hero-fixtures.json" ALOHA_AREA_PRESENTATION_FIXTURES="$run_dir/area-presentation-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/area-hero-browser.cjs
+  fi
+  wp eval-file /var/www/aloha-tests/area-hero-check.php cleanup
 fi
 if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
   wp eval-file /var/www/aloha-tests/area-presentation-check.php prepare-switch
