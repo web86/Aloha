@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 umask 077
+if [ "${CONTENT_BEACHES_TEST:-0}" = 1 ]; then export CONTENT_GALLERY_TEST=1; fi
 if [ "${CONTENT_GALLERY_TEST:-0}" = 1 ]; then export CONTENT_HERO_TEST=1; fi
 if [ "${CONTENT_HERO_TEST:-0}" = 1 ]; then export CONTENT_AREA_TEST=1; fi
 run_dir="$(mktemp -d "$PWD/.local/content-test-XXXXXX")"
@@ -218,6 +219,21 @@ GALLERY_REPORT
     ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_MEDIA_GALLERY_FIXTURES="$run_dir/media-gallery-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/media-gallery-browser.cjs
   fi
   wp eval-file /var/www/aloha-tests/media-gallery-check.php cleanup
+fi
+if [ "${CONTENT_BEACHES_TEST:-0}" = 1 ]; then
+  dc exec -T wordpress sh -c 'for file in wp-content/themes/aloha-hello/inc/beaches.php wp-content/themes/aloha-hello/blocks/beaches/render.php /var/www/aloha-tests/*beaches*.php; do php -l "$file" || exit 1; done'
+  wp eval-file /var/www/aloha-tests/beaches-check.php setup > "$run_dir/beaches-fixtures.json"
+  python3 - "$run_dir" <<'BEACHES_REPORT'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);data=json.loads((p/'beaches-fixtures.json').read_text())
+(p/'beaches-server-report.json').write_text(json.dumps({'checks':data['checks']},indent=2)+'\n')
+print('PASS:',len(data['checks']),'Beaches server checks.')
+BEACHES_REPORT
+  if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_BEACHES_FIXTURES="$run_dir/beaches-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/beaches-browser.cjs
+  fi
+  wp eval-file /var/www/aloha-tests/beaches-check.php cleanup
 fi
 if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
   wp eval-file /var/www/aloha-tests/area-presentation-check.php prepare-switch

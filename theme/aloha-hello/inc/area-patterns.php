@@ -36,11 +36,7 @@ function aloha_area_pattern_content( $name ) {
 		return aloha_area_group( 'aloha-area-section aloha-area-gallery-section', aloha_area_group( 'aloha-container', aloha_area_heading( 'The area <em>in pictures</em>' ) . '<!-- wp:aloha/media-gallery /-->' ), 'section' );
 	}
 	if ( 'area-beaches' === $name ) {
-		$cards = '';
-		for ( $i = 0; $i < 4; ++$i ) {
-			$cards .= aloha_area_group( 'aloha-area-beach', aloha_area_photo( 'Photo to be added' ) . aloha_area_heading( 'Beach to explore', 3 ) . aloha_area_paragraph( 'Editorial placeholder: add a verified description, access information and practical advice.' ) );
-		}
-		return aloha_area_group( 'aloha-area-section aloha-area-beaches', aloha_area_group( 'aloha-container', aloha_area_group( 'aloha-area-section-heading', aloha_area_heading( 'Beaches <em>nearby</em>' ) . aloha_area_paragraph( 'Find a shoreline that suits your day. Confirm conditions and access before setting out.' ) ) . aloha_area_group( 'aloha-area-beach-grid', $cards ) ), 'section' );
+		return aloha_area_group( 'aloha-area-section aloha-area-beaches', aloha_area_group( 'aloha-container', aloha_area_group( 'aloha-area-section-heading', aloha_area_heading( 'Beaches <em>nearby</em>' ) . aloha_area_paragraph( 'Find a shoreline that suits your day. Confirm conditions and access before setting out.' ) ) . '<!-- wp:aloha/beaches /-->' ), 'section' );
 	}
 	if ( 'area-activities' === $name ) {
 		$featured = ''; $cards = '';

@@ -48,8 +48,13 @@ function content( $media ) {
 	foreach ( $beaches as $title ) { $html = preg_replace( '/Beach to explore/', $title, $html, 1 ); }
 	foreach ( $activities as $title ) { $html = preg_replace( '/An island experience/', $title, $html, 1 ); }
 	$blocks = parse_blocks( $html ); $photo = 0;
-	$walk = function ( &$blocks ) use ( &$walk, $media, &$photo ) {
+	$walk = function ( &$blocks ) use ( &$walk, $media, &$photo, $beaches ) {
 		foreach ( $blocks as &$block ) {
+			if ( 'aloha/beaches' === $block['blockName'] ) {
+				$block['attrs']['cards'] = array_map( fn( $title, $i ) => array( 'title' => $title, 'description' => 'Editorial placeholder: add a verified description, access information and practical advice.', 'imageId' => $i ? 0 : $media['hero'], 'url' => '', 'focalPoint' => array( 'x' => .5, 'y' => .5 ) ), $beaches, array_keys( $beaches ) );
+				$photo += 4; // Retain the legacy fixture's Activity image positions.
+				continue;
+			}
 			if ( 'aloha/media-gallery' === $block['blockName'] ) {
 				$block['attrs']['ids'] = array_map( fn( $key ) => $media[$key], array( 'bay', 'golf', 'hero', 'manta', 'whale' ) );
 				continue;

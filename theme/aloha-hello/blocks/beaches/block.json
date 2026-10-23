@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "aloha/beaches",
+  "title": "Beaches",
+  "description": "Editorial beach cards with responsive images and optional links.",
+  "category": "media",
+  "icon": "location-alt",
+  "attributes": {
+    "cards": { "type": "array", "default": [], "items": { "type": "object", "properties": {
+      "title": { "type": "string" }, "description": { "type": "string" },
+      "imageId": { "type": "integer" }, "url": { "type": "string" },
+      "focalPoint": { "type": "object", "properties": { "x": { "type": "number" }, "y": { "type": "number" } } }
+    } } }
+  },
+  "supports": { "html": false, "anchor": true },
+  "editorScript": "aloha-beaches-editor",
+  "editorStyle": ["wp-components", "dashicons"],
+  "style": "aloha-beaches",
+  "viewScript": "aloha-beaches",
+  "render": "file:./render.php"
+}

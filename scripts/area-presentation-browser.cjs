@@ -76,11 +76,8 @@ async function validBlocks() {
       const faq = blocks.find(b => b.attributes.className === 'aloha-area-faq');
       actions.insertBlocks(Array.from({length:7},(_,i) => wp.blocks.createBlock('core/details', {summary:'Additional question '+i}, [wp.blocks.createBlock('core/paragraph',{content:'An editable verified-answer placeholder.'})])), faq.innerBlocks.length, faq.clientId);
       actions.removeBlocks(faq.innerBlocks.find(b => b.name === 'core/details').clientId, false);
-      const beachGrid = blocks.find(b => b.attributes.className === 'aloha-area-beach-grid');
-      actions.moveBlocksToPosition([beachGrid.innerBlocks.at(-1).clientId], beachGrid.clientId, beachGrid.clientId, 0);
-      actions.updateBlockAttributes(beachGrid.innerBlocks.at(-1).innerBlocks.find(b => b.name === 'core/heading').clientId, {content:'Reordered beach card'});
-      const photo = beachGrid.innerBlocks.at(-1).innerBlocks[0];
-      actions.insertBlocks(wp.blocks.createBlock('core/image',images[0]),0,photo.clientId);
+      const beaches = blocks.find(b => b.name === 'aloha/beaches');
+      actions.updateBlockAttributes(beaches.clientId,{cards:images.map((image,i)=>({title:i?'Editorial beach '+i:'Reordered beach card',description:'Verified-answer placeholder.',imageId:image.id,url:'',focalPoint:{x:.5,y:.5}})).reverse()});
       const owner = blocks.find(b => b.attributes.className === 'aloha-area-owner');
       actions.removeBlocks(owner.clientId, false);
       actions.insertBlocks(wp.blocks.createBlock('core/paragraph',{content:'An extra manager-authored block.'}));

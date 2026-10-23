@@ -35,6 +35,7 @@
 .aloha-area-section-heading { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-bottom: 40px; }
 .aloha-area-section-heading > * { margin: 0; }
 .aloha-area-section-heading p { max-width: 440px; margin: 0; font-size: 1.0625rem; }
+.aloha-area-content .aloha-area-beaches:not(:has(.aloha-beaches-card,.aloha-area-beach)) { display: none; }
 .aloha-area-beach-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 24px; }
 .aloha-area-beach-grid > *, .aloha-area-activity-featured > *, .aloha-area-activity-grid > * { min-width: 0; margin: 0; }
 .aloha-area-photo { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 8px; background: linear-gradient(135deg,var(--aloha-color-surface-soft),#e3ece4 60%,#bcd6dd); }

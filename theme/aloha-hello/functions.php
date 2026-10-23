@@ -4,6 +4,7 @@ defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/inc/shell.php';
 require_once __DIR__ . '/inc/area.php';
 require_once __DIR__ . '/inc/media-gallery.php';
+require_once __DIR__ . '/inc/beaches.php';
 
 add_action( 'after_setup_theme', function () {
 	add_theme_support( 'editor-styles' );
