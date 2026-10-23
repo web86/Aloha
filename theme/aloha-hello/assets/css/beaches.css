@@ -11,14 +11,21 @@
 .aloha-beaches-card a { color: inherit; text-decoration: none; }
 .aloha-beaches-card a:is(:hover,:focus-visible) { text-decoration: underline; text-underline-offset: 4px; }
 .aloha-beaches-card.is-text-only { padding: 24px; border: 1px solid var(--aloha-color-border,#d0dedf); border-radius: 8px; background: var(--aloha-color-page,#f3f6f6); }
-.aloha-beaches.is-carousel .aloha-beaches-track { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - 72px)/4); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding-inline: 0; padding-bottom: 12px; }
-.aloha-beaches.is-carousel .aloha-beaches-card { scroll-snap-align: start; }
-.aloha-beaches-controls { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 20px; }
+.aloha-beaches-viewport { min-width: 0; }
+.aloha-beaches.is-carousel .aloha-beaches-viewport { overflow-x: auto; overscroll-behavior-x: contain; }
+.aloha-beaches.is-carousel .aloha-beaches-track { display: flex; }
+.aloha-beaches.is-carousel .aloha-beaches-card { flex: 0 0 calc((100% - 72px)/4); }
+.aloha-beaches.is-enhanced .aloha-beaches-viewport { overflow: hidden; }
+.aloha-beaches.is-enhanced .aloha-beaches-track { touch-action: pan-y pinch-zoom; cursor: grab; }
+.aloha-beaches.is-enhanced .aloha-beaches-track:active { cursor: grabbing; }
+.aloha-beaches.is-enhanced .aloha-beaches-image img { user-select: none; -webkit-user-drag: none; }
+.aloha-beaches-controls { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 24px; }
 .aloha-beaches-controls[hidden] { display: none; }
-.aloha-beaches-controls button { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; padding: 0; border: 1px solid currentColor; border-radius: 50%; color: var(--aloha-color-brand,#075056); background: transparent; cursor: pointer; }
+.aloha-beaches-controls button { display: grid; place-items: center; width: 46px; height: 46px; min-height: 0; flex-shrink: 0; padding: 0; border: 1px solid var(--aloha-color-border,#d0dedf); border-radius: 50%; color: var(--aloha-color-brand,#075056); background: transparent; cursor: pointer; }
 .aloha-beaches-controls button:disabled { opacity: .4; cursor: default; }
 .aloha-beaches-controls svg { fill: none; stroke: currentColor; stroke-width: 1.5; }
-.aloha-beaches-status { font-size: .875rem; }
+.aloha-beaches-controls button:not(:disabled):is(:hover,:focus-visible) { background: var(--aloha-color-page,#f3f6f6); border-color: currentColor; }
+@media (prefers-reduced-motion: no-preference) { .aloha-beaches-controls button { transition: background-color .18s, border-color .18s, opacity .18s; } }
 .aloha-beaches :where(a,button,[tabindex]):focus-visible { outline: 3px solid var(--aloha-color-accent,#ff6b00); outline-offset: -3px; }
 .aloha-beaches-editor-list { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(274px,100%),1fr)); gap: 20px; list-style: none; padding: 0; margin: 16px 0; }
 .aloha-beaches-editor-list > li { min-width: 0; padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
@@ -27,5 +34,5 @@
 .aloha-beaches-editor-actions { display: flex; flex-wrap: nowrap; gap: 2px; }
 .aloha-beaches-editor-actions .components-button { display: inline-flex; justify-content: center; flex: 0 0 36px; min-width: 36px; width: 36px; height: 36px; padding: 6px; }
 .aloha-beaches-editor-actions .components-button:focus-visible { outline: 2px solid var(--wp-admin-theme-color,#3858e9); outline-offset: -2px; }
-@media (max-width: 1023px) { .aloha-beaches-track { grid-template-columns: repeat(2,minmax(0,1fr)); } .aloha-beaches.is-carousel .aloha-beaches-track { grid-auto-columns: calc((100% - 24px)/2); } }
-@media (max-width: 599px) { .aloha-beaches-track { grid-template-columns: minmax(0,1fr); } .aloha-beaches.is-carousel .aloha-beaches-track { grid-auto-columns: 88%; } .aloha-beaches-editor-list > li { padding: 8px; } }
+@media (max-width: 1023px) { .aloha-beaches-track { grid-template-columns: repeat(2,minmax(0,1fr)); } .aloha-beaches.is-carousel .aloha-beaches-card { flex-basis: calc((100% - 24px)/2); } }
+@media (max-width: 599px) { .aloha-beaches-track { grid-template-columns: minmax(0,1fr); } .aloha-beaches.is-carousel .aloha-beaches-card { flex-basis: 88%; } .aloha-beaches-editor-list > li { padding: 8px; } }

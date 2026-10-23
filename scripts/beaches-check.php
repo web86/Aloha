@@ -42,6 +42,7 @@ foreach ( array( array( 450, 1100 ), array( 1500, 450 ), array( 1000, 1000 ) ) a
 }
 $cards = array();
 for ( $i = 0; $i < 12; $i++ ) { $cards[] = array( 'title' => 'Editorial beach ' . ( $i + 1 ), 'description' => 0 === $i ? str_repeat( 'Long editorial description for layout testing. ', 10 ) : 'Verify local conditions and access before publishing.', 'imageId' => $i < 3 ? $state['media'][$i] : $base_media[ array_keys( $base_media )[ $i % count( $base_media ) ] ], 'url' => 0 === $i ? home_url( '/' ) : '', 'focalPoint' => array( 'x' => .2, 'y' => .3 ) ); }
+$cards[11]['url'] = home_url( '/' ); // Offscreen keyboard link fixture.
 $block = fn( $values ) => '<!-- wp:aloha/beaches ' . wp_json_encode( array( 'cards' => $values ) ) . ' /-->';
 $wrap = fn( $html ) => '<!-- wp:group {"className":"aloha-container"} --><div class="wp-block-group aloha-container">' . $html . '</div><!-- /wp:group -->';
 $urls = array();
@@ -51,11 +52,19 @@ foreach ( array( 0, 1, 4, 5, 8, 12 ) as $n ) {
  $check( ( $n > 4 ) === str_contains( $html, 'is-carousel' ) && ( $n > 4 ? str_contains( $html, 'aria-controls=' ) && str_contains( $html, 'controls" hidden' ) : ! str_contains( $html, 'data-beaches-direction' ) ), 'Grid/carousel progressive controls for ' . $n . ' cards' );
  $id = $create( 'Beaches count ' . $n, $wrap( $block( array_slice( $cards, 0, $n ) ) ) ); $urls[$n] = get_permalink( $id );
 }
+$visual_urls = array();
+foreach ( array( 5, 8 ) as $n ) {
+ $visual_cards = array_slice( $cards, 0, $n );
+ $visual_cards[0]['description'] = 'Verify local conditions and access before publishing.';
+ $visual_id = $create( 'Beaches compact visual ' . $n, $wrap( $block( $visual_cards ) ) );
+ $visual_urls[$n] = get_permalink( $visual_id );
+}
 $registry = WP_Block_Type_Registry::get_instance()->get_registered( 'aloha/beaches' );
 $check( $registry && $registry->is_dynamic() && isset( $registry->attributes['cards'] ) && ! isset( $registry->attributes['urls'] ), 'One dynamic collection with attachment IDs, no independent image URL list' );
 $html = aloha_beaches_render( array( 'cards' => $cards ) );
+$check( str_contains( $html, 'aloha-beaches-viewport' ) && str_contains( $html, 'aloha-beaches-track' ) && ! str_contains( $html, 'aloha-beaches-status' ) && wp_scripts()->registered['aloha-embla']->ver === '8.6.0' && in_array( 'aloha-embla', wp_scripts()->registered['aloha-beaches']->deps, true ), 'Local pinned Embla dependency, viewport/container SSR and no numeric counter' );
 $check( str_contains( $html, 'srcset=' ) && str_contains( $html, 'sizes=' ) && str_contains( $html, 'loading="lazy"' ) && str_contains( $html, 'object-position:20.00% 30.00%' ), 'Responsive lazy images and editorial focal point' );
-$check( 2 === substr_count( $html, '<a href=' ), 'Only the explicitly linked card has image/title destinations' );
+$check( 4 === substr_count( $html, '<a href=' ), 'Only explicitly linked cards have image/title destinations' );
 $bad = $cards[0]; $bad['imageId'] = 99999999; $bad['url'] = 'javascript:alert(1)'; $bad['title'] = '<script>Bad</script> & title'; $bad['description'] = '<script>alert(1)</script><em>Safe emphasis</em>';
 $html = aloha_beaches_render( array( 'cards' => array( $bad ) ) );
 $check( ! str_contains( $html, '<img' ) && str_contains( $html, 'is-text-only' ) && ! str_contains( $html, '<script' ) && ! str_contains( $html, '<a ' ) && str_contains( $html, '<em>Safe emphasis</em>' ), 'Deleted attachment and unsafe input render a safe text card' );
@@ -95,4 +104,4 @@ $check( '' === aloha_beaches_render( array( 'cards' => array( array( 'title' => 
 $check( str_contains( do_blocks( $legacy ), 'aloha-area-beach-grid' ), 'Unmigrated native Beaches still render' );
 $multiple = $create( 'Two independent Beaches carousels', $wrap( $block( $cards ) . $block( array_slice( $cards, 0, 8 ) ) ) );
 $check( ! post_type_exists( 'beach' ) && ! taxonomy_exists( 'beach' ) && ! metadata_exists( 'post', $migration, 'aloha_beaches' ), 'No new content type, taxonomy or parallel post meta collection' );
-WP_CLI::line( wp_json_encode( array( 'checks' => $checks, 'cards' => $cards, 'urls' => $urls, 'media' => $state['media'], 'multiple_url' => get_permalink( $multiple ) ) ) );
+WP_CLI::line( wp_json_encode( array( 'checks' => $checks, 'cards' => $cards, 'urls' => $urls, 'visual_urls' => $visual_urls, 'media' => $state['media'], 'multiple_url' => get_permalink( $multiple ) ) ) );

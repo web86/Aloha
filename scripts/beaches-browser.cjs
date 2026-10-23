@@ -1,4 +1,4 @@
-/* Native Gutenberg/media/focal controls and progressive carousel. Disposable :8091 only. */
+/* Native Gutenberg/media/focal controls and Embla progressive carousel. Disposable :8091 only. */
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const {chromium,firefox,webkit}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const auth=JSON.parse(fs.readFileSync(process.env.ALOHA_CONTENT_TEST_AUTH,'utf8'));
@@ -53,26 +53,80 @@ const getCards=()=>page.evaluate(()=>wp.data.select('core/block-editor').getBloc
   }
   assert.equal(await front.locator('.aloha-beaches-card a').count(),2);assert.equal(await front.locator('.aloha-beaches-card').nth(1).locator('a').count(),0);assert.equal(await front.locator('.aloha-beaches-card').nth(1).evaluate(e=>getComputedStyle(e.querySelector('h3')).cursor),'auto');
   check('Portrait/landscape/square images keep a 4:3 cover frame and selected focal position; unlinked cards stay plain');
-  await front.setViewportSize({width:1440,height:1000});await front.goto(fixture.multiple_url);const blocks=front.locator('[data-aloha-beaches]'),track=blocks.first().locator('.aloha-beaches-track'),second=blocks.nth(1).locator('.aloha-beaches-track');await track.scrollIntoViewIfNeeded();
-  await blocks.first().getByRole('button',{name:'Next beaches',exact:true}).click();await front.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft>0);assert.equal(await second.evaluate(e=>e.scrollLeft),0);
-  await track.focus();await front.keyboard.press('End');await front.waitForFunction(()=>{const t=document.querySelector('.aloha-beaches-track');return t.scrollLeft>=t.scrollWidth-t.clientWidth-2;});await blocks.first().locator('[data-beaches-direction="1"]:disabled').waitFor();
-  await front.keyboard.press('Home');await front.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft<2);await front.keyboard.press('ArrowRight');await front.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft>0);await front.keyboard.press('ArrowLeft');await front.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft<2);
-  const rect=await track.boundingBox();await front.mouse.move(rect.x+rect.width/2,rect.y+50);await front.mouse.wheel(600,0);await front.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft>0);
-  await blocks.first().getByRole('button',{name:'Previous beaches',exact:true}).click();await front.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft<2);await track.focus();await front.screenshot({path:out+'/beaches-carousel-keyboard.png'});
-  assert.notEqual(await track.getAttribute('id'),await second.getAttribute('id'));
-  check('Previous/Next, mouse wheel, ArrowLeft/Right, Home/End and independent carousel IDs work with reduced motion');
-  await front.emulateMedia({reducedMotion:'no-preference'});await blocks.first().getByRole('button',{name:'Next beaches',exact:true}).click();await front.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft>500);await front.emulateMedia({reducedMotion:'reduce'});
-  await front.goto(fixture.urls[8]);for(const width of [1440,1024,768,390,320]){await front.setViewportSize({width,height:1000});await front.locator('[data-aloha-beaches]').scrollIntoViewIfNeeded();await front.locator('[data-aloha-beaches]').screenshot({path:out+'/beaches-carousel-eight-'+width+'.png'});}
-  await front.setViewportSize({width:390,height:844});const mobile=front.locator('.aloha-beaches-track');await mobile.scrollIntoViewIfNeeded();const box=await mobile.boundingBox(),cdp=await front.context().newCDPSession(front);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true});const y=Math.max(box.y,120)+80;
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:330,y}]});for(const x of [290,240,180,120,60])await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await front.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft>0);await front.screenshot({path:out+'/beaches-touch.png'});
-  await front.evaluate(()=>document.documentElement.style.fontSize='200%');await front.locator('.aloha-beaches-track').focus();await front.keyboard.press('End');assert.ok(await front.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await front.screenshot({path:out+'/beaches-text-200.png'});
-  check('Native touch swipe and 200% text with long descriptions remain scrollable without page overflow');
-  const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}}),plain=await nojs.newPage();await plain.goto(fixture.urls[12]);assert.equal(await plain.locator('.aloha-beaches-card').count(),12);assert.equal(await plain.locator('.aloha-beaches-controls:visible').count(),0);await plain.locator('.aloha-beaches-track').focus();for(let i=0;i<10;i++)await plain.keyboard.press('ArrowRight',{delay:30});await plain.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft>0);await plain.locator('.aloha-beaches-card a').first().click();await plain.waitForURL(auth.url+'/');await nojs.close();
-  check('All 12 cards and editorial links remain accessible with JavaScript disabled');
+  const position = root => root.locator('.aloha-beaches-track').evaluate(e=>new DOMMatrix(getComputedStyle(e).transform).m41);
+  const settle = () => front.waitForTimeout(700);
+  await front.setViewportSize({width:1440,height:1000});await front.goto(fixture.urls[5]);
+  const five=front.locator('[data-aloha-beaches]');await five.scrollIntoViewIfNeeded();
+  assert.ok(await five.evaluate(e=>e.classList.contains('is-enhanced')));
+  assert.equal(await five.locator('.aloha-beaches-status').count(),0);
+  assert.equal(await five.locator('.aloha-beaches-viewport').evaluate(e=>getComputedStyle(e).overflowX),'hidden');
+  const buttonBoxes=await five.locator('.aloha-beaches-controls button').evaluateAll(bs=>bs.map(b=>{const r=b.getBoundingClientRect();return {w:r.width,h:r.height,y:r.y};}));assert.ok(buttonBoxes.every(b=>b.w>=44&&b.w<=48&&b.h===b.w&&b.y===buttonBoxes[0].y),JSON.stringify(buttonBoxes));
+  const nextControl=five.getByRole('button',{name:'Next beaches'}),restingBox=await nextControl.boundingBox();await nextControl.hover();assert.deepEqual(await nextControl.boundingBox(),restingBox);await five.locator('.aloha-beaches-viewport').focus();for(let i=0;i<3;i++)await front.keyboard.press('Tab');assert.ok(await nextControl.evaluate(e=>e===document.activeElement));const focusBox=await nextControl.boundingBox();assert.equal(focusBox.width,restingBox.width);assert.equal(focusBox.height,restingBox.height);assert.equal(await nextControl.evaluate(e=>getComputedStyle(e).outlineStyle),'solid');
+  assert.equal(await position(five),0);assert.ok(await five.getByRole('button',{name:'Previous beaches'}).isDisabled());
+  await five.getByRole('button',{name:'Next beaches'}).click();await settle();
+  assert.ok(await position(five)<-200);assert.ok(await five.getByRole('button',{name:'Next beaches'}).isDisabled());
+  const edge=await five.evaluate(e=>{const v=e.querySelector('.aloha-beaches-viewport').getBoundingClientRect(),c=e.querySelectorAll('article');return {first:c[1].getBoundingClientRect().left-v.left,last:c[4].getBoundingClientRect().right-v.right};});
+  assert.ok(Math.abs(edge.first)<2&&Math.abs(edge.last)<2,JSON.stringify(edge));
+  await five.screenshot({path:out+'/embla-five-end-1440.png'});
+  await five.getByRole('button',{name:'Previous beaches'}).click();await settle();assert.equal(await position(five),0);
+  await five.screenshot({path:out+'/embla-five-start-1440.png'});
+  check('Five cards have exactly two desktop positions (1–4, 2–5), API disabled states and no counter/scrollbar/end gap');
+  for(const n of [5,8,12]){
+   await front.goto(fixture.urls[n]);const root=front.locator('[data-aloha-beaches]');
+   for(const width of [1440,1024,768,390,320]){
+    await front.setViewportSize({width,height:1000});await front.waitForTimeout(250);const viewport=root.locator('.aloha-beaches-viewport');await viewport.scrollIntoViewIfNeeded();await viewport.focus();await front.keyboard.press('Home');await settle();assert.equal(await position(root),0);
+    const sizes=await root.evaluate(e=>({v:e.querySelector('.aloha-beaches-viewport').clientWidth,c:e.querySelector('article').getBoundingClientRect().width}));
+    assert.ok(width>=1024?Math.abs((sizes.v-72)/4-sizes.c)<2:width>=600?Math.abs((sizes.v-24)/2-sizes.c)<2:Math.abs(sizes.v*.88-sizes.c)<2);
+    await front.keyboard.press('End');await settle();assert.ok(await root.getByRole('button',{name:'Next beaches'}).isDisabled());
+    const gap=await root.evaluate(e=>e.querySelector('.aloha-beaches-viewport').getBoundingClientRect().right-e.querySelector('article:last-child').getBoundingClientRect().right);assert.ok(Math.abs(gap)<2,'End gap '+n+'/'+width+': '+gap);
+    assert.ok(await front.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    await front.keyboard.press('Home');await settle();
+    if(n!==12)await root.screenshot({path:out+'/embla-'+n+'-'+width+'.png'});
+   }
+  }
+  check('5/8/12 cards resize to four/two/one-and-peek, start aligned, end contained at all five widths');
+  await front.setViewportSize({width:1440,height:1000});await front.goto(fixture.multiple_url);
+  const blocks=front.locator('[data-aloha-beaches]'),first=blocks.first(),second=blocks.nth(1),viewport=first.locator('.aloha-beaches-viewport');await viewport.scrollIntoViewIfNeeded();
+  assert.notEqual(await viewport.getAttribute('id'),await second.locator('.aloha-beaches-viewport').getAttribute('id'));assert.equal(await first.getByRole('button',{name:'Next beaches'}).getAttribute('aria-controls'),await viewport.getAttribute('id'));
+  await first.getByRole('button',{name:'Next beaches'}).focus();await front.keyboard.press('Enter');await settle();assert.ok(await position(first)<0);assert.equal(await position(second),0);
+  await first.getByRole('button',{name:'Previous beaches'}).focus();await front.keyboard.press('Space');await settle();assert.equal(await position(first),0);
+  await viewport.focus();await front.keyboard.press('ArrowRight');await settle();assert.ok(await position(first)<0);await front.keyboard.press('ArrowLeft');await settle();assert.equal(await position(first),0);
+  const intercepted=await first.locator('a').first().evaluate(e=>!e.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true})));assert.equal(intercepted,false);
+  const linked=first.locator('.aloha-beaches-image a').first();const beforeURL=front.url();
+  await viewport.evaluate(e=>e.addEventListener('click',event=>{e.dataset.dragClickPrevented=String(event.defaultPrevented);e.dataset.dragClickLink=String(!!event.target.closest('a'));},{capture:true,once:true}));
+  const inside=await linked.boundingBox();await front.mouse.move(inside.x+180,inside.y+40);await front.mouse.down();await front.mouse.move(inside.x+120,inside.y+40,{steps:12});await front.waitForTimeout(220);await front.mouse.up();await settle();assert.equal(front.url(),beforeURL);assert.equal(await viewport.getAttribute('data-drag-click-prevented'),'true');assert.equal(await viewport.getAttribute('data-drag-click-link'),'true');
+  await viewport.focus();await front.keyboard.press('Home');await settle();const box=await linked.boundingBox();
+  await front.mouse.move(box.x+box.width-10,box.y+40);await front.mouse.down();await front.mouse.move(box.x-110,box.y+40,{steps:20});await front.mouse.up();await settle();assert.ok(await position(first)<0);assert.equal(front.url(),beforeURL);assert.equal(await position(second),0);
+  await viewport.focus();await front.keyboard.press('Home');await settle();await first.locator('a').first().focus();await front.keyboard.press('Enter');await front.waitForURL(auth.url+'/');
+  check('Mouse drag suppresses link navigation; normal links, native keyboard buttons, Arrow keys and independent instances work');
+  await front.goto(fixture.urls[8]);const eight=front.locator('[data-aloha-beaches]'),vp=eight.locator('.aloha-beaches-viewport');await vp.scrollIntoViewIfNeeded();await vp.focus();
+  await front.keyboard.press('ArrowRight');const immediate=await position(eight);assert.ok(immediate<0);await front.waitForTimeout(120);assert.equal(await position(eight),immediate);
+  await front.screenshot({path:out+'/embla-keyboard-reduced.png'});
+  await front.emulateMedia({reducedMotion:'no-preference'});await vp.focus();await front.keyboard.press('Home');await settle();await front.keyboard.press('ArrowRight');await settle();assert.ok(await position(eight)<0);await front.emulateMedia({reducedMotion:'reduce'});
+  check('Reduced motion jumps immediately; normal animation and live preference changes work');
+  await front.setViewportSize({width:390,height:844});await front.goto(fixture.urls[8]);await vp.scrollIntoViewIfNeeded();const rect=await vp.boundingBox(),cdp=await front.context().newCDPSession(front);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true});const y=Math.max(rect.y,120)+80;
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:330,y}]});for(const x of [290,240,180,120,60])await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await front.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));const released=await position(eight);await front.waitForTimeout(120);assert.equal(await position(eight),released,'Reduced-motion touch release must settle immediately');await settle();assert.ok(await position(eight)<0);await front.screenshot({path:out+'/embla-touch.png'});
+  await front.evaluate(()=>document.documentElement.style.fontSize='200%');await vp.focus();await front.keyboard.press('End');await settle();assert.ok(await front.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await front.screenshot({path:out+'/embla-text-200.png'});
+  check('Real touch events swipe and long descriptions at 200% text stay within the page');
+  await front.evaluate(()=>document.documentElement.style.fontSize='');await front.setViewportSize({width:1440,height:1000});await front.goto(fixture.urls[12]);
+  const focusRoot=front.locator('[data-aloha-beaches]');await focusRoot.locator('a').first().focus();await front.keyboard.press('Tab');await front.keyboard.press('Tab');await settle();
+  assert.ok(await focusRoot.locator('article:last-child a').first().evaluate(e=>e===document.activeElement));
+  assert.ok(await position(focusRoot)<0);const focusedBox=await focusRoot.locator('article:last-child a').first().boundingBox(),focusViewport=await focusRoot.locator('.aloha-beaches-viewport').boundingBox();assert.ok(focusedBox.x>=focusViewport.x-2&&focusedBox.x+focusedBox.width<=focusViewport.x+focusViewport.width+2);
+  check('Tab reaches offscreen editorial links and Embla reveals the focused slide');
+  for(const n of [5,8])for(const width of [1440,1024,768,390,320]){await front.setViewportSize({width,height:1000});await front.goto(fixture.visual_urls[n]);const compact=front.locator('[data-aloha-beaches]');await compact.scrollIntoViewIfNeeded();await compact.locator('img').evaluateAll(es=>es.forEach(e=>e.loading='eager'));await front.waitForFunction(()=>[...document.querySelectorAll('.aloha-beaches img')].every(i=>i.complete&&i.naturalWidth));await compact.screenshot({path:out+'/embla-compact-'+n+'-'+width+'.png'});}
+
+  for(const failure of ['no-js','missing-library','throwing-library']){
+   const fallback=await browser.newContext({javaScriptEnabled:failure!=='no-js',viewport:{width:390,height:844}});
+   if(failure!=='no-js')await fallback.route('**/embla-carousel.umd.js*',route=>failure==='missing-library'?route.abort():route.fulfill({contentType:'application/javascript',body:'window.EmblaCarousel=function(){throw new Error("Fixture initialization failure")};'}));
+   const plain=await fallback.newPage();await plain.goto(fixture.urls[12]);assert.equal(await plain.locator('.aloha-beaches-card').count(),12);assert.equal(await plain.locator('.aloha-beaches-controls:visible').count(),0);
+   const native=plain.locator('.aloha-beaches-viewport');assert.equal(await native.evaluate(e=>getComputedStyle(e).overflowX),'auto');await native.focus();for(let i=0;i<10;i++)await plain.keyboard.press('ArrowRight',{delay:30});await plain.waitForFunction(()=>document.querySelector('.aloha-beaches-viewport').scrollLeft>0);
+   await plain.locator('.aloha-beaches-card a').first().click();await plain.waitForURL(auth.url+'/');await fallback.close();
+  }
+  check('No-JS, failed library load and failed initialization all retain native scrolling, twelve SSR cards and working links');
   await api('DELETE','media/'+fixture.media[0]+'?force=true');await front.goto(fixture.urls[4]);assert.equal(await front.locator('.aloha-beaches-card').count(),4);assert.equal(await front.locator('.aloha-beaches-card').first().locator('img').count(),0);assert.equal(await front.locator('.aloha-beaches-card').first().getAttribute('class'),'aloha-beaches-card is-text-only');
   check('Deleted attachment becomes a clean text card while preserving the title, description and URL');
   assert.deepEqual(report.pageErrors,[]);
-  for(const [name,engine]of[['firefox',firefox],['webkit',webkit]]){if(!fs.existsSync(engine.executablePath())){report.otherEngines.push({engine:name,status:'not installed; no browser installed'});continue;}const b=await engine.launch({headless:true}),p=await b.newPage();await p.goto(fixture.urls[8]);await p.locator('.aloha-beaches-track').focus();await p.keyboard.press('End');await p.waitForFunction(()=>document.querySelector('.aloha-beaches-track').scrollLeft>0);await b.close();report.otherEngines.push({engine:name,status:'carousel keyboard smoke passed'});}
+  for(const [name,engine]of[['firefox',firefox],['webkit',webkit]]){if(!fs.existsSync(engine.executablePath())){report.otherEngines.push({engine:name,status:'not installed; no browser installed'});continue;}const b=await engine.launch({headless:true}),p=await b.newPage();await p.goto(fixture.urls[8]);await p.locator('.aloha-beaches-viewport').focus();await p.keyboard.press('End');await p.waitForFunction(()=>new DOMMatrix(getComputedStyle(document.querySelector('.aloha-beaches-track')).transform).m41<0);await b.close();report.otherEngines.push({engine:name,status:'carousel keyboard smoke passed'});}
  }catch(e){report.error=e.message;if(front&&!front.isClosed())await front.screenshot({path:out+'/beaches-frontend-failure.png'});if(page&&!page.isClosed())await page.screenshot({path:out+'/beaches-editor-failure.png',mask:[page.locator('#user_login'),page.locator('#user_pass')]});throw e;}
  finally{report.cleanup=[];if(page&&!page.isClosed())for(const id of created){try{const result=await api('DELETE','pages/'+id+'?force=true');report.cleanup.push({id,deleted:result.deleted});}catch(e){report.cleanup.push({id,error:e.message,code:e.code});process.exitCode=1;}}fs.writeFileSync(out+'/beaches-browser-report.json',JSON.stringify(report,null,2));await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

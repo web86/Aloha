@@ -3,7 +3,8 @@
 defined( 'ABSPATH' ) || exit;
 add_action( 'init', function () {
 	wp_register_style( 'aloha-beaches', get_theme_file_uri( 'assets/css/beaches.css' ), array( 'aloha-foundation' ), (string) filemtime( get_theme_file_path( 'assets/css/beaches.css' ) ) );
-	wp_register_script( 'aloha-beaches', get_theme_file_uri( 'assets/js/beaches.js' ), array(), (string) filemtime( get_theme_file_path( 'assets/js/beaches.js' ) ), true );
+	wp_register_script( 'aloha-embla', get_theme_file_uri( 'assets/lib/embla-carousel/embla-carousel.umd.js' ), array(), '8.6.0', true );
+	wp_register_script( 'aloha-beaches', get_theme_file_uri( 'assets/js/beaches.js' ), array( 'aloha-embla' ), (string) filemtime( get_theme_file_path( 'assets/js/beaches.js' ) ), true );
 	wp_register_script( 'aloha-beaches-editor', get_theme_file_uri( 'blocks/beaches/editor.js' ), array( 'wp-blocks', 'wp-block-editor', 'wp-components', 'wp-element', 'wp-data', 'wp-core-data' ), (string) filemtime( get_theme_file_path( 'blocks/beaches/editor.js' ) ), true );
 	register_block_type( get_theme_file_path( 'blocks/beaches' ) );
 } );
@@ -43,7 +44,7 @@ function aloha_beaches_render( $attrs ) {
 	if ( ! $cards ) { return ''; }
 	$count = count( $cards ); $carousel = $count > 4; $id = wp_unique_id( 'aloha-beaches-' );
 	$wrapper = get_block_wrapper_attributes( array( 'class' => 'aloha-beaches' . ( $carousel ? ' is-carousel' : '' ), 'data-aloha-beaches' => '' ) );
-	$html = '<div ' . $wrapper . '><div class="aloha-beaches-track" id="' . esc_attr( $id ) . '"' . ( $carousel ? ' tabindex="0" role="region" aria-roledescription="carousel" aria-label="Beaches, ' . $count . ' cards"' : '' ) . '>';
+	$html = '<div ' . $wrapper . '><div class="aloha-beaches-viewport" id="' . esc_attr( $id ) . '"' . ( $carousel ? ' tabindex="0" role="region" aria-roledescription="carousel" aria-label="Beaches, ' . $count . ' cards"' : '' ) . '><div class="aloha-beaches-track">';
 	foreach ( $cards as $card ) {
 		$html .= '<article class="aloha-beaches-card' . ( $card['imageId'] ? '' : ' is-text-only' ) . '">';
 		if ( $card['imageId'] ) {
@@ -56,9 +57,9 @@ function aloha_beaches_render( $attrs ) {
 		if ( $card['url'] && ! $card['title'] ) { $html .= '<a class="aloha-beaches-details" href="' . esc_url( $card['url'] ) . '">Read beach details</a>'; }
 		$html .= '</article>';
 	}
-	$html .= '</div>';
+	$html .= '</div></div>';
 	if ( $carousel ) {
-		$html .= '<div class="aloha-beaches-controls" hidden><button type="button" data-beaches-direction="-1" aria-label="Previous beaches" aria-controls="' . esc_attr( $id ) . '"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><span class="aloha-beaches-status" role="status" aria-live="polite"></span><button type="button" data-beaches-direction="1" aria-label="Next beaches" aria-controls="' . esc_attr( $id ) . '"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div>';
+		$html .= '<div class="aloha-beaches-controls" hidden><button type="button" data-beaches-direction="-1" aria-label="Previous beaches" aria-controls="' . esc_attr( $id ) . '"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button type="button" data-beaches-direction="1" aria-label="Next beaches" aria-controls="' . esc_attr( $id ) . '"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div>';
 	}
 	return $html . '</div>';
 }
