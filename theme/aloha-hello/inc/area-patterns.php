@@ -17,6 +17,10 @@ function aloha_area_paragraph( $text, $class = '' ) {
 function aloha_area_photo( $label ) {
 	return aloha_area_group( 'aloha-area-photo', '<!-- wp:image {"sizeSlug":"large"} --><figure class="wp-block-image size-large"><img alt=""/></figure><!-- /wp:image -->' . aloha_area_paragraph( $label, 'aloha-area-placeholder' ) );
 }
+/** An empty Core Image stays editable; no unapproved portrait is preselected. */
+function aloha_area_advisor_image() {
+	return '<!-- wp:image {"sizeSlug":"medium","linkDestination":"none","className":"aloha-area-advisor-image","metadata":{"name":"CTA portrait (optional)"}} --><figure class="wp-block-image size-medium aloha-area-advisor-image"><img alt=""/></figure><!-- /wp:image -->';
+}
 function aloha_area_button( $label, $destination ) {
 	$url = aloha_destinations()['destinations'][ $destination ][1];
 	return '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-secondary aloha-area-planned-link"} --><div class="wp-block-button is-style-secondary aloha-area-planned-link"><a class="wp-block-button__link wp-element-button" href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
@@ -61,7 +65,7 @@ function aloha_area_pattern_content( $name ) {
 		return aloha_area_group( 'aloha-area-faq', $content );
 	}
 	if ( 'area-owner-cta' === $name ) {
-		$advisor = aloha_area_group( 'aloha-area-section aloha-area-advisor', aloha_area_group( 'aloha-container', aloha_area_group( 'aloha-area-advisor-panel', aloha_area_group( 'aloha-area-advisor-copy', aloha_area_heading( 'A little help <em>choosing?</em>', 3 ) . aloha_area_paragraph( 'Tell us what a good island stay looks like for you.' ) ) . aloha_area_button( 'Help me choose', 'contact' ) ) ), 'section' );
+		$advisor = aloha_area_group( 'aloha-area-section aloha-area-advisor', aloha_area_group( 'aloha-container', aloha_area_group( 'aloha-area-advisor-panel', aloha_area_advisor_image() . aloha_area_group( 'aloha-area-advisor-copy', aloha_area_heading( 'A little help <em>choosing?</em>', 3 ) . aloha_area_paragraph( 'Tell us what a good island stay looks like for you.' ) ) . aloha_area_button( 'Help me choose', 'contact' ) ) ), 'section' );
 		return $advisor . aloha_area_group( 'aloha-area-owner', aloha_area_group( 'aloha-container aloha-area-owner-inner', aloha_area_paragraph( 'Own a home here? Let’s talk about its rental potential.' ) . aloha_area_button( 'Free rental estimate', 'estimate' ) ), 'section' );
 	}
 	if ( 'area-start' === $name ) {

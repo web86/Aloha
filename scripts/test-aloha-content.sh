@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 umask 077
+if [ "${CONTENT_CTA_IMAGE_TEST:-0}" = 1 ]; then export CONTENT_GUIDE_HIGHLIGHTS_TEST=1; fi
 if [ "${CONTENT_GUIDE_HIGHLIGHTS_TEST:-0}" = 1 ]; then export CONTENT_FAQ_TEST=1; fi
 if [ "${CONTENT_FAQ_TEST:-0}" = 1 ]; then export CONTENT_BEACHES_TEST=1; fi
 if [ "${CONTENT_BEACHES_TEST:-0}" = 1 ]; then export CONTENT_GALLERY_TEST=1; fi
@@ -266,6 +267,20 @@ GUIDE_HIGHLIGHTS_REPORT
     ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_GUIDE_HIGHLIGHTS_FIXTURES="$run_dir/guide-highlights-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/guide-highlights-browser.cjs
   fi
   wp eval-file /var/www/aloha-tests/guide-highlights-check.php cleanup
+fi
+if [ "${CONTENT_CTA_IMAGE_TEST:-0}" = 1 ]; then
+  wp eval-file /var/www/aloha-tests/cta-image-check.php setup > "$run_dir/cta-image-fixtures.json"
+  python3 - "$run_dir" <<'CTA_REPORT'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);data=json.loads((p/'cta-image-fixtures.json').read_text())
+(p/'cta-image-server-report.json').write_text(json.dumps({'checks':data['checks']},indent=2)+'\n')
+print('PASS:',len(data['checks']),'CTA image server checks.')
+CTA_REPORT
+  if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_CTA_IMAGE_FIXTURES="$run_dir/cta-image-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/cta-image-browser.cjs
+  fi
+  wp eval-file /var/www/aloha-tests/cta-image-check.php cleanup
 fi
 if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
   wp eval-file /var/www/aloha-tests/area-presentation-check.php prepare-switch

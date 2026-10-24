@@ -89,8 +89,17 @@
 .aloha-area-faq summary::after { content: '+'; position: absolute; right: 0; top: 0; color: var(--aloha-color-brand); font-size: 1.375rem; font-weight: 700; }
 .aloha-area-faq details[open] summary::after { content: '−'; }
 .aloha-area-faq details p { margin: 16px 0 0; }
-.aloha-area-advisor-panel { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; padding: 32px; border-radius: 10px; background: var(--aloha-color-brand); color: var(--aloha-color-page); }
+.aloha-area-advisor-panel { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px 20px; padding: 32px; border-radius: 10px; background: var(--aloha-color-brand); color: var(--aloha-color-page); }
 .aloha-area-advisor-panel > * { margin: 0; min-width: 0; }
+/* Native Image: optional portrait, matching the final Design v2 96px circle. */
+.aloha-area-advisor-image { flex: 0 0 96px; width: 96px; max-width: 100%; }
+.aloha-area-advisor-image img { display: block; width: 96px; height: 96px; max-width: 100%; border-radius: 50%; object-fit: cover; }
+.aloha-area-advisor-image figcaption { font-size: .75rem; overflow-wrap: anywhere; }
+.aloha-area-advisor-image:not(:has(img[src])) { display: none; }
+.aloha-area-advisor-copy { flex: 1 1 280px; overflow-wrap: anywhere; }
+.aloha-area-advisor-panel > .wp-block-buttons { flex: 0 1 auto; max-width: 100%; }
+/* Keep the standard Media Library placeholder accessible in the editor. */
+.editor-styles-wrapper .aloha-area-advisor-image:not(:has(img[src])) { display: block; flex-basis: 100%; width: 100%; }
 .aloha-area-advisor-panel h3 { margin: 0 0 6px; font-family: var(--wp--preset--font-family--instrument-serif); font-size: 2.125rem; font-weight: 400; color: inherit; }
 .aloha-area-advisor-panel p { margin: 0; font-size: 1rem; }
 .aloha-area-owner { padding-block: 44px; }
@@ -118,7 +127,8 @@
 	.aloha-area-gallery.wp-block-gallery.has-nested-images figure:first-child { grid-column: 1 / -1; grid-row: auto; }
 	.aloha-area-activity-featured { grid-template-columns: 1fr; }
 	.aloha-area-activity-featured .aloha-area-activity { min-height: 300px; }
-	.aloha-area-advisor-panel { padding: 24px; }
+	.aloha-area-advisor-panel { padding: 24px; flex-direction: column; align-items: flex-start; }
+	.aloha-area-advisor-image, .aloha-area-advisor-copy { flex-basis: auto; }
 }
 @media (max-width: 479px) {
 	.aloha-area-beach-grid, .aloha-area-community-grid, .aloha-area-activity-grid { grid-template-columns: 1fr; }
