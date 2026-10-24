@@ -35,3 +35,19 @@
 	.aloha-community-hero { padding-top: 24px; }
 	.aloha-community-hero-media { aspect-ratio: 1.25; }
 }
+
+/* Community composition from the final PNG; only the modal behavior is shared. */
+.aloha-community-hero-media:has(.aloha-community-film) { display: flex; flex-direction: column; height: auto; min-height: 560px; }
+.aloha-community-hero-media:has(.aloha-community-film) .aloha-community-hero-image { position: absolute; inset: 0; }
+.aloha-community-film { position: relative; isolation: isolate; align-self: flex-start; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 12px; min-width: 0; max-width: calc(100% - 48px); min-height: 59px; margin: auto 24px 24px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--aloha-color-text); font-size: 1.125rem; font-weight: 600; line-height: 1.6; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.aloha-community-play { flex: 0 0 59px; display: inline-flex; align-items: center; justify-content: center; width: 59px; height: 59px; border: 1.5px solid currentColor; border-radius: 50%; background: #ffffffb3; }
+.aloha-community-play svg { width: 18px; height: 18px; fill: currentColor; }
+.aloha-community-film:hover, .aloha-community-film:active { background: transparent; color: var(--aloha-color-text); }
+.aloha-community-film:hover .aloha-community-play { background: #fffffff2; }
+.has-image .aloha-community-film::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 8px; background: #fffffff2; filter: blur(8px); pointer-events: none; }
+@media (max-width: 899px) {
+	.aloha-community-hero-media:has(.aloha-community-film) { aspect-ratio: auto; min-height: calc((100vw - 2 * var(--aloha-gutter)) / 1.7); }
+}
+@media (max-width: 599px) {
+	.aloha-community-hero-media:has(.aloha-community-film) { min-height: calc((100vw - 2 * var(--aloha-gutter)) / 1.25); }
+}

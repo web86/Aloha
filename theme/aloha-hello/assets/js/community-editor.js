@@ -15,4 +15,17 @@
 		},
 		save: () => null
 	});
+	function CommunityMediaPanel() {
+		const {type, meta, title} = wp.data.useSelect(select => ({
+			type: select('core/editor')?.getCurrentPostType(), meta: select('core/editor')?.getEditedPostAttribute('meta') || {},
+			title: select('core/editor')?.getEditedPostAttribute('title') || ''
+		}), []);
+		if (type !== 'community' || !Object.hasOwn(meta, 'aloha_community_film_url')) return null;
+		const update = fields => wp.data.dispatch('core/editor').editPost({meta: {...meta, ...fields}});
+		return el(wp.editor.PluginDocumentSettingPanel, {name: 'aloha-community-media', title: 'Community Media'},
+			el(wp.components.TextControl, {label: 'YouTube film URL', type: 'url', value: meta.aloha_community_film_url || '', onChange: url => update({aloha_community_film_url: url}), help: 'Optional. Paste a YouTube video URL, not iframe code. YouTube loads only after a visitor opens the film. Clear the URL to hide the button.', __next40pxDefaultSize: true, __nextHasNoMarginBottom: true}),
+			el(wp.components.TextControl, {label: 'Film Label', value: meta.aloha_community_film_label || '', placeholder: wp.htmlEntities.decodeEntities(title) + ' in 90 seconds', onChange: label => update({aloha_community_film_label: label}), help: 'Optional override. Leave empty for the current Community name followed by “in 90 seconds”. Adjust the label to match your film.', __next40pxDefaultSize: true, __nextHasNoMarginBottom: true})
+		);
+	}
+	wp.plugins.registerPlugin('aloha-community-media', {render: CommunityMediaPanel});
 })(window.wp);

@@ -144,7 +144,7 @@ Aloha Hello **0.3.1** расширяет существующий Hero нати�
 
 Новый Community получает нативный `community-start`: четыре обычные редактируемые секции Core. Общий `single-community.html` выводит Header/Footer, динамический Split Hero и Post Content. Hero использует текущие title, excerpt, Featured Image и район только из `aloha_area_id`; без фото остаётся градиентная панель. Сохранённый контент не заполняется повторно, в том числе после удаления всех секций.
 
-Менеджер: **Communities → Add New**, выбрать район в прежней панели **Area**, заполнить post fields и заменить редакционные placeholders. Две CTA пока показывают пояснение в общем диалоге: коллекция домов, Owner Estimate Form и фильм ещё не подключены. Дизайн, файлы, QA и evidence: [M1.5-B1](docs/m1-5-b1-community-foundation.md).
+Менеджер: **Communities → Add New**, выбрать район в прежней панели **Area**, заполнить post fields и заменить редакционные placeholders. Две CTA пока показывают пояснение в общем диалоге: коллекция домов и Owner Estimate Form ещё не подключены. Необязательный YouTube film добавлен в B1.1 ниже. Дизайн, файлы, QA и evidence: [M1.5-B1](docs/m1-5-b1-community-foundation.md).
 
 ```bash
 DOCKER_CONTEXT=orbstack CONTENT_COMMUNITY_TEST=1 CONTENT_CTA_IMAGE_TEST=1 \
@@ -153,3 +153,15 @@ DOCKER_CONTEXT=orbstack CONTENT_COMMUNITY_TEST=1 CONTENT_CTA_IMAGE_TEST=1 \
 ```
 
 Это одноразовый WordPress **8091**, не основная база 8088. Для полного Area regression нужны исходные JPG в `.local/reference-area/assets`. Без `CONTENT_CTA_IMAGE_TEST=1` Community opt-in запускает foundation Area и базовые регрессии Aloha Content; flag CTA включает всю цепочку предыдущих Area suites. Push и deployment этим этапом не выполняются.
+
+## Community Hero YouTube film — M1.5-B1.1
+
+В редакторе Community открыть **Community Media**: вставить **YouTube film URL**, при необходимости изменить **Film Label**, сохранить штатной кнопкой Save. Без URL кнопка отсутствует. Без override используется «{название Community} in 90 seconds», как в финальном макете Ka Milo. URL и подпись принадлежат конкретному Community и входят в нативные ревизии; невалидный URL отклоняется до изменения записи.
+
+Play оформлен по Community PNG и расположен внутри медиапанели с отступами 24 px; поведение использует прежний общий `media-dialog.js`, с ленивым privacy-enhanced iframe и удалением iframe при закрытии. Реальные видео не назначаются автоматически, другие CTA не изменены. [Отчёт, screenshots и ограничения](docs/m1-5-b1-1-community-film.md).
+
+```bash
+DOCKER_CONTEXT=orbstack CONTENT_COMMUNITY_FILM_TEST=1 CONTENT_GALLERY_TEST=1 \
+  CONTENT_BROWSER_TEST=1 CONTENT_EVIDENCE_DIR=.local/evidence/m1-5-b1-1 \
+  PLAYWRIGHT_MODULE=/path/to/node_modules/playwright ./scripts/test-aloha-content.sh
+```

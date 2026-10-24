@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 umask 077
+if [ "${CONTENT_COMMUNITY_FILM_TEST:-0}" = 1 ]; then export CONTENT_COMMUNITY_TEST=1; fi
 if [ "${CONTENT_COMMUNITY_TEST:-0}" = 1 ]; then export CONTENT_AREA_TEST=1; fi
 if [ "${CONTENT_CTA_IMAGE_TEST:-0}" = 1 ]; then export CONTENT_GUIDE_HIGHLIGHTS_TEST=1; fi
 if [ "${CONTENT_GUIDE_HIGHLIGHTS_TEST:-0}" = 1 ]; then export CONTENT_FAQ_TEST=1; fi
@@ -296,6 +297,22 @@ COMMUNITY_REPORT
   if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
     ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_COMMUNITY_FIXTURES="$run_dir/community-foundation-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/community-foundation-browser.cjs
   fi
+fi
+if [ "${CONTENT_COMMUNITY_FILM_TEST:-0}" = 1 ]; then
+  dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/community-media.php
+  dc exec -T wordpress php -l /var/www/aloha-tests/community-film-check.php
+  wp eval-file /var/www/aloha-tests/community-film-check.php setup > "$run_dir/community-film-fixtures.json"
+  python3 - "$run_dir" <<'COMMUNITY_FILM_REPORT'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);data=json.loads((p/'community-film-fixtures.json').read_text())
+(p/'community-film-server-report.json').write_text(json.dumps({'checks':data['checks']},indent=2)+'\n')
+print('PASS:',len(data['checks']),'Community film server checks.')
+COMMUNITY_FILM_REPORT
+  if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_COMMUNITY_FILM_FIXTURES="$run_dir/community-film-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/community-film-browser.cjs
+  fi
+  wp eval-file /var/www/aloha-tests/community-film-check.php cleanup
 fi
 if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
   wp eval-file /var/www/aloha-tests/area-presentation-check.php prepare-switch

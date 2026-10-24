@@ -21,6 +21,8 @@ add_action( 'after_setup_theme', function () { add_editor_style( 'assets/css/com
 add_action( 'wp_enqueue_scripts', function () {
 	if ( is_singular( 'community' ) ) {
 		wp_enqueue_style( 'aloha-community', get_theme_file_uri( 'assets/css/community.css' ), array( 'aloha-foundation' ), (string) filemtime( get_theme_file_path( 'assets/css/community.css' ) ) );
+		wp_enqueue_style( 'aloha-media-dialog' );
+		wp_enqueue_script( 'aloha-media-dialog' );
 	}
 } );
 
@@ -50,12 +52,18 @@ function aloha_community_hero( $attrs, $content, $block ) {
 	$html .= '<button type="button" class="aloha-button aloha-button--secondary" data-aloha-info-title="' . esc_attr__( 'For homeowners', 'aloha-hello' ) . '" data-aloha-info="' . esc_attr__( 'The homeowner enquiry section is being prepared. The rental estimate form is not available yet; no enquiry has been sent.', 'aloha-hello' ) . '" aria-haspopup="dialog">' . esc_html__( 'I own a home here', 'aloha-hello' ) . '</button></div></div>';
 	$html .= '<div class="aloha-community-hero-media' . ( $image ? ' has-image' : '' ) . '">' . $image;
 	if ( ! $image ) { $html .= '<span class="aloha-community-image-placeholder">' . esc_html__( 'Community photo', 'aloha-hello' ) . '</span>'; }
+	$film_id = function_exists( '\\Aloha\\Content\\area_youtube_id' ) ? \Aloha\Content\area_youtube_id( get_post_meta( $post->ID, 'aloha_community_film_url', true ) ) : '';
+	if ( $film_id ) {
+		$label = sanitize_text_field( get_post_meta( $post->ID, 'aloha_community_film_label', true ) );
+		if ( '' === $label ) { $label = sprintf( \Aloha\Content\COMMUNITY_FILM_LABEL_FORMAT, $title ); }
+		$html .= '<button type="button" class="aloha-community-film" data-aloha-youtube="' . esc_attr( $film_id ) . '" data-aloha-media-title="' . esc_attr( $title . ' — community film' ) . '" aria-haspopup="dialog"><span class="aloha-community-play" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 16 16" focusable="false"><path d="M4 2.5 13 8 4 13.5Z"/></svg></span><span>' . esc_html( $label ) . '</span></button>';
+	}
 	return $html . '</div></div></div></section>';
 }
 
 add_action( 'init', function () {
 	register_block_pattern_category( 'aloha-community', array( 'label' => 'Aloha Community' ) );
-	wp_register_script( 'aloha-community-editor', get_theme_file_uri( 'assets/js/community-editor.js' ), array( 'wp-blocks', 'wp-block-editor', 'wp-element', 'wp-server-side-render', 'wp-data', 'wp-components' ), (string) filemtime( get_theme_file_path( 'assets/js/community-editor.js' ) ), true );
+	wp_register_script( 'aloha-community-editor', get_theme_file_uri( 'assets/js/community-editor.js' ), array( 'wp-blocks', 'wp-block-editor', 'wp-element', 'wp-server-side-render', 'wp-data', 'wp-components', 'wp-editor', 'wp-plugins', 'wp-html-entities' ), (string) filemtime( get_theme_file_path( 'assets/js/community-editor.js' ) ), true );
 	register_block_type( 'aloha/community-hero', array(
 		'api_version' => 3, 'title' => 'Community split hero', 'category' => 'theme',
 		'uses_context' => array( 'postId', 'postType' ),
