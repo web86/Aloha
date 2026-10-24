@@ -21,6 +21,13 @@ function aloha_area_button( $label, $destination ) {
 	$url = aloha_destinations()['destinations'][ $destination ][1];
 	return '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-secondary aloha-area-planned-link"} --><div class="wp-block-button is-style-secondary aloha-area-planned-link"><a class="wp-block-button__link wp-element-button" href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
 }
+// Stored markup follows the installed Core Accordion save format; behavior stays in Core.
+function aloha_area_faq_item( $question, $answer_blocks, $open = false ) {
+	return '<!-- wp:accordion-item' . ( $open ? ' {"openByDefault":true}' : '' ) . ' --><div class="wp-block-accordion-item' . ( $open ? ' is-open' : '' ) . '"><!-- wp:accordion-heading {"level":3} --><h3 class="wp-block-accordion-heading has-icon has-icon-right"><button type="button" class="wp-block-accordion-heading__toggle"><span class="wp-block-accordion-heading__toggle-title">' . wp_kses_post( $question ) . '</span><span class="wp-block-accordion-heading__toggle-icon" aria-hidden="true">+</span></button></h3><!-- /wp:accordion-heading --><!-- wp:accordion-panel --><div role="region" class="wp-block-accordion-panel">' . $answer_blocks . '</div><!-- /wp:accordion-panel --></div><!-- /wp:accordion-item -->';
+}
+function aloha_area_faq_accordion( $items ) {
+	return '<!-- wp:accordion {"headingLevel":3,"className":"aloha-area-faq-accordion","metadata":{"name":"Area FAQ"}} --><div role="group" class="wp-block-accordion aloha-area-faq-accordion">' . $items . '</div><!-- /wp:accordion -->';
+}
 function aloha_area_pattern_content( $name ) {
 	if ( 'area-introduction' === $name ) {
 		return aloha_area_group( 'aloha-area-introduction', aloha_area_heading( 'What this area <em>is like</em>' ) . aloha_area_paragraph( 'Editorial placeholder: describe the landscape, atmosphere and everyday rhythm in your own words.' ) . aloha_area_paragraph( 'Explain who this area suits, and what visitors should consider before choosing a home.' ) . aloha_area_paragraph( 'Confirm local access, seasonal advice and any factual claims before publishing.' ) );
@@ -55,9 +62,7 @@ function aloha_area_pattern_content( $name ) {
 	}
 	if ( 'area-faq' === $name ) {
 		$content = aloha_area_paragraph( 'Questions guests ask', 'aloha-eyebrow' );
-		foreach ( array( 'Is this area right for my trip?', 'Will I need a rental car?', 'How do I get here?', 'How does this area compare?', 'When should I visit?' ) as $question ) {
-			$content .= '<!-- wp:details --><details class="wp-block-details"><summary>' . esc_html( $question ) . '</summary>' . aloha_area_paragraph( 'Editorial placeholder: add a verified answer. Duplicate this Details block to add another question.' ) . '</details><!-- /wp:details -->';
-		}
+		$content .= aloha_area_faq_accordion( aloha_area_faq_item( 'Editorial question — replace before publishing', aloha_area_paragraph( 'Editorial placeholder: add a verified answer. Use Add item on the Accordion toolbar to add another question.' ) ) );
 		return aloha_area_group( 'aloha-area-faq', $content );
 	}
 	if ( 'area-owner-cta' === $name ) {

@@ -73,9 +73,12 @@ async function validBlocks() {
       const blocks = all(store.getBlocks());
       const gallery = blocks.find(b => b.name === 'aloha/media-gallery');
       actions.updateBlockAttributes(gallery.clientId, {ids:images.map(a=>a.id)});
-      const faq = blocks.find(b => b.attributes.className === 'aloha-area-faq');
-      actions.insertBlocks(Array.from({length:7},(_,i) => wp.blocks.createBlock('core/details', {summary:'Additional question '+i}, [wp.blocks.createBlock('core/paragraph',{content:'An editable verified-answer placeholder.'})])), faq.innerBlocks.length, faq.clientId);
-      actions.removeBlocks(faq.innerBlocks.find(b => b.name === 'core/details').clientId, false);
+      const faq = blocks.find(b => b.name === 'core/accordion');
+      actions.insertBlocks(Array.from({length:7},(_,i) => wp.blocks.createBlock('core/accordion-item',{},[
+        wp.blocks.createBlock('core/accordion-heading',{title:'Additional question '+i,level:3}),
+        wp.blocks.createBlock('core/accordion-panel',{},[wp.blocks.createBlock('core/paragraph',{content:'An editable verified-answer placeholder.'})])
+      ])),faq.innerBlocks.length,faq.clientId);
+      actions.removeBlocks(faq.innerBlocks[0].clientId,false);
       const beaches = blocks.find(b => b.name === 'aloha/beaches');
       actions.updateBlockAttributes(beaches.clientId,{cards:images.map((image,i)=>({title:i?'Editorial beach '+i:'Reordered beach card',description:'Verified-answer placeholder.',imageId:image.id,url:'',focalPoint:{x:.5,y:.5}})).reverse()});
       const owner = blocks.find(b => b.attributes.className === 'aloha-area-owner');
@@ -87,9 +90,9 @@ async function validBlocks() {
     let result = await api('GET','area/'+second+'?context=edit');
     assert.match(result.content.raw,/An editable editorial introduction/);
     assert.match(result.content.raw,/Additional question 6/);
-    assert.equal((result.content.raw.match(/<!-- wp:details /g)||[]).length,11);
+    assert.equal((result.content.raw.match(/<!-- wp:accordion-item /g)||[]).length,7);
     assert.ok(!result.content.raw.includes('core/pattern') && !result.content.raw.includes('wp:pattern'));
-    check('Text, unlimited native FAQ, card order, optional section removal and added blocks save normally');
+    check('Text, unlimited Core Accordion FAQ, card order, optional section removal and added blocks save normally');
     // Remove and restore a gallery image through native block actions, preserving order.
     await page.evaluate(() => {
       const all=bs=>bs.flatMap(b=>[b,...all(b.innerBlocks||[])]);
@@ -161,9 +164,9 @@ async function validBlocks() {
     }
     check('1440/1024/768/390/320 layouts render with intact images and no horizontal overflow');
     await front.setViewportSize({width:1440,height:1000});
-    const summary=front.locator('.aloha-area-faq summary').first();
+    const summary=front.locator('.aloha-area-faq .wp-block-accordion-heading__toggle').first();
     await summary.focus(); await front.keyboard.press('Enter');
-    assert.equal(await summary.evaluate(el=>el.parentElement.open),true);
+    await front.waitForFunction(()=>document.querySelector('.aloha-area-faq .wp-block-accordion-heading__toggle')?.getAttribute('aria-expanded')==='true');
     assert.notEqual(await summary.evaluate(el=>getComputedStyle(el).outlineStyle),'none');
     await front.screenshot({path:out+'/area-keyboard.png',fullPage:true});
     check('Native FAQ supports keyboard Enter and visible focus');

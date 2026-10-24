@@ -4,6 +4,8 @@
 
 Позднейшее обновление: [M1.5-A.3a — Interactive Beaches](m1-5-a3a-beaches.md) заменяет фиксированную Beaches-сетку новым пустым редакционным блоком в starter. Сохранённые карточки автоматически не переписываются; для локальной Mauna Lani предусмотрен отдельный проверяемый перенос.
 
+Позднейшее обновление: [M1.5-A.3b — Native FAQ Accordion](m1-5-a3b-faq-accordion.md) заменяет Details в новом FAQ starter стандартными Core Accordion blocks. Пользовательские ответы сохраняются; для Mauna Lani используется отдельная контролируемая миграция.
+
 22.10.2026. Тема **Aloha Hello 0.3.0**, Aloha Content **0.6.0**. Ветка `codex/m1-5-a-area-mauna-lani` от опубликованного M1.4 `ad5fe8a2bea1a022dcdd23b24dd39fb02e4c8e9d`. После уточнения задания используется **HTML**, не PHP display template.
 
 ## Архитектура
