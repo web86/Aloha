@@ -46,12 +46,7 @@ function aloha_area_pattern_content( $name ) {
 		return aloha_area_group( 'aloha-area-section aloha-area-beaches', aloha_area_group( 'aloha-container', aloha_area_group( 'aloha-area-section-heading', aloha_area_heading( 'Beaches <em>nearby</em>' ) . aloha_area_paragraph( 'Find a shoreline that suits your day. Confirm conditions and access before setting out.' ) ) . '<!-- wp:aloha/beaches /-->' ), 'section' );
 	}
 	if ( 'area-activities' === $name ) {
-		$featured = ''; $cards = '';
-		for ( $i = 0; $i < 8; ++$i ) {
-			$card = aloha_area_group( 'aloha-area-activity', aloha_area_photo( 'Reference photo to be added' ) . aloha_area_group( 'aloha-area-activity-caption', aloha_area_heading( 'An island experience', 3 ) . aloha_area_paragraph( 'Editorial placeholder: describe the experience and verify practical details.' ) ) );
-			if ( $i < 2 ) { $featured .= $card; } else { $cards .= $card; }
-		}
-		return aloha_area_group( 'aloha-area-section aloha-area-activities', aloha_area_group( 'aloha-container', aloha_area_heading( 'Things to see <em>and do</em>' ) . aloha_area_group( 'aloha-area-activity-featured', $featured ) . aloha_area_group( 'aloha-area-activity-grid', $cards ) ), 'section' );
+		return aloha_area_group( 'aloha-area-section aloha-area-activities aloha-area-guide-section', aloha_area_group( 'aloha-container', aloha_area_heading( 'Things to see <em>and do</em>' ) . '<!-- wp:aloha/guide-highlights /-->' . aloha_area_paragraph( 'Each tile opens a Big Island Guide article with tips, times and photos.', 'aloha-guide-note' ) ), 'section' );
 	}
 	if ( 'area-practical-advice' === $name ) {
 		$content = aloha_area_heading( 'Staying here: <em>what to know</em>' );

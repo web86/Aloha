@@ -1,0 +1,30 @@
+/* Design v2 Area: two 16:9 leads, then six 4:3 tiles; no slider. */
+.aloha-guide-highlights { color: var(--aloha-color-page,#f3f6f6); background: var(--aloha-color-text,#16232a); }
+.aloha-guide-featured, .aloha-guide-additional { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.aloha-guide-additional { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.aloha-guide-featured + .aloha-guide-additional { margin-top: 24px; }
+.aloha-guide-card { position: relative; display: grid; grid-template-columns: minmax(0,1fr); min-width: 0; border-radius: 8px; overflow: hidden; color: var(--aloha-color-page,#f3f6f6); text-decoration: none; background: var(--aloha-color-text,#16232a); overflow-wrap: anywhere; }
+.aloha-guide-card::before { content: ''; grid-area: 1 / 1; width: 100%; align-self: start; aspect-ratio: 4 / 3; pointer-events: none; }
+.aloha-guide-featured .aloha-guide-card::before { aspect-ratio: 16 / 9; }
+.aloha-guide-card.has-no-image { background: linear-gradient(135deg,var(--aloha-color-brand,#075056),var(--aloha-color-text,#16232a)); }
+.aloha-guide-card > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.aloha-guide-caption { grid-area: 1 / 1; align-self: end; position: relative; padding: 18px; background: linear-gradient(180deg,rgba(22,35,42,0),rgba(22,35,42,.85)); }
+.aloha-guide-card .aloha-guide-caption h3 { margin: 0; color: inherit; font-family: var(--wp--preset--font-family--outfit); font-size: 1.1875rem; line-height: 1.25; font-weight: 600; }
+.aloha-guide-card .aloha-guide-caption p { margin: 2px 0 0; color: inherit; font-size: .875rem; line-height: 1.6; opacity: .8; }
+.aloha-guide-featured .aloha-guide-caption h3 { font-family: var(--wp--preset--font-family--instrument-serif); font-size: 2rem; font-weight: 400; letter-spacing: -.01em; }
+.aloha-guide-featured .aloha-guide-caption p { margin-top: 4px; font-size: .9375rem; opacity: .85; }
+.aloha-guide-card:is(:hover,:focus-visible) { color: var(--aloha-color-page,#f3f6f6); }
+.aloha-guide-card:is(:hover,:focus-visible) h3 { text-decoration: underline; text-underline-offset: 4px; }
+.aloha-guide-card:focus-visible { outline: 3px solid var(--aloha-color-accent,#ff5b04); outline-offset: 3px; }
+.aloha-area-guide-section .aloha-guide-note { margin: 28px 0 0; font-size: .9375rem; opacity: .7; }
+.aloha-guide-editor-group { margin-top: 20px; padding: 16px; border: 1px solid #ccc; border-radius: 6px; }
+.aloha-guide-editor-group > h3 { margin: 0 0 12px; font-size: 18px; }
+.aloha-guide-editor-selection { display: grid; gap: 16px; list-style: none; padding: 0; margin: 16px 0; }
+.aloha-guide-editor-selection > li { min-width: 0; }
+.aloha-guide-editor-actions { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 6px; }
+.aloha-guide-editor-actions .components-button { display: inline-flex; justify-content: center; width: 36px; min-width: 36px; height: 36px; min-height: 0; padding: 6px; }
+.aloha-guide-editor-results { max-height: 260px; overflow-y: auto; border: 1px solid #ccc; padding: 4px; }
+.aloha-guide-editor-results .components-button { display: flex; justify-content: flex-start; gap: 10px; width: 100%; height: auto; min-height: 44px; padding: 8px; text-align: left; white-space: normal; }
+.aloha-guide-editor-results img { flex-shrink: 0; width: 48px; height: 36px; object-fit: cover; border-radius: 3px; }
+@media (max-width: 1023px) { .aloha-guide-featured { grid-template-columns: minmax(0,1fr); } .aloha-guide-additional { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 599px) { .aloha-guide-additional { grid-template-columns: minmax(0,1fr); } }

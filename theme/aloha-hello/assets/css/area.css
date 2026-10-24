@@ -47,6 +47,7 @@
 .aloha-area-beach p { margin-block: 0 8px; font-size: 1rem; line-height: 1.6; }
 .aloha-area-activities { background: var(--aloha-color-text); color: var(--aloha-color-page); }
 .aloha-area-activities h2 { margin-bottom: 44px; }
+.aloha-area-content .aloha-area-guide-section:not(:has(.aloha-guide-card)) { display: none; }
 .aloha-area-activity-featured { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; margin-bottom: 24px; }
 .aloha-area-activity-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; margin-block-start: 0; }
 .aloha-area-activity { position: relative; display: flex; align-items: flex-end; min-height: 288px; overflow: hidden; border-radius: 8px; }

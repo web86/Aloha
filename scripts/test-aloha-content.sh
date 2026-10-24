@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 umask 077
+if [ "${CONTENT_GUIDE_HIGHLIGHTS_TEST:-0}" = 1 ]; then export CONTENT_FAQ_TEST=1; fi
 if [ "${CONTENT_FAQ_TEST:-0}" = 1 ]; then export CONTENT_BEACHES_TEST=1; fi
 if [ "${CONTENT_BEACHES_TEST:-0}" = 1 ]; then export CONTENT_GALLERY_TEST=1; fi
 if [ "${CONTENT_GALLERY_TEST:-0}" = 1 ]; then export CONTENT_HERO_TEST=1; fi
@@ -250,6 +251,21 @@ FAQ_REPORT
     ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_FAQ_FIXTURES="$run_dir/faq-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/faq-accordion-browser.cjs
   fi
   wp eval-file /var/www/aloha-tests/faq-accordion-check.php cleanup
+fi
+if [ "${CONTENT_GUIDE_HIGHLIGHTS_TEST:-0}" = 1 ]; then
+  dc exec -T wordpress sh -c 'for file in wp-content/themes/aloha-hello/inc/guide-highlights.php wp-content/themes/aloha-hello/blocks/guide-highlights/render.php /var/www/aloha-tests/*guide*highlights*.php /var/www/aloha-tests/migrate-area-mauna-lani-guide.php; do php -l "$file" || exit 1; done'
+  wp eval-file /var/www/aloha-tests/guide-highlights-check.php setup > "$run_dir/guide-highlights-fixtures.json"
+  python3 - "$run_dir" <<'GUIDE_HIGHLIGHTS_REPORT'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);data=json.loads((p/'guide-highlights-fixtures.json').read_text())
+(p/'guide-highlights-server-report.json').write_text(json.dumps({'checks':data['checks']},indent=2)+'\n')
+print('PASS:',len(data['checks']),'Guide Highlights server checks.')
+GUIDE_HIGHLIGHTS_REPORT
+  if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_GUIDE_HIGHLIGHTS_FIXTURES="$run_dir/guide-highlights-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/guide-highlights-browser.cjs
+  fi
+  wp eval-file /var/www/aloha-tests/guide-highlights-check.php cleanup
 fi
 if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
   wp eval-file /var/www/aloha-tests/area-presentation-check.php prepare-switch

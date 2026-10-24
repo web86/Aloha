@@ -1,0 +1,18 @@
+{
+ "$schema":"https://schemas.wp.org/trunk/block.json",
+ "apiVersion":3,
+ "name":"aloha/guide-highlights",
+ "title":"Guide Highlights",
+ "description":"Two featured and up to six additional Big Island Guide articles.",
+ "category":"widgets",
+ "icon":"admin-post",
+ "attributes":{
+  "featuredIds":{"type":"array","default":[],"items":{"type":"integer"}},
+  "additionalIds":{"type":"array","default":[],"items":{"type":"integer"}}
+ },
+ "supports":{"html":false,"anchor":true},
+ "editorScript":"aloha-guide-highlights-editor",
+ "editorStyle":["wp-components","dashicons"],
+ "style":"aloha-guide-highlights",
+ "render":"file:./render.php"
+}
