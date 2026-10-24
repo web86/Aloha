@@ -3,6 +3,7 @@
 defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/inc/shell.php';
 require_once __DIR__ . '/inc/area.php';
+require_once __DIR__ . '/inc/community.php';
 require_once __DIR__ . '/inc/media-gallery.php';
 require_once __DIR__ . '/inc/beaches.php';
 require_once __DIR__ . '/inc/guide-highlights.php';

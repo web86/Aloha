@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 umask 077
+if [ "${CONTENT_COMMUNITY_TEST:-0}" = 1 ]; then export CONTENT_AREA_TEST=1; fi
 if [ "${CONTENT_CTA_IMAGE_TEST:-0}" = 1 ]; then export CONTENT_GUIDE_HIGHLIGHTS_TEST=1; fi
 if [ "${CONTENT_GUIDE_HIGHLIGHTS_TEST:-0}" = 1 ]; then export CONTENT_FAQ_TEST=1; fi
 if [ "${CONTENT_FAQ_TEST:-0}" = 1 ]; then export CONTENT_BEACHES_TEST=1; fi
@@ -282,12 +283,31 @@ CTA_REPORT
   fi
   wp eval-file /var/www/aloha-tests/cta-image-check.php cleanup
 fi
+if [ "${CONTENT_COMMUNITY_TEST:-0}" = 1 ]; then
+  dc exec -T wordpress sh -c 'for file in wp-content/themes/aloha-hello/inc/community.php wp-content/themes/aloha-hello/patterns/community-start.php /var/www/aloha-tests/community-foundation-check.php; do php -l "$file" || exit 1; done'
+  wp eval-file /var/www/aloha-tests/community-foundation-check.php setup > "$run_dir/community-foundation-fixtures.json"
+  python3 - "$run_dir" <<'COMMUNITY_REPORT'
+import json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);data=json.loads((p/'community-foundation-fixtures.json').read_text())
+(p/'community-server-report.json').write_text(json.dumps({'checks':data['checks'],'wordpress':data['wordpress']},indent=2)+'\n')
+print('PASS:',len(data['checks']),'Community foundation server checks.')
+COMMUNITY_REPORT
+  if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_COMMUNITY_FIXTURES="$run_dir/community-foundation-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/community-foundation-browser.cjs
+  fi
+fi
 if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
   wp eval-file /var/www/aloha-tests/area-presentation-check.php prepare-switch
   wp theme activate twentytwentyfive
   wp eval-file /var/www/aloha-tests/area-presentation-check.php verify-other-theme
+  if [ "${CONTENT_COMMUNITY_TEST:-0}" = 1 ]; then wp eval-file /var/www/aloha-tests/community-foundation-check.php other-theme; fi
   wp theme activate aloha-hello
   wp eval-file /var/www/aloha-tests/area-presentation-check.php verify-restored-theme
+  if [ "${CONTENT_COMMUNITY_TEST:-0}" = 1 ]; then
+    wp eval-file /var/www/aloha-tests/community-foundation-check.php restored-theme
+    wp eval-file /var/www/aloha-tests/community-foundation-check.php cleanup
+  fi
   wp eval-file /var/www/aloha-tests/area-presentation-check.php cleanup
 fi
 wp eval-file /var/www/aloha-tests/aloha-investor-check.php cleanup

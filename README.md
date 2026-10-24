@@ -139,3 +139,17 @@ Aloha Hello **0.3.0** добавляет нативный `templates/single-area
 Aloha Hello **0.3.1** расширяет существующий Hero нативным background video и YouTube dialog. Aloha Content **0.7.0** регистрирует два revisioned meta конкретной Area; панель **Area Media** в Gutenberg выбирает MP4/WebM через Media Library и хранит необязательный YouTube URL. Постер, reduced motion, экономия трафика, пауза и загрузка YouTube только по клику поддерживаются без стороннего плеера.
 
 У Mauna Lani видео/film URL оставлены пустыми: проверенных ресурсов нет, текущий контент сохранён. [Отчёт и screenshots](docs/m1-5-a1-interactive-hero.md). Полный тестовый прогон: `CONTENT_HERO_TEST=1 CONTENT_BROWSER_TEST=1 ./scripts/test-aloha-content.sh` с локальными JPG и Playwright; fixtures создаются только на 8091. Push/deployment не выполнялись.
+
+## Community foundation / Split Hero — M1.5-B1
+
+Новый Community получает нативный `community-start`: четыре обычные редактируемые секции Core. Общий `single-community.html` выводит Header/Footer, динамический Split Hero и Post Content. Hero использует текущие title, excerpt, Featured Image и район только из `aloha_area_id`; без фото остаётся градиентная панель. Сохранённый контент не заполняется повторно, в том числе после удаления всех секций.
+
+Менеджер: **Communities → Add New**, выбрать район в прежней панели **Area**, заполнить post fields и заменить редакционные placeholders. Две CTA пока показывают пояснение в общем диалоге: коллекция домов, Owner Estimate Form и фильм ещё не подключены. Дизайн, файлы, QA и evidence: [M1.5-B1](docs/m1-5-b1-community-foundation.md).
+
+```bash
+DOCKER_CONTEXT=orbstack CONTENT_COMMUNITY_TEST=1 CONTENT_CTA_IMAGE_TEST=1 \
+  CONTENT_BROWSER_TEST=1 CONTENT_EVIDENCE_DIR=.local/evidence/m1-5-b1 \
+  PLAYWRIGHT_MODULE=/path/to/node_modules/playwright ./scripts/test-aloha-content.sh
+```
+
+Это одноразовый WordPress **8091**, не основная база 8088. Для полного Area regression нужны исходные JPG в `.local/reference-area/assets`. Без `CONTENT_CTA_IMAGE_TEST=1` Community opt-in запускает foundation Area и базовые регрессии Aloha Content; flag CTA включает всю цепочку предыдущих Area suites. Push и deployment этим этапом не выполняются.

@@ -179,7 +179,10 @@
   if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
   const action = event.target.closest('[data-aloha-action]');
   const planned = event.target.closest('[data-aloha-destination]');
-  if (action) {
+  const info = event.target.closest('[data-aloha-info]');
+  if (info) {
+   showInfo(info.dataset.alohaInfoTitle, info.dataset.alohaInfo, info);
+  } else if (action) {
    showInfo(action.dataset.alohaAction === 'call' ? 'Contact · demo' : 'Book Now · demo', action.dataset.alohaAction === 'call' ? 'A phone number has not been verified. No call has been initiated.' : 'This is a local demo. The catalog and booking flow are not available yet. No booking or payment has been made.', action);
   } else if (planned && (document.body.classList.contains('aloha-shell-preview') || planned.closest('.aloha-area-planned-link'))) {
    event.preventDefault();
