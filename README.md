@@ -169,3 +169,7 @@ DOCKER_CONTEXT=orbstack CONTENT_COMMUNITY_FILM_TEST=1 CONTENT_GALLERY_TEST=1 \
 ## Community film polish — M1.5-B1.1a
 
 При наличии film URL весь медиаблок Community Hero затемнён, Play и подпись белые. Без URL фотография сохраняет исходную яркость. Геометрия Community, остальные CTA и общий viewer сохранены; hover плавный, клавиатурный focus видимый, reduced motion отключает переходы. Тема **0.7.2**. [Сравнение до/после, файлы и QA](docs/m1-5-b1-1a-community-film-polish.md).
+
+## Gallery interaction & lightbox polish — M1.5-A.2.2
+
+Media Gallery показывает белую карточку **Show all N photos** внутри затемнённой пятой плитки. Hover слегка увеличивает фото внутри маски. Photo lightbox использует прежний native dialog с компактными иконками, клавиатурой, mouse drag и touch swipe; Embla не добавлена. Reduced motion отключает zoom и анимацию. IDs, Gutenberg и SSR сохранены; тема **0.7.3**. [Скриншоты, файлы и QA](docs/m1-5-a2-2-gallery-lightbox-polish.md).

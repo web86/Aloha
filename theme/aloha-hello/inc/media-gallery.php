@@ -57,8 +57,8 @@ function aloha_media_gallery_render( $attrs, $block ) {
 			$html .= '<button class="aloha-gallery-film" type="button" data-aloha-youtube="' . esc_attr( $film_id ) . '" data-aloha-media-title="' . esc_attr( $title . ' — area film' ) . '" aria-haspopup="dialog"><span aria-hidden="true">▶</span>' . esc_html( $film_label ) . '</button>';
 		}
 		if ( 4 === $index ) {
-			$label = $count > 5 ? '+' . ( $count - 5 ) . ' photos' : 'View all photos (' . $count . ')';
-			$html .= '<a class="aloha-gallery-more" href="#' . esc_attr( $id . '-photos' ) . '" data-aloha-photo="0" aria-label="' . esc_attr( 'View all ' . $count . ' photos' ) . '" aria-haspopup="dialog">' . esc_html( $label ) . '</a>';
+			$label = 'Show all ' . $count . ' photos';
+			$html .= '<a class="aloha-gallery-more" href="#' . esc_attr( $id . '-photos' ) . '" data-aloha-photo="0" aria-label="' . esc_attr( $label ) . '" aria-haspopup="dialog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>' . esc_html( $label ) . '</span></a>';
 		}
 		$html .= '</figure>';
 	}

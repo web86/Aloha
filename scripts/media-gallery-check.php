@@ -52,9 +52,9 @@ foreach ( array( 0, 1, 2, 4, 5, 6, 12, 24 ) as $n ) {
  }
 }
 $html = aloha_media_gallery_render( array( 'ids' => $ids ), $context );
-$check( str_contains( $html, '+19 photos' ) && str_contains( $html, 'aria-label="View all 24 photos"' ) && ! str_contains( $html, 'aloha-gallery-all' ), 'Visible count derives from the valid collection' );
+$check( str_contains( $html, 'Show all 24 photos' ) && str_contains( $html, 'aria-label="Show all 24 photos"' ) && str_contains( $html, '<svg width="18"' ) && ! str_contains( $html, 'aloha-gallery-all' ), 'Visible count derives from the valid collection' );
 $five_html = aloha_media_gallery_render( array( 'ids' => array_slice( $ids, 0, 5 ) ), $context );
-$check( str_contains( $five_html, 'View all photos (5)</a></figure></div>' ) && str_contains( $five_html, 'aria-label="View all 5 photos"' ), 'Exactly five photos have one accessible overlay control and no link below the grid' );
+$check( str_contains( $five_html, 'Show all 5 photos</span></a></figure></div>' ) && str_contains( $five_html, 'aria-label="Show all 5 photos"' ), 'Exactly five photos have one accessible overlay control and no link below the grid' );
 $check( ! str_contains( $html, 'Design reference photograph' ) && str_contains( wp_get_attachment_caption( $ids[0] ), 'Design reference photograph' ), 'Editorial reference notice stays in Media Library without returning to the public viewer' );
 $check( str_contains( $html, 'srcset=' ) && str_contains( $html, 'sizes=' ) && str_contains( $html, 'loading="lazy"' ) && ! str_contains( $html, '<iframe' ), 'Responsive lazy mosaic without eager iframe' );
 $check( substr_count( $html, '<li><a href=' ) === 24 && str_contains( $html, '<noscript>' ), 'All originals have no-JavaScript accessible photo links' );
