@@ -189,6 +189,9 @@ AREA_REPORT
 fi
 if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
   ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_AREA_TEST_FIXTURES="$run_dir/area-fixtures.json" ALOHA_GUIDE_TEST_FIXTURES="$run_dir/guide-fixtures.json" ALOHA_INVESTOR_TEST_FIXTURES="$run_dir/investor-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/aloha-content-editor.cjs
+  if [ "${CONTENT_COMMUNITY_EDITOR_TEST:-0}" = 1 ]; then
+    ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" EVIDENCE_DIR="$run_dir" node scripts/community-editor-browser.cjs
+  fi
   wp eval 'if (is_wp_error(wp_insert_user(array("user_login"=>"aloha_routing_reader", "user_pass"=>getenv("WP_ADMIN_PASSWORD"), "role"=>"subscriber")))) { WP_CLI::error("Test reader creation failed."); }'
   ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" EVIDENCE_DIR="$run_dir" node scripts/aloha-routing-overview-browser.cjs
   wp eval 'require_once ABSPATH . "wp-admin/includes/user.php"; wp_delete_user(get_user_by("login", "aloha_routing_reader")->ID);'

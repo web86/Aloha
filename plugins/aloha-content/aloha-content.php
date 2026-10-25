@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Aloha Content
  * Description: Areas, Communities, Big Island Guide and Investor Guides with validated public routes.
- * Version: 0.7.3
+ * Version: 0.7.4
  * Requires at least: 6.6
  * Requires PHP: 8.3
  * Text Domain: aloha-content
@@ -74,6 +74,7 @@ add_action( 'enqueue_block_editor_assets', function () {
 	if ( ! $screen || 'community' !== $screen->post_type ) {
 		return;
 	}
+	wp_enqueue_style( 'aloha-content-editor', plugins_url( 'assets/editor.css', __FILE__ ), array( 'wp-components' ), (string) filemtime( __DIR__ . '/assets/editor.css' ) );
 	wp_enqueue_script( 'aloha-content-editor', plugins_url( 'assets/editor.js', __FILE__ ), array(
 		'wp-api-fetch', 'wp-components', 'wp-data', 'wp-element', 'wp-editor', 'wp-html-entities', 'wp-plugins',
 	), (string) filemtime( __DIR__ . '/assets/editor.js' ), true );

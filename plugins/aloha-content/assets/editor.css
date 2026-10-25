@@ -1,0 +1,26 @@
+/* Document sidebar only: keep native components isolated from theme form rules. */
+.aloha-community-area .aloha-community-area__body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.aloha-community-area .aloha-community-area__body > p { margin: 0; font-size: 13px; line-height: 1.5; }
+.aloha-community-area .aloha-community-area__intro, .aloha-community-area .aloha-community-area__empty { color: #757575; }
+.aloha-community-area .components-base-control { margin-bottom: 0; min-width: 0; }
+.aloha-community-area .components-base-control__help { margin-top: 8px; }
+/* Theme inputs use seven :not() selectors. Scope these resets instead of changing
+ * theme styles or imposing another border/focus ring inside the Core combobox. */
+.aloha-community-area input.components-combobox-control__input {
+ width: 100% !important; min-width: 0 !important; height: 32px !important; min-height: 0 !important;
+ margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+ background: transparent !important; box-shadow: none !important; outline: 0 !important;
+ font-size: 13px; line-height: normal;
+}
+.aloha-community-area .components-form-token-field__suggestions-list { max-width: 100%; }
+.aloha-community-area .components-form-token-field__suggestion { white-space: normal; overflow-wrap: anywhere; }
+.aloha-community-area .aloha-community-area__loading { display: flex; align-items: center; gap: 8px; min-height: 40px; font-size: 13px; }
+.aloha-community-area .aloha-community-area__loading .components-spinner { flex-shrink: 0; margin: 0; }
+.aloha-community-area .aloha-community-area__selection { display: flex; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.aloha-community-area .aloha-community-area__selection-label { font-size: 11px; font-weight: 500; color: #757575; }
+.aloha-community-area .aloha-community-area__status { color: #757575; font-size: 12px; }
+.aloha-community-area .components-notice { margin: 0; }
+.aloha-community-area .aloha-community-area__body > .components-button { align-self: flex-start; }
+/* Keep the panel disclosure in editor colors when a theme styles button hover. */
+.aloha-community-area .components-panel__body-toggle:is(:hover,:active) { background: #f0f0f0; color: #1e1e1e; }
+.aloha-community-area .components-panel__body-toggle:focus-visible { background: #fff; color: #1e1e1e; outline: 2px solid var(--wp-admin-theme-color,#3858e9); outline-offset: -2px; box-shadow: none; }

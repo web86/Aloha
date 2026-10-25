@@ -173,3 +173,7 @@ DOCKER_CONTEXT=orbstack CONTENT_COMMUNITY_FILM_TEST=1 CONTENT_GALLERY_TEST=1 \
 ## Gallery interaction & lightbox polish — M1.5-A.2.2
 
 Media Gallery показывает белую карточку **Show all N photos** внутри затемнённой пятой плитки. Hover слегка увеличивает фото внутри маски. Photo lightbox использует прежний native dialog с компактными иконками, клавиатурой, mouse drag и touch swipe; Embla не добавлена. Reduced motion отключает zoom и анимацию. IDs, Gutenberg и SSR сохранены; тема **0.7.3**. [Скриншоты, файлы и QA](docs/m1-5-a2-2-gallery-lightbox-polish.md).
+
+## Community editor sidebar — M1.5-B1.2
+
+Панель **Area** в Community использует native Gutenberg search combobox, читаемое подтверждение выбранного района и понятные loading/empty/no-results/error состояния. Исправлен конфликт theme input styles с внутренним полем; стили ограничены этой панелью. Мета `aloha_area_id`, маршруты, Save и revisions сохранены. Aloha Content **0.7.4**. [Файлы, screenshots и QA](docs/m1-5-b1-2-community-editor-polish.md).
