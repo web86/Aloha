@@ -39,7 +39,7 @@
 /* Community geometry, with a full-panel film scrim and a white playback control. */
 .aloha-community-hero-media:has(.aloha-community-film) { display: flex; flex-direction: column; height: auto; min-height: 560px; isolation: isolate; }
 .aloha-community-hero-media:has(.aloha-community-film) .aloha-community-hero-image { position: absolute; inset: 0; }
-.aloha-community-hero-media:has(.aloha-community-film)::after { content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit; background: linear-gradient(180deg, rgb(22 35 42 / .66) 0%, rgb(22 35 42 / .72) 55%, rgb(22 35 42 / .86) 100%); pointer-events: none; }
+.aloha-community-hero-media:has(.aloha-community-film)::after { content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit; background: linear-gradient(180deg,#16232a05 25%,#16232a24 45%,#16232ae0 100%); pointer-events: none; }
 .aloha-community-hero-media:has(.aloha-community-film) .aloha-community-image-placeholder { position: relative; z-index: 1; color: #fff; }
 .aloha-community-film { position: relative; z-index: 1; align-self: flex-start; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 12px; min-width: 0; max-width: calc(100% - 48px); min-height: 59px; margin: auto 24px 24px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: #fff; font-size: 1.125rem; font-weight: 600; line-height: 1.6; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
 .aloha-community-play { flex: 0 0 59px; display: inline-flex; align-items: center; justify-content: center; width: 59px; height: 59px; border: 1.5px solid currentColor; border-radius: 50%; background: #ffffff1f; }

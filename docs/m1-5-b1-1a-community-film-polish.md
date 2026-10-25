@@ -6,7 +6,7 @@
 
 Сверены финальный `макеты/Design v2 — Community Ka Milo@1x.png` и `CommunityDesign.dc.html`. Сохранена геометрия Community: медиапанель около **608 × 560 px** на 1440, film CTA слева и снизу по **24 px**, круг **59 × 59 px**, border **1.5 px**, зазор **12 px**, Outfit **18 px / 600 / 1.6**. Дефолт подписи остаётся «{Community} in 90 seconds». В этом уточнении цвет и характер overlay следуют новому заданию B1.1a: белая CTA поверх общего затемнения фотографии.
 
-Локальная размытая белая подложка удалена. У медиапанели с `.aloha-community-film` появляется общий `::after` с `inset: 0`: градиент Mirage **#16232A**, opacity **66% → 72% → 86%** сверху вниз. Затемнение покрывает всю фотографию, повторяет её border radius и не перехватывает нажатия. CTA находится выше overlay; Play, обводка и подпись — **#fff**. Фотография, пропорции колонок, позиция кнопки и другие CTA не изменены. CSS Area Hero не копировался и не редактировался.
+Локальная размытая белая подложка удалена. У медиапанели с `.aloha-community-film` появляется общий `::after` с `inset: 0`: уточнённый пользователем градиент `linear-gradient(180deg,#16232a05 25%,#16232a24 45%,#16232ae0 100%)`. Затемнение покрывает всю фотографию, повторяет её border radius и не перехватывает нажатия. CTA находится выше overlay; Play, обводка и подпись — **#fff**. Фотография, пропорции колонок, позиция кнопки и другие CTA не изменены. CSS Area Hero не копировался и не редактировался.
 
 У круга лёгкий белый background **12%**, при hover/focus — **20%**; opacity кнопки плавно меняется до **.94** за **180 ms**. Нет translate/scale или изменения размеров. `focus-visible` имеет белый outline **2 px**, offset **6 px** и тёмную контрастную подложку. Переходы объявлены только для `prefers-reduced-motion: no-preference`; при `reduce` они отсутствуют.
 
@@ -21,12 +21,23 @@
 | `theme/aloha-hello/assets/css/community.css` | Условный общий scrim, белая film CTA, hover/focus/reduced motion |
 | `theme/aloha-hello/style.css` | Версия темы 0.7.2; stylesheet cache Community обновляется по существующему filemtime |
 | `scripts/community-film-check.php` | Fixture без URL теперь использует то же фото для проверки отсутствия затемнения |
-| `scripts/community-film-browser.cjs` | Проверки overlay/цветов, baseline screenshots, no-URL pixel comparison, пяти ширин, hover/focus/contrast/reduced motion |
+| `scripts/community-film-browser.cjs` | Проверки overlay/цветов, baseline screenshots, no-URL pixel comparison, пяти ширин, hover/focus/reduced motion |
 | `scripts/community-foundation-browser.cjs` | Прежний focus-тест основных CTA теперь использует настоящий Tab вместо программного `.focus()` |
 | `README.md` | Краткая инструкция и ссылка на этот отчёт |
 | `docs/m1-5-b1-1a-community-film-polish.md` | Результат, evidence и воспроизведение |
 
 ## Скриншоты
+
+### Уточнение градиента после визуального review
+
+По запросу пользователя прежнее чрезмерное затемнение заменено точным `linear-gradient(180deg,#16232a05 25%,#16232a24 45%,#16232ae0 100%)`. Верх фотографии остаётся светлым; выраженное затемнение нарастает к нижнему краю. Белая CTA, hover/focus и условие наличия film сохранены. Удалена прежняя оценка контраста 4.84:1: она относилась к предыдущему overlay.
+
+Точечный браузерный smoke на локальной странице, только чтение и временное удаление trigger в DOM для состояния без film: точное совпадение computed gradient на **1440/1024/768/390/320**, белая CTA, отсутствие горизонтального overflow и отсутствие overlay без trigger. Записей в БД и запросов видео не выполнялось. Полный набор регрессий ниже относится к предшествующему коммиту; после этой CSS-коррекции выполнен только указанный smoke.
+
+- [Актуальный Hero с градиентом](../.local/evidence/m1-5-b1-1a/gradient-correction/hero-film-1440.png), [mobile 320](../.local/evidence/m1-5-b1-1a/gradient-correction/hero-film-320.png).
+- [Без film](../.local/evidence/m1-5-b1-1a/gradient-correction/hero-no-film-1440.png), [результат smoke](../.local/evidence/m1-5-b1-1a/gradient-correction/report.json).
+
+### Исходная проверка B1.1a до уточнения градиента
 
 Все снимки получены на изолированном WordPress **8091**. «До» использует точный CSS из `9c6c218`, подставленный браузерным route в тот же fixture; контент, фото, viewport и шрифты одинаковы. Это реальный render прежнего состояния, без ретуши. Evidence хранится локально в игнорируемой `.local/evidence/m1-5-b1-1a/`.
 
@@ -63,7 +74,6 @@
 - **200% текста** на всех пяти ширинах, отдельно без URL и с длинным override на 320. Подпись остаётся внутри медиапанели, горизонтального overflow нет.
 - Без URL отсутствуют CTA, overlay и modal; crop фотографии побайтово совпадает с baseline B1.1.
 - Hover не сдвигает кнопку, transition **.18 s**, transform **none**; настоящий Tab достигает CTA и показывает белый focus-visible. Reduced motion даёт transition **0 s** у кнопки и круга.
-- Расчётный worst-case контраст подписи при hover даже на полностью белом исходном фото — **4.84:1**. Проверка использует фактические computed gradient/opacity, а не яркость выбранного тестового фото.
 - Enter открывает один shared dialog, Escape/Close удаляют iframe и возвращают фокус; touch Close доступен. До активации — **0 iframe и 0 YouTube requests**.
 - Gutenberg save/reopen/replace/remove, отклонение неверного URL, native revisions, независимые фильмы двух Community, сохранность Post Content и отсутствие invalid blocks.
 - Area film → Gallery photo → Area film работает через прежний viewer без оставшегося iframe или photo mode.
