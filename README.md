@@ -165,3 +165,7 @@ DOCKER_CONTEXT=orbstack CONTENT_COMMUNITY_FILM_TEST=1 CONTENT_GALLERY_TEST=1 \
   CONTENT_BROWSER_TEST=1 CONTENT_EVIDENCE_DIR=.local/evidence/m1-5-b1-1 \
   PLAYWRIGHT_MODULE=/path/to/node_modules/playwright ./scripts/test-aloha-content.sh
 ```
+
+## Community film polish — M1.5-B1.1a
+
+При наличии film URL весь медиаблок Community Hero затемнён, Play и подпись белые. Без URL фотография сохраняет исходную яркость. Геометрия Community, остальные CTA и общий viewer сохранены; hover плавный, клавиатурный focus видимый, reduced motion отключает переходы. Тема **0.7.2**. [Сравнение до/после, файлы и QA](docs/m1-5-b1-1a-community-film-polish.md).

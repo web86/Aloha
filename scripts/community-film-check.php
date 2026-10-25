@@ -27,6 +27,7 @@ $one = $create( 'community', 'Ka Milo', array( 'post_content' => $body, 'post_ex
 $two = $create( 'community', 'Independent film community', array( 'post_content' => $body, 'meta_input' => array( 'aloha_area_id' => $area ) ) );
 $empty = $create( 'community', 'Community without film', array( 'post_content' => $body, 'meta_input' => array( 'aloha_area_id' => $area ) ) );
 set_post_thumbnail( $one, $media['hero'] );
+set_post_thumbnail( $empty, $media['hero'] ); // Same photo without a film: must remain undimmed.
 $rest = function ( $fields, $id = null ) use ( $one ) { $r = new WP_REST_Request( 'POST', '/wp/v2/community' . ( false === $id ? '' : '/' . ( $id ?? $one ) ) ); $r->set_body_params( $fields ); return rest_do_request( $r ); };
 $snapshot = fn( $id ) => array( get_post( $id )->to_array(), get_post_meta( $id ), array_keys( wp_get_post_revisions( $id ) ) );
 $registered = get_registered_meta_keys( 'post', 'community' );

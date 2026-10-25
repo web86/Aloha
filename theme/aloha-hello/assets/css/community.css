@@ -36,15 +36,22 @@
 	.aloha-community-hero-media { aspect-ratio: 1.25; }
 }
 
-/* Community composition from the final PNG; only the modal behavior is shared. */
-.aloha-community-hero-media:has(.aloha-community-film) { display: flex; flex-direction: column; height: auto; min-height: 560px; }
+/* Community geometry, with a full-panel film scrim and a white playback control. */
+.aloha-community-hero-media:has(.aloha-community-film) { display: flex; flex-direction: column; height: auto; min-height: 560px; isolation: isolate; }
 .aloha-community-hero-media:has(.aloha-community-film) .aloha-community-hero-image { position: absolute; inset: 0; }
-.aloha-community-film { position: relative; isolation: isolate; align-self: flex-start; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 12px; min-width: 0; max-width: calc(100% - 48px); min-height: 59px; margin: auto 24px 24px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--aloha-color-text); font-size: 1.125rem; font-weight: 600; line-height: 1.6; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
-.aloha-community-play { flex: 0 0 59px; display: inline-flex; align-items: center; justify-content: center; width: 59px; height: 59px; border: 1.5px solid currentColor; border-radius: 50%; background: #ffffffb3; }
+.aloha-community-hero-media:has(.aloha-community-film)::after { content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit; background: linear-gradient(180deg, rgb(22 35 42 / .66) 0%, rgb(22 35 42 / .72) 55%, rgb(22 35 42 / .86) 100%); pointer-events: none; }
+.aloha-community-hero-media:has(.aloha-community-film) .aloha-community-image-placeholder { position: relative; z-index: 1; color: #fff; }
+.aloha-community-film { position: relative; z-index: 1; align-self: flex-start; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 12px; min-width: 0; max-width: calc(100% - 48px); min-height: 59px; margin: auto 24px 24px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: #fff; font-size: 1.125rem; font-weight: 600; line-height: 1.6; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.aloha-community-play { flex: 0 0 59px; display: inline-flex; align-items: center; justify-content: center; width: 59px; height: 59px; border: 1.5px solid currentColor; border-radius: 50%; background: #ffffff1f; }
 .aloha-community-play svg { width: 18px; height: 18px; fill: currentColor; }
-.aloha-community-film:hover, .aloha-community-film:active { background: transparent; color: var(--aloha-color-text); }
-.aloha-community-film:hover .aloha-community-play { background: #fffffff2; }
-.has-image .aloha-community-film::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 8px; background: #fffffff2; filter: blur(8px); pointer-events: none; }
+.aloha-community-film:hover, .aloha-community-film:active { background: transparent; color: #fff; }
+.aloha-community-film:is(:hover,:focus-visible) { opacity: .94; }
+.aloha-community-film:is(:hover,:focus-visible) .aloha-community-play { background: #fff3; }
+.aloha-community-film:focus-visible { outline: 2px solid #fff; outline-offset: 6px; box-shadow: 0 0 0 4px #16232a; }
+@media (prefers-reduced-motion: no-preference) {
+	.aloha-community-film { transition: opacity 180ms ease; }
+	.aloha-community-play { transition: background-color 180ms ease; }
+}
 @media (max-width: 899px) {
 	.aloha-community-hero-media:has(.aloha-community-film) { aspect-ratio: auto; min-height: calc((100vw - 2 * var(--aloha-gutter)) / 1.7); }
 }
