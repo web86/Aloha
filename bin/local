@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-dc() { docker compose --project-name aloha-local --file compose.yaml "$@"; }
+dc() { docker compose --project-name aloha-local "$@"; }
 wp() { dc run --rm --no-deps -T cli "$@"; }
 require_env() {
   if [ ! -f .env ]; then

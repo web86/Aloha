@@ -41,9 +41,33 @@ Compose project — `aloha-local`, volumes — `aloha-local_database` и `aloha-
 
 При проблеме: `status` → `logs` → `check`; затем `recover`. Если Docker daemon недоступен, запустите приложение Docker/OrbStack. `recover` устраняет проблемы контейнеров, но не восстанавливает повреждённую базу. Для потери/повреждения данных понадобится приватный backup; импорт SQL или замена volume требуют отдельного решения с проверкой копии. Автоматического разрушительного restore здесь нет. SQL backup согласован в рамках транзакционных таблиц; архив файлов не является атомарным snapshot вместе с SQL. Не используйте `docker volume prune`, `docker system prune` или `docker compose down -v` для обычной остановки.
 
-Ядро, стандартные темы, plugins и uploads находятся в Docker volume. Собственная block theme Aloha Hello хранится в `theme/aloha-hello/` и подключена read-only bind mount к WordPress и CLI. Редактируйте исходники на Mac; копировать файлы в volume не нужно. GuestyBridge ещё не создан. Закреплённые images и запрет автоматических обновлений обеспечивают воспроизводимость; обновление версий выполняется отдельным изменением после backup. WP-Cron, внешние WordPress HTTP-запросы и отправка PHP mail отключены. Проверка внешних integrations в этой среде не предполагается.
+Ядро, стандартные темы, plugins и uploads находятся в Docker volume. Собственная block theme Aloha Hello хранится в `theme/aloha-hello/` и подключена read-only bind mount к WordPress и CLI. AlohaWPBridge подключается отдельно по инструкции ниже. Закреплённые images и запрет автоматических обновлений обеспечивают воспроизводимость. Обновляйте версии после резервного копирования. WP-Cron, внешние WordPress HTTP-запросы и отправка PHP mail отключены.
 
 Из-за блокировки внешнего HTTP в debug log возможны предупреждения WordPress о недоступности проверок обновлений и переводов WordPress.org. Это ожидаемое ограничение локальной конфигурации. Логи MariaDB могут сообщать о fallback `io_uring` → `libaio`, Apache — об отсутствии FQDN; глобальные настройки Mac ради этих сообщений не меняются.
+
+## AlohaWPBridge M2.0
+
+Клонируйте [AlohaWPBridge](https://github.com/web86/AlohaWPBridge) отдельно и откройте checkout с реализацией M2.0. Из checkout Aloha с `compose.bridge.yaml` добавьте в существующий локальный `.env` две строки, указав реальный абсолютный путь к репозиторию плагина. Для отдельного worktree Aloha используйте копию приватного `.env` той же установки.
+
+```dotenv
+COMPOSE_FILE=compose.yaml:compose.bridge.yaml
+ALOHA_WP_BRIDGE_PATH=/absolute/path/to/AlohaWPBridge
+```
+
+Compose подключит checkout плагина только для чтения в Apache и WP-CLI. Проект `aloha-local` продолжит использовать существующие тома. После подключения запускайте `./bin/local` из checkout Aloha с этим `.env`.
+
+```bash
+./bin/local up
+./bin/local check
+./bin/local backup
+./bin/local wp plugin activate aloha-wp-bridge
+```
+
+В админке откройте **Инструменты → AlohaWPBridge**. В M2.0 экран показывает состояние `Unconfigured` и версию схемы. Функциональная проверка временно деактивирует и повторно активирует плагин, поэтому запускайте её после резервного копирования в период без параллельного редактирования.
+
+```bash
+bash /absolute/path/to/AlohaWPBridge/tests/local-smoke.sh
+```
 
 ## Git и референсы
 

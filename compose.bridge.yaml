@@ -1,0 +1,16 @@
+# Local opt-in: see README.md for the COMPOSE_FILE and ALOHA_WP_BRIDGE_PATH settings.
+x-aloha-wp-bridge: &aloha-wp-bridge
+  type: bind
+  source: ${ALOHA_WP_BRIDGE_PATH:?Set ALOHA_WP_BRIDGE_PATH to the absolute plugin checkout path}
+  target: /var/www/html/wp-content/plugins/aloha-wp-bridge
+  read_only: true
+  bind:
+    create_host_path: false
+
+services:
+  wordpress:
+    volumes:
+      - *aloha-wp-bridge
+  cli:
+    volumes:
+      - *aloha-wp-bridge
