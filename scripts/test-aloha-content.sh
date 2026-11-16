@@ -108,6 +108,9 @@ if [ "${CONTENT_AREA_TEST:-0}" = 1 ]; then
   dc exec -T wordpress sh -c 'for file in wp-content/themes/aloha-hello/inc/area*.php wp-content/themes/aloha-hello/patterns/area-*.php /var/www/aloha-tests/area-*.php /var/www/aloha-tests/seed-area-mauna-lani.php; do php -l "$file" || exit 1; done'
 fi
 wp eval-file /var/www/aloha-tests/aloha-content-check.php
+dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/nearby-places.php
+dc exec -T wordpress php -l /var/www/html/wp-content/plugins/aloha-content/inc/nearby-places-admin.php
+wp eval-file /var/www/aloha-tests/aloha-nearby-places-check.php
 # Exercise actual WP-CLI commands (not just PHP calls through eval-file).
 area_id="$(wp post create --post_type=area --post_status=publish --post_title='CLI test Area' --porcelain)"
 community_id="$(wp post create --post_type=community --post_status=draft --post_title='CLI test Community' --porcelain)"
@@ -188,6 +191,7 @@ print('PASS:',len(data['checks']),'Area presentation server checks.')
 AREA_REPORT
 fi
 if [ "${CONTENT_BROWSER_TEST:-0}" = 1 ]; then
+  ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_AREA_TEST_FIXTURES="$run_dir/area-fixtures.json" node scripts/nearby-places-browser.cjs
   ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" ALOHA_AREA_TEST_FIXTURES="$run_dir/area-fixtures.json" ALOHA_GUIDE_TEST_FIXTURES="$run_dir/guide-fixtures.json" ALOHA_INVESTOR_TEST_FIXTURES="$run_dir/investor-fixtures.json" EVIDENCE_DIR="$run_dir" node scripts/aloha-content-editor.cjs
   if [ "${CONTENT_COMMUNITY_EDITOR_TEST:-0}" = 1 ]; then
     ALOHA_CONTENT_TEST_AUTH="$run_dir/auth.json" EVIDENCE_DIR="$run_dir" node scripts/community-editor-browser.cjs

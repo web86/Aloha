@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Aloha Content
- * Description: Areas, Communities, Big Island Guide and Investor Guides with validated public routes.
- * Version: 0.7.4
+ * Description: Areas, Communities, guides and the private Nearby Places catalog.
+ * Version: 0.8.0
  * Requires at least: 6.6
  * Requires PHP: 8.3
  * Text Domain: aloha-content
@@ -23,8 +23,13 @@ require_once __DIR__ . '/inc/guide-integrity.php';
 require_once __DIR__ . '/inc/guide-routing.php';
 require_once __DIR__ . '/inc/investor-routing.php';
 require_once __DIR__ . '/inc/routing-overview.php';
+require_once __DIR__ . '/inc/nearby-places.php';
+if ( is_admin() ) {
+	require_once __DIR__ . '/inc/nearby-places-admin.php';
+}
 
 function register_content_types() {
+	register_nearby_places();
 	register_guide_routes();
 	register_investor_routes();
 	add_rewrite_tag( '%aloha_area_route%', '([^/]+)' );
@@ -85,6 +90,7 @@ register_activation_hook( __FILE__, function () {
 	sync_area_routes( true );
 } );
 register_deactivation_hook( __FILE__, function () {
+	unregister_post_type( NEARBY_PLACE_TYPE );
 	unregister_post_type( 'area' );
 	unregister_post_type( 'community' );
 	remove_rewrite_tag( '%aloha_area_route%' );
