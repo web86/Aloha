@@ -147,6 +147,18 @@ function aloha_rental_related( array $rental ): string {
 	return (string) ob_get_clean();
 }
 
+/** Decorative bed symbols reflect Guesty bed type; labels remain available as text. */
+function aloha_rental_bed_icon( string $type ): string {
+	$paths = array(
+		'BUNK_BED' => '<rect x="5" y="6" width="22" height="5" rx="1"/><rect x="5" y="19" width="22" height="5" rx="1"/><path d="M5 5v23M27 5v23M9 12v7M9 16h5"/>',
+		'SOFA_BED' => '<path d="M6 16v-4a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v4M4 16h24v9H4zM7 25v3M25 25v3"/>',
+		'CRIB' => '<rect x="4" y="8" width="24" height="15" rx="2"/><path d="M9 9v13M14 9v13M19 9v13M24 9v13M7 23v4M25 23v4"/>',
+		'SINGLE_BED' => '<path d="M5 10h5v7H5zM10 11h17v6H10zM4 17h24v7H4zM6 24v4M26 24v4"/>',
+	);
+	$path = $paths[ $type ] ?? '<path d="M4 13h24v11H4zM4 12V8h8v5M12 10h16v3M6 24v4M26 24v4"/>';
+	return '<svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';
+}
+
 function aloha_rental_detail_render( $attributes, $content, $block ): string {
 	$id = (int) ( $block->context['postId'] ?? get_the_ID() );
 	if ( $id < 1 || get_post_type( $id ) !== 'rental'
@@ -211,7 +223,11 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 						<div class="aloha-rental-sleeping">
 							<?php foreach ( $rental['sleeping'] as $room ) : ?>
 								<article class="aloha-rental-sleep-card">
-									<span class="aloha-rental-bed-icon" aria-hidden="true">▱</span>
+									<div class="aloha-rental-bed-icons" aria-hidden="true">
+										<?php foreach ( $room['beds'] as $bed ) : ?>
+											<?php echo aloha_rental_bed_icon( $bed['type'] ); // SVG paths are hardcoded above. ?>
+										<?php endforeach; ?>
+									</div>
 									<h3><?php echo esc_html( $room['name'] ); ?></h3>
 									<p><?php
 										$beds = array();
@@ -271,7 +287,11 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 					if ( in_array( $rental['houseRules'][ $key ]['status'] ?? '', array( 'available', 'stale' ), true )
 						&& is_bool( $rental['houseRules'][ $key ]['value'] ?? null ) ) { $showRules = true; }
 				}
-				if ( $showRules || in_array( $rental['houseRules']['minimumAge']['status'] ?? '', array( 'available', 'stale' ), true ) ) :
+				$hasTimedRules = false;
+				foreach ( array( 'minimumAge', 'quietHoursEnabled', 'checkIn', 'checkOut' ) as $key ) {
+					$hasTimedRules = $hasTimedRules || in_array( $rental['houseRules'][ $key ]['status'] ?? '', array( 'available', 'stale' ), true );
+				}
+				if ( $showRules || $hasTimedRules ) :
 				?>
 					<section class="aloha-rental-section" aria-labelledby="aloha-rental-rules-title">
 						<h2 id="aloha-rental-rules-title"><?php esc_html_e( 'House rules', 'aloha-hello' ); ?></h2>
@@ -288,6 +308,12 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 							<?php $quiet = $rental['houseRules']; if ( ( $quiet['quietHoursEnabled']['value'] ?? null ) === true && ( $quiet['quietHoursStart']['value'] ?? null ) && ( $quiet['quietHoursEnd']['value'] ?? null ) ) : ?>
 								<div><dt><?php esc_html_e( 'Quiet hours', 'aloha-hello' ); ?></dt><dd><?php echo esc_html( $quiet['quietHoursStart']['value'] . '–' . $quiet['quietHoursEnd']['value'] ); ?></dd></div>
 							<?php endif; ?>
+							<?php foreach ( array( 'checkIn' => __( 'Check-in', 'aloha-hello' ), 'checkOut' => __( 'Check-out', 'aloha-hello' ) ) as $key => $label ) :
+								$field = $quiet[ $key ] ?? array();
+								if ( ! in_array( $field['status'] ?? '', array( 'available', 'stale' ), true ) || ! is_string( $field['value'] ?? null ) ) { continue; }
+								?>
+								<div><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo esc_html( $field['value'] ); ?></dd></div>
+							<?php endforeach; ?>
 						</dl>
 					</section>
 				<?php endif; ?>
