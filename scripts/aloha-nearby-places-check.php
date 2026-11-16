@@ -91,7 +91,26 @@ try {
 	$check( 400 === $rest( 'GET', $route, array( 'areaId' => $area_draft ) )->get_status()
 		&& 400 === $rest( 'GET', $route, array( 'per_page' => 101 ) )->get_status(), 'Selector accepted invalid filters.' );
 	$check( 404 === $rest( 'GET', '/wp/v2/nearby_place' )->get_status()
-		&& 404 === $rest( 'POST', $route )->get_status(), 'Generic REST read or catalog REST write was registered.' );
+		&& 403 === $rest( 'POST', $route )->get_status(), 'Generic REST read or creation without a nonce was accepted.' );
+	$create = static function ( $payload ) use ( $route ) {
+		$request = new WP_REST_Request( 'POST', $route );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_header( 'X-WP-Nonce', wp_create_nonce( 'wp_rest' ) );
+		$request->set_body( wp_json_encode( $payload ) );
+		return rest_do_request( $request );
+	};
+	$input = array( 'name' => 'Modal-created Beach', 'latitude' => '19.2', 'longitude' => '-155.7', 'areaId' => $area_a, 'category' => 'Beach' );
+	$check( 400 === $create( array( 'latitude' => '91' ) + $input )->get_status()
+		&& 400 === $create( array( 'areaId' => $community ) + $input )->get_status(), 'REST creation accepted invalid data.' );
+	$response = $create( $input );
+	$check( 201 === $response->get_status(), 'Authorized REST creation failed.' );
+	$new_place = $response->get_data();
+	$ids[] = $new_place['id'];
+	$check( array_keys( $new_place ) === array( 'id', 'name', 'category', 'areaId', 'status' )
+		&& $area_a === $new_place['areaId'] && 'publish' === $new_place['status'], 'REST creation did not return the selector projection.' );
+	wp_set_current_user( $editor );
+	$check( 403 === $create( $input )->get_status(), 'An Editor created a place with a valid nonce.' );
+	wp_set_current_user( $admin->ID );
 	$check( 400 === $rest( 'GET', '/wp/v2/search', array( 'subtype' => 'nearby_place' ) )->get_status(), 'Generic Core search exposed the catalog type.' );
 
 	foreach ( array( 0, $editor ) as $user ) {

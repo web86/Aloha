@@ -1,6 +1,6 @@
 # M2.3A.2 — Shared Nearby Places catalog
 
-**Status: implemented in Aloha Content 0.8.0 (2026-11-16).** The catalog follows AlohaWPBridge ADR-0005 and its Rental data contract.
+**Status: implemented in Aloha Content 0.8.0 (2026-11-16), with modal creation in 0.8.1.** The catalog follows AlohaWPBridge ADR-0005 and its Rental data contract.
 
 ## Ownership
 
@@ -39,18 +39,24 @@ The response is an array in name order, then ID order. `X-WP-Total` and `X-WP-To
 
 `id` is an integer. `name` and `status` are strings. `category` and `areaId` are nullable. Anonymous requests get HTTP 401 and authenticated users without catalog access get 403. No record or coordinate fields are available on generic Core REST endpoints. Authorized PHP consumers can call `Aloha\Content\get_nearby_place_coordinates(int $id)` for `{latitude: float|null, longitude: float|null}` or `WP_Error`. This accessor checks the catalog capability and permission to edit the place.
 
+## Create from the Rental editor
+
+`POST /wp-json/aloha-content/v1/nearby-places` accepts JSON fields `name`, `latitude`, `longitude`, optional `category` and optional `areaId`. It requires `manage_options` and a valid `wp_rest` nonce in `X-WP-Nonce`. Creation validates the same coordinate ranges and published Area relationship as the admin form. A successful response is HTTP 201 with the published place in the selector format.
+
+The place is created globally. The caller can select it immediately, then save the Rental separately to persist the selection.
+
 ## Rental selection and semantics
 
 - Selection is many Rentals → many Places, ordered individually. Bridge stores `[{placeId,minutes,mode,order}]`, validates places exist and minutes are integer >=0 (or null while draft). Only populated valid time estimates render publicly. Keep `min` as designer-supplied display value, but **do not claim walking time** unless designer explicitly defines it.
 - No automatic geocoding or travel-time calculations. Exact home latitude/longitude must not be published or passed to third-party maps without privacy review.
 - Editor UX: compact searchable selector with Area prioritization but no hard restriction; selected rows allow minutes/mode, reorder and remove; provide **Add new Nearby place** link requiring catalog capability.
-- Future catalog add/change via REST needs nonces, permission checks, data validation, XSS-safe display, and revisions where supported.
+- Future catalog updates via REST needs nonces, permission checks, data validation, XSS-safe display, and revisions where supported.
 
 ## Verification
 
 Run `bash scripts/test-aloha-content.sh` from the Aloha checkout. It uses a disposable WordPress site and tests the Nearby Places lifecycle, validation, capabilities, title search, Area filter and pagination. It also runs the existing Aloha Content and public routing regressions. With Playwright available, set `CONTENT_BROWSER_TEST=1` to exercise the Nearby Places form and verify public URLs cannot expose a place. Set `CONTENT_COMMUNITY_EDITOR_TEST=1` to include the Community sidebar browser suite.
 
-On WordPress 7.1.3 and PHP 8.3, 55 Nearby Places integration checks, 88 general Aloha Content checks, 75 Area server checks, 22 Community server checks and 78 Area/Community HTTP checks passed. Chromium also exercised the Nearby Places form at 390px, verified the authenticated REST response, confirmed anonymous URLs could not expose the place and moved the record to Trash. Existing Gutenberg and Community sidebar browser checks passed. The suite used a separate database and discarded the test site at exit.
+On WordPress 7.1.3 and PHP 8.3, 59 Nearby Places integration checks, 88 general Aloha Content checks, 75 Area server checks, 22 Community server checks and 78 Area/Community HTTP checks passed. Chromium also exercised the Nearby Places form at 390px, verified the authenticated REST response, confirmed anonymous URLs could not expose the place and moved the record to Trash. Existing Gutenberg and Community sidebar browser checks passed. The suite used a separate database and discarded the test site at exit.
 
 ## Delivery checkpoints
 

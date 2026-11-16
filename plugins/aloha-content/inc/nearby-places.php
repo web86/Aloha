@@ -239,16 +239,62 @@ function get_nearby_place_coordinates( int $id ) {
 final class Nearby_Places_Controller extends \WP_REST_Controller {
 	public function register_routes() {
 		register_rest_route( 'aloha-content/v1', '/nearby-places', array(
-			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array( $this, 'get_items' ),
-			'permission_callback' => array( $this, 'get_items_permissions_check' ),
-			'args'                => array(
-				'search'   => array( 'type' => 'string', 'maxLength' => 120, 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
-				'areaId'   => array( 'type' => 'integer', 'minimum' => 1 ),
-				'page'     => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 10000, 'default' => 1 ),
-				'per_page' => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ),
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'                => array(
+					'search'   => array( 'type' => 'string', 'maxLength' => 120, 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
+					'areaId'   => array( 'type' => 'integer', 'minimum' => 1 ),
+					'page'     => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 10000, 'default' => 1 ),
+					'per_page' => array( 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 20 ),
+				),
+			),
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'create_item' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 			),
 		) );
+	}
+
+	public function create_item_permissions_check( $request ) {
+		return current_user_can( NEARBY_PLACE_CAPABILITY ) && wp_verify_nonce( $request->get_header( 'X-WP-Nonce' ), 'wp_rest' )
+			? true : new \WP_Error( 'aloha_nearby_forbidden', __( 'You cannot create Nearby Places.', 'aloha-content' ),
+				array( 'status' => rest_authorization_required_code() ) );
+	}
+
+	public function create_item( $request ) {
+		$input = $request->get_json_params();
+		$name = is_string( $input['name'] ?? null ) ? sanitize_text_field( $input['name'] ) : '';
+		$area = nearby_area_input( $input['areaId'] ?? 0 );
+		$details = nearby_place_details( array(
+			'latitude' => $input['latitude'] ?? null, 'longitude' => $input['longitude'] ?? null, 'category' => $input['category'] ?? '',
+		), 'publish' );
+		if ( '' === $name || strlen( $name ) > 480 ) {
+			return new \WP_Error( 'aloha_nearby_name', __( 'Enter a short name for this place.', 'aloha-content' ), array( 'status' => 400 ) );
+		}
+		foreach ( array( $area, $details ) as $value ) {
+			if ( is_wp_error( $value ) ) {
+				return new \WP_Error( $value->get_error_code(), $value->get_error_message(), array( 'status' => 400 ) );
+			}
+		}
+		$id = wp_insert_post( wp_slash( array(
+			'post_type' => NEARBY_PLACE_TYPE, 'post_title' => $name, 'post_status' => 'publish',
+			'meta_input' => array( NEARBY_PLACE_DETAILS => $details, NEARBY_PLACE_AREA => $area ),
+		) ), true );
+		if ( is_wp_error( $id ) || get_post_status( $id ) !== 'publish' ) {
+			return new \WP_Error( 'aloha_nearby_save', __( 'WordPress could not publish this place.', 'aloha-content' ), array( 'status' => 500 ) );
+		}
+		return new \WP_REST_Response( $this->place_item( get_post( $id ), $details ), 201, array( 'Cache-Control' => 'private, no-store' ) );
+	}
+
+	private function place_item( $post, $details ) {
+		return array(
+			'id' => $post->ID, 'name' => sanitize_text_field( $post->post_title ),
+			'category' => '' === $details['category'] ? null : $details['category'],
+			'areaId' => nearby_saved_area( $post->ID ) ?: null, 'status' => $post->post_status,
+		);
 	}
 
 	public function get_items_permissions_check( $request ) {
@@ -288,13 +334,7 @@ final class Nearby_Places_Controller extends \WP_REST_Controller {
 			if ( '' === $name || is_wp_error( $details ) ) {
 				continue;
 			}
-			$items[] = array(
-				'id'       => $post->ID,
-				'name'     => $name,
-				'category' => '' === $details['category'] ? null : $details['category'],
-				'areaId'   => nearby_saved_area( $post->ID ) ?: null,
-				'status'   => $post->post_status,
-			);
+			$items[] = $this->place_item( $post, $details );
 		}
 		$response = rest_ensure_response( $items );
 		$response->header( 'X-WP-Total', (int) $query->found_posts );
