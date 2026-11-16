@@ -323,7 +323,7 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 					<p class="aloha-eyebrow"><?php esc_html_e( 'Plan your stay', 'aloha-hello' ); ?></p>
 					<h2 id="aloha-rental-booking-title"><?php esc_html_e( 'Stay with Aloha', 'aloha-hello' ); ?></h2>
 					<p><?php esc_html_e( 'Availability and pricing will be available here once the booking integration is connected.', 'aloha-hello' ); ?></p>
-					<p class="aloha-rental-booking-note"><?php esc_html_e( 'No reservation or payment can be made from this preview.', 'aloha-hello' ); ?></p>
+					<p class="aloha-rental-booking-note"><?php esc_html_e( 'Online reservations and payments are not enabled yet.', 'aloha-hello' ); ?></p>
 				</div>
 			</aside>
 		</div>
