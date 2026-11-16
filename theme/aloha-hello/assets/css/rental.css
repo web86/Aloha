@@ -29,7 +29,8 @@
 .aloha-rental-highlight:not(:has(img)) { display: block; }
 .aloha-rental-sleeping { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
 .aloha-rental-sleep-card { border: 1px solid #cedadd; background: #fff; padding: 19px; border-radius: 8px; min-height: 152px; }
-.aloha-rental-bed-icon { display: inline-block; width: 38px; height: 30px; line-height: 25px; font-size: 29px; color: var(--aloha-color-brand); }
+.aloha-rental-bed-icons { display: flex; flex-wrap: wrap; gap: 6px; min-height: 33px; color: var(--aloha-color-brand); }
+.aloha-rental-bed-icons svg { display: block; width: 32px; height: 32px; flex: 0 0 32px; }
 .aloha-rental-sleep-card h3 { margin: 11px 0 6px; font-size: 1rem; }
 .aloha-rental-sleep-card p { margin: 0; color: var(--wp--custom--color--muted); font-size: .875rem; }
 .aloha-rental-amenities { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 32px; }
