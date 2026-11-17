@@ -1,7 +1,7 @@
 <?php
 /**
  * Read-only local WordPress smoke:
- * wp eval-file scripts/rental-template-smoke.php
+ * wp eval-file scripts/rental-template-smoke.php [published-test-id]
  *
  * Requires the Aloha Hello theme and the M2.4A Bridge branch to be active.
  * Does not create/publish/sync/import a Rental or write to WordPress.
@@ -29,6 +29,10 @@ if ( class_exists( '\AlohaWPBridge\RentalPublicData' ) && post_type_exists( 'ren
 		'post_type' => 'rental', 'post_status' => array( 'draft', 'pending', 'publish' ),
 		'posts_per_page' => 20, 'orderby' => 'ID', 'order' => 'ASC',
 	) );
+	$requested = absint( $args[0] ?? 0 );
+	if ( $requested ) {
+		$posts = array_filter( array( get_post( $requested ) ) );
+	}
 	$published = null;
 	foreach ( $posts as $post ) {
 		$dto = \AlohaWPBridge\RentalPublicData::get( (int) $post->ID );
@@ -62,6 +66,7 @@ if ( class_exists( '\AlohaWPBridge\RentalPublicData' ) && post_type_exists( 'ren
 		$assert( ! str_contains( $html, '_awb_source_snapshot' ), 'Internal source metadata leaked.' );
 		echo "Rendered published Rental: " . $published->ID . " (no provider calls)\n";
 	} else {
+		$assert( ! $requested, 'Requested published mapped Rental was unavailable.' );
 		echo "No published mapped Rental: skipped public HTML rendering. Test Draft via an authorized WordPress Preview URL.\n";
 	}
 }

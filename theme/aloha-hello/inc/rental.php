@@ -45,14 +45,6 @@ function aloha_rental_photo_collection( array $rental ): array {
 			'caption' => (string) ( $img['caption'] ?? '' ), 'labelKey' => $row['labelKey'] ?? null,
 		);
 	}
-	// On an initially imported Rental, even one valid local Featured Image is useful.
-	if ( ! $photos && is_array( $rental['featuredImage'] ?? null ) ) {
-		$img = $rental['featuredImage'];
-		$photos[] = array( 'id' => 0, 'url' => $img['full'], 'src' => $img['src'],
-			'width' => (int) $img['width'], 'height' => (int) $img['height'],
-			'srcset' => (string) ( $img['srcset'] ?? '' ), 'alt' => (string) ( $img['alt'] ?? '' ),
-			'caption' => (string) ( $img['caption'] ?? '' ), 'labelKey' => null );
-	}
 	return $photos;
 }
 

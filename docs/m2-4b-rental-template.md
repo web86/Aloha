@@ -1,8 +1,8 @@
 # M2.4B — Rental template, first working version
 
-**Status: implemented on isolated GitHub branch, not integrated into the user's local WP or merged.**
+**Status:** verified together with M2.4A in local WordPress. Both checkouts were mounted from isolated Git worktrees.
 
-Repo: web86/Aloha; branch: feature/m2-4b-rental-template. Depends on web86/AlohaWPBridge, branch feature/m2-4a-rental-public-data. Both branches must be active in the test WordPress site. The current unfinished Codex M2.3C.1 gallery editor work is untouched.
+Repo: web86/Aloha; branch: feature/m2-4b-rental-template. Depends on web86/AlohaWPBridge, branch feature/m2-4a-rental-public-data. Both branches must be active in the test WordPress site. The Bridge integration includes the published M2.3C.1 gallery.
 
 ## Implementation
 
@@ -14,26 +14,20 @@ Repo: web86/Aloha; branch: feature/m2-4b-rental-template. Depends on web86/Aloha
 
 Page sections: heading, local facts and USP; five-photo mosaic with auto labels; editable Highlights; About; verified sleeping spaces with bed-type icons; amenities grouped by Guesty names (no icons); selected Nearby Places and manual minutes; selected Airbnb / Booking.com Guests said reviews with original ratings and attribution; house rules including quiet hours and local check-in/out; and up to three related published Rentals sharing Area.
 
-Missing or unimported photos never become public photo URLs. With fewer than five imported images, the mosaic adapts. If no gallery images are available, a valid local Featured Image is a fallback. Optional sections disappear when there are no safe values. Raw source addresses, home coordinates, provider IDs and Guesty credentials do not appear in HTML.
+Missing or unimported photos never become public photo URLs. With fewer than five imported images, the mosaic adapts. The gallery is omitted when it has no visible mapped images. It does not reuse Featured Image as a gallery fallback because that could display a deliberately hidden photo. Optional sections disappear when there are no safe values. Raw source addresses, home coordinates, provider IDs and Guesty credentials do not appear in HTML.
 
 The booking card is explicitly a placeholder; no live prices, fake values, API calls, booking or payments. Dynamic booking is M2.4C.
 
 ## Public and preview rules
 
-RentalPublicData::get() is strictly published, mapped and not password protected. RentalPublicData::preview() requires native WordPress Preview context, edit_post capability, matching preview_id and the WordPress preview_nonce. This allows authorized preview of the existing draft without publishing it. Never loosen the preview permissions to is_preview() alone.
+RentalPublicData::get() is strictly published, mapped and not password protected. RentalPublicData::preview() requires native WordPress Preview context, edit_post capability, matching Rental ID and a valid WordPress nonce. Core autosave links keep their native keys. Bridge adds a separate signed pair to the native owner-draft link when core omits autosave keys. This allows authorized preview of the existing draft without publishing it. Never loosen the preview permissions to is_preview() alone.
 
 ## Local verification
 
-1. Preserve Codex's currently uncommitted gallery work. Do not hard reset or switch over it. Fetch the two feature branches in separate Git worktrees or a disposable local clone.
-2. Validate PHP 8.3/8.4 syntax for theme/aloha-hello/inc/rental.php and AlohaWPBridge src/RentalPublicData.php and the smoke PHP file.
-3. Run Bridge fixture: php tests/rental-public-data-fixture.php; then the existing Bridge/Aloha Content smoke suites.
-4. On a disposable/backed-up WordPress install using both branches, activate Aloha Hello and AlohaWPBridge and run: wp eval-file scripts/rental-template-smoke.php (from the Aloha checkout). Read-only.
-5. Open the real mapped Rental Draft using WordPress's native Preview. Verify the rendered sections and gallery filters, especially 1/2/5+ imported photos, and a selected Guest review. Never force Publish or start Guesty Sync/downloads.
-6. Browser QA widths: 320, 390, 768, 1440 pixels. Confirm dialog focus/keyboard, mobile layout, stale/absent facts, no private source leaks, and no provider API calls on page load.
-7. If a saved wp_template customization overrides single-rental.html, inspect it rather than rewriting its DB record automatically.
+The integration mounts the theme and Bridge worktrees read-only on the local WordPress 7.1.3 site. Aloha Hello reports version 0.7.3 and Bridge reports 0.3.5. WordPress resolved `aloha-hello//single-rental` from the theme file.
 
-## Limitations
+Run `php tests/rental-public-data-fixture.php` from the Bridge checkout. Run `wp eval-file scripts/rental-template-smoke.php [published-fixture-id]` from the Aloha checkout with both components loaded. To run the browser scenario from the local Aloha root, bind this branch's `scripts` directory at `/var/www/m24-tests` in the WP-CLI service and run `node <theme-worktree>/scripts/rental-template-browser.cjs`. The script creates a uniquely named mapped synthetic Rental pair and an empty Rental, verifies published and draft rendering, and removes the fixtures. Set `RENTAL_TEMPLATE_SCREENSHOTS` to capture screenshots.
 
-No full WP/Chromium integration or theme-specific PHP lint has run in this assistant's remote environment. The added WP-CLI test has not been executed against the user's actual WP site. Evaluate before merge. Related homes and public review reuse terms need operational review for production.
+The read-only WordPress smoke found zero Guesty requests. Chromium verified the five-image local mosaic and ordering, label filters, the shared lightbox, original review scores and attribution, hidden/empty sections, privacy markers, and 320, 390, 768 and 1440 px. Native editor Preview rendered the synthetic draft, and anonymous, wrong-ID, invalid-nonce and missing-nonce requests withheld its content. There was no database template override. The native Preview action from the Rental list opened local draft 186 as a read-only GET.
 
-For M2.4B acceptance, the native draft preview should show locally sourced data without a single Guesty request and without altering any WordPress data. The template should not be publicly visible until the Rental is deliberately published.
+Deployment and booking/pricing remain separate from this local verification.
