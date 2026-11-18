@@ -15,6 +15,26 @@
         button.addEventListener('click', () => show(button.getAttribute('aria-expanded') !== 'true'));
     });
 
+    document.querySelectorAll('[data-rental-description]').forEach(section => {
+        const content = section.querySelector('[data-description-content]');
+        const button = section.querySelector('[data-rental-more]');
+        let expanded = false;
+        const show = value => {
+            expanded = value;
+            content.classList.toggle('is-collapsed', !expanded && content.scrollHeight > 300);
+            button.setAttribute('aria-expanded', String(expanded));
+            button.textContent = expanded ? button.dataset.closeLabel : button.dataset.openLabel;
+        };
+        const measure = () => {
+            button.hidden = content.scrollHeight <= 310;
+            show(expanded);
+        };
+        button.addEventListener('click', () => show(!expanded));
+        content.addEventListener('focusin', () => show(true));
+        if ('ResizeObserver' in window) new ResizeObserver(measure).observe(content);
+        measure();
+    });
+
     if (typeof window.EmblaCarousel !== 'function') return;
     document.querySelectorAll('[data-rental-highlights]').forEach(root => {
         const viewport = root.querySelector('[data-rental-viewport]');

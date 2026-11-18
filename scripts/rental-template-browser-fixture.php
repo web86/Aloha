@@ -26,13 +26,15 @@ if (in_array($operation, ['map-html', 'description'], true)) {
     $assert($fixture && !in_array($fixture->ID, [186, 365], true), 'Synthetic Rental not found.');
     if ($operation === 'map-html') {
         add_filter('aloha_rental_maps_config', static fn () => ['key' => 'fixture-browser-key', 'mapId' => 'fixture-map-id']);
-        aloha_rental_nearby(RentalPublicData::get($fixture->ID)['nearby']);
+        $dto = RentalPublicData::get($fixture->ID);
+        aloha_rental_nearby($dto['nearby'], $dto['publicMapLocation'], $dto['title']);
         return;
     }
     $mode = $args[2] ?? '';
     $assert(in_array($mode, ['custom', 'guesty', 'excerpt'], true), 'Invalid description mode.');
     update_post_meta($fixture->ID, '_awb_description_source', $mode === 'excerpt' ? 'custom' : $mode);
     if ($mode === 'excerpt') {
+        update_post_meta($fixture->ID, AlohaWPBridge\RentalDescription::HTML, '');
         delete_post_meta($fixture->ID, '_awb_about_summary');
         delete_post_meta($fixture->ID, '_awb_about_space');
         delete_post_meta($fixture->ID, '_awb_community_id');
@@ -76,6 +78,11 @@ if ($operation === 'remove') {
             }
         }
         wp_delete_post($post->ID, true);
+    }
+    $user = get_user_by('login', $key . '-contact');
+    if ($user && get_user_meta($user->ID, 'aloha_fixture_marker', true) === $key) {
+        require_once ABSPATH . 'wp-admin/includes/user.php';
+        wp_delete_user($user->ID);
     }
     return;
 }
@@ -195,13 +202,14 @@ foreach (['public', 'draft', 'empty'] as $mode) {
             'sleepingSpaces' => [['id' => 'private-space-test', 'name' => 'Suite', 'type' => 'BEDROOM',
                 'beds' => [['type' => 'KING_BED', 'quantity' => 1]]],
                 ['name' => 'Garden Room', 'type' => 'BEDROOM', 'beds' => [['type' => 'QUEEN_BED', 'quantity' => 1]]],
-                ['name' => 'Twin Room', 'type' => 'BEDROOM', 'beds' => [['type' => 'SINGLE_BED', 'quantity' => 2]]]],
+                ['id' => 'fixture-twin-room', 'name' => 'Twin Room', 'type' => 'BEDROOM', 'beds' => [['type' => 'SINGLE_BED', 'quantity' => 2]]]],
             'amenities' => ['status' => 'available', 'groups' => [
                 ['name' => 'Outdoor', 'amenities' => ['Pool', 'Lanai', 'Garden', 'Grill', 'Hammock']],
                 ...array_map(static fn ($name) => ['name' => $name, 'amenities' => ['Fixture ' . $name]],
                     ['Kitchen', 'Comfort', 'Entertainment', 'Family', 'Safety', 'Workspace']),
             ], 'unmapped' => []],
             'houseRules' => ['petsAllowed' => $available(false), 'minimumAge' => $available(25),
+                'checkIn' => $available('16:00'), 'checkOut' => $available('10:00'),
                 'additionalRules' => $available('PRIVATE_FIXTURE_RULES')],
         ]];
         $assert(RentalEditor::writeSourceMeta($id, '_awb_source_data', $source), 'Fixture facts failed.');
@@ -213,9 +221,30 @@ foreach (['public', 'draft', 'empty'] as $mode) {
         update_post_meta($id, '_awb_area_id', $area);
         update_post_meta($id, '_awb_community_id', $community);
         update_post_meta($id, '_awb_usp', 'A quiet place to start and end the day.');
+        $contact = wp_insert_user(['user_login' => $key . '-contact', 'user_pass' => wp_generate_password(32),
+            'user_email' => $key . '@example.test', 'role' => 'administrator', 'display_name' => 'Alex Fixture', 'first_name' => 'Alex']);
+        $assert(is_int($contact), 'Could not create fixture contact.');
+        update_user_meta($contact, 'aloha_fixture_marker', $key);
+        update_user_meta($contact, AlohaWPBridge\RentalPresentation::CONTACT_ALLOWED, '1');
+        update_user_meta($contact, AlohaWPBridge\RentalPresentation::CONTACT_IMAGE, $images[1]);
+        update_post_meta($id, AlohaWPBridge\RentalPresentation::CONTACT, $contact);
+        update_post_meta($id, AlohaWPBridge\RentalPresentation::INTRO, 'Head of Guest Experience, knows every room here. Beds, stairs, the beach club — ask anything.');
+        update_post_meta($id, AlohaWPBridge\RentalPresentation::SLEEPING, [
+            AlohaWPBridge\RentalPresentation::sleepingKey('private-space-test') => ['level' => 'ground', 'steps' => 0],
+            AlohaWPBridge\RentalPresentation::sleepingKey('fixture-twin-room') => ['level' => 'upstairs', 'steps' => 14],
+        ]);
+        update_post_meta($id, AlohaWPBridge\RentalPresentation::MAP, ['lat' => 19.111111, 'lng' => -155.222222]);
+        update_post_meta($id, '_awb_cancellation', 'Confirmed fixture policy');
+        update_post_meta($id, '_awb_deposit', 'Confirmed fixture deposit terms');
+        update_post_meta($id, '_awb_airbnb_url', 'https://www.airbnb.com/rooms/123456789');
+        update_post_meta($id, '_awb_airbnb_review_count', '86');
         update_post_meta($id, '_awb_description_source', 'custom');
         update_post_meta($id, '_awb_about_summary', 'Synthetic public description.');
         update_post_meta($id, '_awb_about_space', str_repeat('Relax outside and watch the light move across the water. ', 22) . 'Final description detail.');
+        update_post_meta($id, AlohaWPBridge\RentalDescription::HTML,
+            '<p>Synthetic public description.</p><h3>The space</h3><p>' .
+            str_repeat('Relax outside and watch the light move across the water. ', 22) .
+            '<a href="https://example.test/">Final description detail</a>.</p>');
         $highlights = [];
         foreach (['Ocean air', 'Sunset patio', 'Morning light', 'Open kitchen', 'Quiet nights'] as $index => $headline) {
             $highlights[] = ['attachmentId' => $images[$index + 1], 'headline' => $headline,

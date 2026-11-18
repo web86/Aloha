@@ -262,68 +262,23 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 										}
 										echo esc_html( implode( ', ', $beds ) );
 									?></p>
+									<?php
+									$access = $room['access'] ?? array( 'level' => '', 'steps' => null );
+									$parts = array();
+									if ( $access['level'] ) { $parts[] = $access['level'] === 'ground' ? __( 'Ground floor', 'aloha-hello' ) : __( 'Upstairs', 'aloha-hello' ); }
+									if ( $access['steps'] !== null ) { $parts[] = $access['steps'] === 0 ? __( 'no steps', 'aloha-hello' ) : sprintf( __( '%d steps', 'aloha-hello' ), $access['steps'] ); }
+									?>
+									<?php if ( $parts ) : ?><span class="aloha-rental-access <?php echo $access['level'] === 'ground' ? 'is-ground' : ''; ?>"><?php echo esc_html( implode( ' · ', $parts ) ); ?></span><?php endif; ?>
 								</article>
 							<?php endforeach; ?>
 						</div>
 					</section>
 				<?php endif; ?>
 				<?php aloha_rental_amenities( $rental['amenities'] ); ?>
-				<?php aloha_rental_nearby( $rental['nearby'] ); ?>
-				<?php if ( ! empty( $rental['reviews'] ) ) : ?>
-					<section class="aloha-rental-section" aria-labelledby="aloha-rental-reviews-title">
-						<h2 id="aloha-rental-reviews-title"><?php esc_html_e( 'Guests said', 'aloha-hello' ); ?></h2>
-						<div class="aloha-rental-reviews"><?php foreach ( $rental['reviews'] as $review ) : ?>
-							<blockquote class="aloha-rental-review">
-								<p class="aloha-rental-review-score"><?php echo esc_html( number_format_i18n( $review['rating']['value'], 1 ) . ' / ' . $review['rating']['max'] ); ?> <span><?php echo esc_html( $review['channel'] ); ?></span></p>
-								<?php foreach ( $review['text'] as $part => $line ) : ?>
-									<p><?php echo esc_html( $line ); ?></p>
-								<?php endforeach; ?>
-								<?php if ( $review['date'] ) : ?><footer><time datetime="<?php echo esc_attr( $review['date'] ); ?>"><?php echo esc_html( wp_date( 'F Y', strtotime( $review['date'] . ' UTC' ) ) ); ?></time></footer><?php endif; ?>
-							</blockquote>
-						<?php endforeach; ?></div>
-					</section>
-				<?php endif; ?>
-				<?php
-				$rules = array(
-					'smokingAllowed' => __( 'Smoking', 'aloha-hello' ), 'petsAllowed' => __( 'Pets', 'aloha-hello' ),
-					'eventsAllowed' => __( 'Events', 'aloha-hello' ), 'suitableForChildren' => __( 'Children', 'aloha-hello' ),
-					'suitableForInfants' => __( 'Infants', 'aloha-hello' ),
-				);
-				$showRules = false;
-				foreach ( $rules as $key => $label ) {
-					if ( in_array( $rental['houseRules'][ $key ]['status'] ?? '', array( 'available', 'stale' ), true )
-						&& is_bool( $rental['houseRules'][ $key ]['value'] ?? null ) ) { $showRules = true; }
-				}
-				$hasTimedRules = false;
-				foreach ( array( 'minimumAge', 'quietHoursEnabled', 'checkIn', 'checkOut' ) as $key ) {
-					$hasTimedRules = $hasTimedRules || in_array( $rental['houseRules'][ $key ]['status'] ?? '', array( 'available', 'stale' ), true );
-				}
-				if ( $showRules || $hasTimedRules ) :
-				?>
-					<section class="aloha-rental-section" aria-labelledby="aloha-rental-rules-title">
-						<h2 id="aloha-rental-rules-title"><?php esc_html_e( 'House rules', 'aloha-hello' ); ?></h2>
-						<dl class="aloha-rental-rules">
-							<?php foreach ( $rules as $key => $label ) :
-								$field = $rental['houseRules'][ $key ] ?? array();
-								if ( ! in_array( $field['status'] ?? '', array( 'available', 'stale' ), true ) || ! is_bool( $field['value'] ?? null ) ) { continue; }
-								?>
-								<div><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo esc_html( $field['value'] ? __( 'Allowed', 'aloha-hello' ) : __( 'Not allowed', 'aloha-hello' ) ); ?></dd></div>
-							<?php endforeach; ?>
-							<?php if ( in_array( $rental['houseRules']['minimumAge']['status'] ?? '', array( 'available', 'stale' ), true ) ) : ?>
-								<div><dt><?php esc_html_e( 'Minimum guest age', 'aloha-hello' ); ?></dt><dd><?php echo esc_html( (string) $rental['houseRules']['minimumAge']['value'] ); ?></dd></div>
-							<?php endif; ?>
-							<?php $quiet = $rental['houseRules']; if ( ( $quiet['quietHoursEnabled']['value'] ?? null ) === true && ( $quiet['quietHoursStart']['value'] ?? null ) && ( $quiet['quietHoursEnd']['value'] ?? null ) ) : ?>
-								<div><dt><?php esc_html_e( 'Quiet hours', 'aloha-hello' ); ?></dt><dd><?php echo esc_html( $quiet['quietHoursStart']['value'] . '–' . $quiet['quietHoursEnd']['value'] ); ?></dd></div>
-							<?php endif; ?>
-							<?php foreach ( array( 'checkIn' => __( 'Check-in', 'aloha-hello' ), 'checkOut' => __( 'Check-out', 'aloha-hello' ) ) as $key => $label ) :
-								$field = $quiet[ $key ] ?? array();
-								if ( ! in_array( $field['status'] ?? '', array( 'available', 'stale' ), true ) || ! is_string( $field['value'] ?? null ) ) { continue; }
-								?>
-								<div><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo esc_html( $field['value'] ); ?></dd></div>
-							<?php endforeach; ?>
-						</dl>
-					</section>
-				<?php endif; ?>
+				<?php aloha_rental_nearby( $rental['nearby'], $rental['publicMapLocation'] ?? null, $rental['title'] ); ?>
+				<?php aloha_rental_reviews( $rental ); ?>
+				<?php aloha_rental_contact( $rental ); ?>
+				<?php aloha_rental_rules( $rental ); ?>
 			</div>
 		</div>
 		<?php echo aloha_rental_related( $rental ); // Generated and escaped by renderer. ?>

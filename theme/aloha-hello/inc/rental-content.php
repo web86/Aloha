@@ -58,63 +58,28 @@ function aloha_rental_highlights( array $highlights ): void {
 	<?php
 }
 
-function aloha_rental_more_button( string $controls, string $label ): void {
+function aloha_rental_more_button( string $controls, string $label, string $close = '' ): void {
+	$close = $close ?: __( 'Show less ↑', 'aloha-hello' );
 	?>
 	<button type="button" class="aloha-rental-more-button" data-rental-more
-		data-open-label="<?php echo esc_attr( $label ); ?>" data-close-label="<?php esc_attr_e( 'Show less', 'aloha-hello' ); ?>"
+		data-open-label="<?php echo esc_attr( $label ); ?>" data-close-label="<?php echo esc_attr( $close ); ?>"
 		aria-controls="<?php echo esc_attr( $controls ); ?>" aria-expanded="false" hidden><?php echo esc_html( $label ); ?></button>
 	<?php
 }
 
 function aloha_rental_about( array $rental ): void {
-	$fields = array_filter( $rental['about'], static fn( $value ) => is_string( $value ) && $value !== '' );
-	$excerpt = $rental['excerpt'];
-	if ( ! $fields && ! $excerpt ) { return; }
+	$html = $rental['aboutHtml'] ?? '';
+	if ( $html === '' ) { return; }
 	$location = $rental['community']['name'] ?? $rental['area']['name'] ?? '';
 	$emphasis = '<em>' . esc_html__( 'vacation rental', 'aloha-hello' ) . '</em>';
 	$title = $location ? sprintf( esc_html__( 'About this %1$s %2$s', 'aloha-hello' ), esc_html( $location ), $emphasis )
 		: sprintf( esc_html__( 'About this %s', 'aloha-hello' ), $emphasis );
-	if ( ( $fields['summary'] ?? null ) === $excerpt ) {
-		unset( $fields['summary'] );
-	}
-	$preview = array();
-	$tail = array();
-	$remaining = 760;
-	$long = array_sum( array_map( 'strlen', $fields ) ) > 850;
-	foreach ( $fields as $field => $text ) {
-		$length = strlen( $text );
-		if ( ! $long || ( ! $tail && $length <= $remaining ) ) {
-			$preview[ $field ] = $text;
-			$remaining -= $length;
-		} elseif ( ! $tail && $remaining >= 250 && preg_match( '/\A(.{200,' . $remaining . '})\s+(.*)\z/us', $text, $parts ) ) {
-			$preview[ $field ] = $parts[1];
-			$tail['continuation'] = $parts[2];
-		} elseif ( ! $excerpt && ! $preview ) {
-			$preview[ $field ] = $text;
-			$remaining = 0;
-		} else {
-			$tail[ $field ] = $text;
-		}
-	}
-	$labels = array( 'space' => __( 'The space', 'aloha-hello' ), 'neighborhood' => __( 'Neighborhood', 'aloha-hello' ), 'transit' => __( 'Getting around', 'aloha-hello' ) );
-	$paragraphs = static function ( array $entries ) use ( $labels ): void {
-		foreach ( $entries as $key => $text ) {
-			if ( isset( $labels[ $key ] ) ) {
-				echo '<h3>' . esc_html( $labels[ $key ] ) . '</h3>';
-			}
-			echo '<p>' . nl2br( esc_html( $text ) ) . '</p>';
-		}
-	};
-	$id = wp_unique_id( 'aloha-rental-about-more-' );
+	$id = wp_unique_id( 'aloha-rental-about-' );
 	?>
-	<section class="aloha-rental-section aloha-rental-about" aria-labelledby="aloha-rental-about-title" data-rental-disclosure>
+	<section class="aloha-rental-section aloha-rental-about" aria-labelledby="aloha-rental-about-title" data-rental-description>
 		<h2 id="aloha-rental-about-title"><?php echo $title; // Escaped while assembling the heading. ?></h2>
-		<?php if ( $excerpt !== '' ) : ?><p class="aloha-rental-excerpt"><?php echo nl2br( esc_html( $excerpt ) ); ?></p><?php endif; ?>
-		<?php $paragraphs( $preview ); ?>
-		<?php if ( $tail ) : ?>
-			<div id="<?php echo esc_attr( $id ); ?>" data-rental-extra><?php $paragraphs( $tail ); ?></div>
-			<?php aloha_rental_more_button( $id, __( 'Show more', 'aloha-hello' ) ); ?>
-		<?php endif; ?>
+		<div class="aloha-rental-description" id="<?php echo esc_attr( $id ); ?>" data-description-content><?php echo wp_kses_post( $html ); ?></div>
+		<?php aloha_rental_more_button( $id, __( 'Read the full description ↓', 'aloha-hello' ) ); ?>
 	</section>
 	<?php
 }
@@ -127,12 +92,13 @@ function aloha_rental_amenities( array $amenities ): void {
 	if ( ! $groups ) { return; }
 	$id = wp_unique_id( 'aloha-rental-amenities-' );
 	$overflow = false;
+	$count = array_sum( array_map( static fn( $group ) => count( $group['items'] ), $groups ) );
 	?>
 	<section class="aloha-rental-section" aria-labelledby="aloha-rental-amenities-title" data-rental-disclosure>
 		<h2 id="aloha-rental-amenities-title"><?php echo wp_kses( __( "What's <em>included</em>", 'aloha-hello' ), array( 'em' => array() ) ); ?></h2>
 		<div class="aloha-rental-amenities" id="<?php echo esc_attr( $id ); ?>">
 			<?php foreach ( $groups as $index => $group ) : $hide_group = $index >= 6; ?>
-				<div<?php if ( $hide_group ) : $overflow = true; ?> data-rental-extra<?php endif; ?>>
+				<div class="aloha-rental-amenities-group"<?php if ( $hide_group ) : $overflow = true; ?> data-rental-extra<?php endif; ?>>
 					<h3><?php echo esc_html( $group['name'] ); ?></h3>
 					<ul>
 						<?php foreach ( $group['items'] as $item_index => $item ) : ?>
@@ -142,12 +108,12 @@ function aloha_rental_amenities( array $amenities ): void {
 				</div>
 			<?php endforeach; ?>
 		</div>
-		<?php if ( $overflow ) { aloha_rental_more_button( $id, __( 'Show all amenities', 'aloha-hello' ) ); } ?>
+		<?php if ( $overflow ) { aloha_rental_more_button( $id, sprintf( __( 'Show all %d amenities', 'aloha-hello' ), $count ) ); } ?>
 	</section>
 	<?php
 }
 
-function aloha_rental_nearby( array $places ): void {
+function aloha_rental_nearby( array $places, ?array $home = null, string $title = '' ): void {
 	if ( ! $places ) { return; }
 	$points = array();
 	foreach ( $places as $index => $place ) {
@@ -195,6 +161,7 @@ function aloha_rental_nearby( array $places ): void {
 					</div>
 					<script type="application/json" data-map-config><?php echo wp_json_encode( array(
 						'key' => $config['key'], 'mapId' => $config['mapId'], 'points' => (object) $points,
+						'home' => $home ? $home + array( 'name' => $title ) : null,
 						'loading' => __( 'Loading Google Maps…', 'aloha-hello' ), 'error' => __( 'The map could not be loaded. The places are listed here.', 'aloha-hello' ),
 					), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); ?></script>
 				<?php else : ?>
@@ -202,6 +169,98 @@ function aloha_rental_nearby( array $places ): void {
 				<?php endif; ?>
 			</div>
 		</div>
+	</section>
+	<?php
+}
+
+function aloha_rental_reviews( array $rental ): void {
+	$link = $rental['reviewLink'] ?? null;
+	if ( ! $rental['reviews'] && ! $link ) { return; }
+	?>
+	<section class="aloha-rental-section" aria-labelledby="aloha-rental-reviews-title">
+		<div class="aloha-rental-section-heading">
+			<h2 id="aloha-rental-reviews-title"><?php echo wp_kses( __( 'Guests <em>said</em>', 'aloha-hello' ), array( 'em' => array() ) ); ?></h2>
+			<?php if ( $link ) : ?>
+				<a class="aloha-rental-text-link" href="<?php echo esc_url( $link['url'] ); ?>" target="_blank" rel="noopener noreferrer"
+					aria-label="<?php esc_attr_e( 'View all reviews for this home on Airbnb (opens in a new tab)', 'aloha-hello' ); ?>"><?php
+					echo esc_html( $link['count'] !== null ? sprintf( __( 'All %d reviews', 'aloha-hello' ), $link['count'] ) : __( 'All reviews on Airbnb', 'aloha-hello' ) );
+				?></a>
+			<?php endif; ?>
+		</div>
+		<div class="aloha-rental-reviews"><?php foreach ( $rental['reviews'] as $review ) : ?>
+			<figure class="aloha-rental-review">
+				<blockquote><?php foreach ( $review['text'] as $part => $line ) : ?>
+					<p><?php echo esc_html( $line ); ?></p>
+				<?php endforeach; ?></blockquote>
+				<figcaption><?php echo esc_html( $review['channel'] ); ?>
+					<?php if ( $review['date'] ) : ?> · <time datetime="<?php echo esc_attr( $review['date'] ); ?>"><?php echo esc_html( wp_date( 'F Y', strtotime( $review['date'] . ' UTC' ) ) ); ?></time><?php endif; ?>
+				</figcaption>
+			</figure>
+		<?php endforeach; ?></div>
+	</section>
+	<?php
+}
+
+function aloha_rental_contact( array $rental ): void {
+	$contact = $rental['contact'] ?? null;
+	if ( ! $contact ) { return; }
+	$subject = sprintf( __( 'Question about %s', 'aloha-hello' ), $rental['title'] );
+	?>
+	<section class="aloha-rental-contact" aria-labelledby="aloha-rental-contact-title">
+		<div class="aloha-rental-contact-person">
+			<?php if ( $contact['image'] ) : ?><img src="<?php echo esc_url( $contact['image'] ); ?>" alt="" width="72" height="72" loading="lazy">
+			<?php else : ?><span class="aloha-rental-contact-avatar" aria-hidden="true"><?php echo esc_html( mb_substr( $contact['name'], 0, 1 ) ); ?></span><?php endif; ?>
+			<div><h2 id="aloha-rental-contact-title"><?php esc_html_e( 'Questions about this home?', 'aloha-hello' ); ?></h2>
+				<p><strong><?php echo esc_html( $contact['name'] ); ?></strong><?php if ( $contact['introduction'] !== '' ) : ?>, <?php echo nl2br( esc_html( $contact['introduction'] ) ); ?><?php endif; ?></p>
+			</div>
+		</div>
+		<a href="<?php echo esc_url( 'mailto:' . $contact['email'] . '?subject=' . rawurlencode( $subject ) ); ?>"><?php echo esc_html( sprintf( __( 'Ask %s', 'aloha-hello' ), $contact['firstName'] ) ); ?></a>
+	</section>
+	<?php
+}
+
+function aloha_rental_rules( array $rental ): void {
+	$source = $rental['houseRules'];
+	$info = $rental['guestInformation'] ?? array();
+	$value = static fn( $key ) => in_array( $source[ $key ]['status'] ?? '', array( 'available', 'stale' ), true ) ? ( $source[ $key ]['value'] ?? null ) : null;
+	$times = array();
+	foreach ( array( 'checkIn' => __( 'In', 'aloha-hello' ), 'checkOut' => __( 'Out', 'aloha-hello' ) ) as $key => $label ) {
+		if ( is_string( $value( $key ) ) && $value( $key ) !== '' ) { $times[] = $label . ' ' . $value( $key ); }
+	}
+	$summary = array_filter( array(
+		__( 'Check-in / out', 'aloha-hello' ) => implode( ' / ', $times ),
+		__( 'Cancellation', 'aloha-hello' ) => $info['cancellation'] ?? '',
+		__( 'Deposit', 'aloha-hello' ) => $info['deposit'] ?? '',
+	) );
+	$rules = array();
+	foreach ( array( 'smokingAllowed' => __( 'Smoking', 'aloha-hello' ), 'petsAllowed' => __( 'Pets', 'aloha-hello' ),
+		'eventsAllowed' => __( 'Events', 'aloha-hello' ), 'suitableForChildren' => __( 'Children', 'aloha-hello' ),
+		'suitableForInfants' => __( 'Infants', 'aloha-hello' ) ) as $key => $label ) {
+		if ( is_bool( $value( $key ) ) ) { $rules[ $label ] = $value( $key ) ? __( 'Allowed', 'aloha-hello' ) : __( 'Not allowed', 'aloha-hello' ); }
+	}
+	if ( is_numeric( $value( 'minimumAge' ) ) ) { $rules[ __( 'Minimum guest age', 'aloha-hello' ) ] = $value( 'minimumAge' ); }
+	if ( $value( 'quietHoursEnabled' ) === true && $value( 'quietHoursStart' ) && $value( 'quietHoursEnd' ) ) {
+		$rules[ __( 'Quiet hours', 'aloha-hello' ) ] = $value( 'quietHoursStart' ) . '–' . $value( 'quietHoursEnd' );
+	}
+	foreach ( array( 'checkInEnd' => __( 'Check-in closes', 'aloha-hello' ), 'timezone' => __( 'Local timezone', 'aloha-hello' ) ) as $key => $label ) {
+		if ( is_string( $value( $key ) ) && $value( $key ) !== '' ) { $rules[ $label ] = $value( $key ); }
+	}
+	if ( ! $summary && ! $rules ) { return; }
+	$id = wp_unique_id( 'aloha-rental-rules-' );
+	?>
+	<section class="aloha-rental-section" aria-labelledby="aloha-rental-rules-title" data-rental-disclosure>
+		<h2 id="aloha-rental-rules-title"><?php echo wp_kses( __( 'House <em>rules</em>', 'aloha-hello' ), array( 'em' => array() ) ); ?></h2>
+		<dl class="aloha-rental-rule-summary"><?php foreach ( $summary as $label => $text ) : ?>
+			<div><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo esc_html( $text ); ?></dd></div>
+		<?php endforeach; ?></dl>
+		<?php if ( $rules ) : ?>
+			<div id="<?php echo esc_attr( $id ); ?>" data-rental-extra>
+				<dl class="aloha-rental-rules"><?php foreach ( $rules + $summary as $label => $text ) : ?>
+					<div><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo esc_html( $text ); ?></dd></div>
+				<?php endforeach; ?></dl>
+			</div>
+			<?php aloha_rental_more_button( $id, __( 'All house rules & guest info →', 'aloha-hello' ) ); ?>
+		<?php endif; ?>
 	</section>
 	<?php
 }

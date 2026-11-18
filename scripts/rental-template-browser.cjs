@@ -98,13 +98,13 @@ async function testMap(context, fixture, screenshots) {
         if (success) {
             const container = section.locator('.aloha-rental-map');
             if (mobile) assert.ok((await container.boundingBox()).y > (await list.boundingBox()).y);
-            else assert.ok((await container.boundingBox()).x > (await list.boundingBox()).x);
+            else assert.ok((await container.boundingBox()).y > (await list.boundingBox()).y);
             const surface = section.getByRole('region', {name: 'Map of nearby places'});
             await surface.waitFor();
             const markers = surface.getByRole('button');
-            assert.deepEqual(await markers.allTextContents(), ['1', '2']);
+            assert.deepEqual(await markers.allTextContents(), ['1', '2', '⌂']);
             assert.deepEqual(JSON.parse(await surface.getAttribute('data-bounds')), [
-                {lat: 19.123456, lng: -155.543217}, {lat: 19.222222, lng: -155.444444},
+                {lat: 19.123456, lng: -155.543217}, {lat: 19.222222, lng: -155.444444}, {lat: 19.111111, lng: -155.222222},
             ]);
             await list.getByRole('button', {name: key + ' Beach'}).click();
             assert.equal(await surface.getAttribute('data-popup'), key + ' Beach');
@@ -164,8 +164,10 @@ async function testMap(context, fixture, screenshots) {
         }
         assert.deepEqual(await main.locator('.aloha-rental-facts dd strong').allTextContents(),
             ['8', '3', '2.5', '2,000', '—', '—', '—', '—']);
-        const scores = await main.locator('.aloha-rental-review-score').allTextContents();
-        assert.deepEqual(scores.map(score => score.replace(/\s+/g, ' ').trim()), ['4.5 / 5 Airbnb', '8.5 / 10 Booking.com']);
+        assert.equal(await main.locator('.aloha-rental-review-score').count(), 0);
+        assert.deepEqual(await main.locator('.aloha-rental-review figcaption').allTextContents().then(rows => rows.map(row => row.replace(/\s+/g, ' ').trim())),
+            ['Airbnb · October 2026', 'Booking.com · October 2026']);
+        assert.ok(await main.getByRole('link', {name: /View all reviews for this home on Airbnb/}).isVisible());
         assert.ok(await main.getByText('Fixture road noise.', {exact: true}).isVisible());
         const html = await page.content();
         for (const privateValue of ['PRIVATE_FIXTURE_', 'private-source-', 'private-photo-', 'private-space-',
@@ -239,6 +241,7 @@ async function testMap(context, fixture, screenshots) {
                 for (const image of await main.locator('img[loading="lazy"]').all()) {
                     if (await image.isVisible()) await image.scrollIntoViewIfNeeded();
                 }
+                await viewport.evaluate(el => { el.scrollLeft = 0; });
                 await page.evaluate(() => scrollTo(0, 0));
                 await main.screenshot({path: join(screenshots, 'public-' + width + '.png')});
             }
@@ -280,25 +283,35 @@ async function testMap(context, fixture, screenshots) {
         await touchContext.close();
 
         const about = main.locator('.aloha-rental-about');
-        assert.equal(await about.locator('p').first().textContent(), 'A sunny coastal retreat.');
+        assert.equal(await about.getByText('A sunny coastal retreat.').count(), 0);
         assert.ok(await about.getByText('Synthetic public description.').isVisible());
         assert.equal(await about.getByText('Synthetic Guesty description.').count(), 0);
-        const aboutMore = about.getByRole('button', {name: 'Show more'});
+        const aboutMore = about.getByRole('button', {name: 'Read the full description ↓'});
         assert.equal(await aboutMore.getAttribute('aria-expanded'), 'false');
-        assert.equal(await about.locator('[data-rental-extra]').isVisible(), false);
+        assert.ok(await about.locator('[data-description-content]').evaluate(el => el.classList.contains('is-collapsed')));
         await aboutMore.focus();
         await page.keyboard.press('Space');
         assert.ok(await about.getByText(/Final description detail/).isVisible());
-        await about.getByRole('button', {name: 'Show less'}).click();
-        assert.equal(await about.locator('[data-rental-extra]').isVisible(), false);
+        await about.getByRole('button', {name: 'Show less ↑'}).click();
+        assert.ok(await about.locator('[data-description-content]').evaluate(el => el.classList.contains('is-collapsed')));
 
+        assert.ok(await main.getByText('Ground floor · no steps').isVisible());
+        assert.ok(await main.getByText('Upstairs · 14 steps').isVisible());
+        const house = main.locator('section[aria-labelledby="aloha-rental-rules-title"]');
+        assert.ok(await house.getByText('Confirmed fixture policy').first().isVisible());
+        assert.ok(!(await house.getByText('Minimum guest age').isVisible()));
+        await house.getByRole('button', {name: 'All house rules & guest info →'}).click();
+        assert.ok(await house.getByText('Minimum guest age').isVisible());
+        await house.getByRole('button', {name: 'Show less ↑'}).click();
+        const ask = main.getByRole('link', {name: 'Ask Alex'});
+        assert.match(await ask.getAttribute('href'), /^mailto:.*example[.]test[?]subject=/);
         const amenities = main.locator('section[aria-labelledby="aloha-rental-amenities-title"]');
         assert.equal(await amenities.getByText('Hammock').isVisible(), false);
         assert.equal(await amenities.getByText('Fixture Workspace').isVisible(), false);
-        await amenities.getByRole('button', {name: 'Show all amenities'}).click();
+        await amenities.getByRole('button', {name: 'Show all 11 amenities'}).click();
         assert.ok(await amenities.getByText('Hammock').isVisible());
         assert.ok(await amenities.getByText('Fixture Workspace').isVisible());
-        await amenities.getByRole('button', {name: 'Show less'}).click();
+        await amenities.getByRole('button', {name: 'Show less ↑'}).click();
         assert.equal(await amenities.getByText('Hammock').isVisible(), false);
 
         const staticContext = await browser.newContext({javaScriptEnabled: false});
@@ -327,15 +340,14 @@ async function testMap(context, fixture, screenshots) {
         wp('rental-template-browser-fixture.php', 'description', key, 'guesty');
         await page.reload();
         await about.getByRole('heading', {name: 'About this Keauhou vacation rental'}).waitFor();
-        assert.equal(await about.locator('p').first().textContent(), 'A sunny coastal retreat.');
+        assert.equal(await about.getByText('A sunny coastal retreat.').count(), 0);
         assert.ok(await about.getByText('Synthetic Guesty description.').isVisible());
         assert.equal(await about.getByText('Synthetic public description.').count(), 0);
-        assert.equal(await about.getByRole('button').count(), 0);
+        assert.ok(!(await about.getByRole('button').isVisible()));
 
         wp('rental-template-browser-fixture.php', 'description', key, 'excerpt');
         await page.reload();
-        await about.getByRole('heading', {name: 'About this vacation rental', exact: true}).waitFor();
-        assert.deepEqual(await about.locator('p').allTextContents(), ['A sunny coastal retreat.']);
+        assert.equal(await about.count(), 0);
         assert.equal(await highlights.locator('.aloha-rental-highlight').count(), 1);
         assert.ok(!(await highlights.locator('.aloha-rental-carousel-controls').isVisible()));
         await page.goto(fixtures.empty.url);

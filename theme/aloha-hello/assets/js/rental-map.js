@@ -107,7 +107,22 @@
                     button.hidden = false;
                     button.addEventListener('click', select);
                 });
-                if (points.length > 1) withLegend.fitBounds(bounds, 36);
+                if (config.home) {
+                    const position = {lat: config.home.lat, lng: config.home.lng};
+                    bounds.extend(position);
+                    const icon = document.createElement('span');
+                    icon.textContent = '⌂';
+                    icon.style.cssText = 'display:grid;place-items:center;background:#ff6400;color:white;border-radius:50%;width:36px;height:36px;font-size:28px;box-shadow:0 2px 6px #0004';
+                    const marker = new AdvancedMarkerElement({map: withLegend, position, title: config.home.name, gmpClickable: true});
+                    marker.append(icon);
+                    marker.addEventListener('gmp-click', () => {
+                        const title = document.createElement('strong');
+                        title.textContent = config.home.name;
+                        info.setContent(title);
+                        info.open({map: withLegend, anchor: marker, shouldFocus: false});
+                    });
+                }
+                if (points.length + Number(Boolean(config.home)) > 1) withLegend.fitBounds(bounds, 36);
             } catch {
                 showError();
             }
