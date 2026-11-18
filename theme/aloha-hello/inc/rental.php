@@ -1,6 +1,7 @@
 <?php
 /** Rental detail presentation. All provider data comes from the local Bridge projection. */
 defined( 'ABSPATH' ) || exit;
+require_once __DIR__ . '/rental-content.php';
 
 add_action( 'wp_enqueue_scripts', function () {
 	if ( ! is_singular( 'rental' ) ) { return; }
@@ -11,6 +12,10 @@ add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_script( 'aloha-media-dialog' );
 	$js = 'assets/js/rental-gallery.js';
 	wp_enqueue_script( 'aloha-rental-gallery', get_theme_file_uri( $js ), array( 'aloha-media-dialog' ), (string) filemtime( get_theme_file_path( $js ) ), true );
+	$content = 'assets/js/rental-content.js';
+	wp_enqueue_script( 'aloha-rental-content', get_theme_file_uri( $content ), array( 'aloha-embla' ), (string) filemtime( get_theme_file_path( $content ) ), true );
+	$map = 'assets/js/rental-map.js';
+	wp_register_script( 'aloha-rental-map', get_theme_file_uri( $map ), array(), (string) filemtime( get_theme_file_path( $map ) ), true );
 } );
 
 add_action( 'init', function () {
@@ -28,7 +33,7 @@ function aloha_rental_fact( array $rental, string $key ): ?string {
 	$field = $rental['facts'][ $key ] ?? null;
 	if ( ! is_array( $field ) || ! in_array( $field['status'] ?? '', array( 'available', 'stale' ), true ) ) { return null; }
 	$value = $field['value'] ?? null;
-	if ( ! is_numeric( $value ) || (float) $value <= 0 ) { return null; }
+	if ( ! is_numeric( $value ) || (float) $value < 0 ) { return null; }
 	return number_format_i18n( (float) $value, is_float( $value ) && floor( $value ) !== $value ? 1 : 0 );
 }
 
@@ -167,11 +172,21 @@ function aloha_rental_related( array $rental ): string {
 
 /** Decorative bed symbols reflect Guesty bed type; labels remain available as text. */
 function aloha_rental_bed_icon( string $type ): string {
+	// Basic plan-view bed geometry from the supplied Unit Design export.
+	$width = array( 'KING_BED' => 40, 'QUEEN_BED' => 34, 'SINGLE_BED' => 22 )[ $type ] ?? 0;
+	if ( $width ) {
+		$pillow = $width === 40 ? 15 : ( $width === 34 ? 12 : 14 );
+		$paths = '<rect x="0" y="0" width="' . $width . '" height="34" rx="3"/><rect x="4" y="4" width="' . $pillow . '" height="6" rx="2"/>';
+		if ( $width > 22 ) {
+			$paths .= '<rect x="' . ( $width - $pillow - 4 ) . '" y="4" width="' . $pillow . '" height="6" rx="2"/>';
+		}
+		return '<svg viewBox="-1 -1 ' . ( $width + 2 ) . ' 36" width="' . ( $width + 2 ) . '" height="36" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">'
+			. $paths . '<path d="M0 16h' . $width . '" opacity=".45"/></svg>';
+	}
 	$paths = array(
 		'BUNK_BED' => '<rect x="5" y="6" width="22" height="5" rx="1"/><rect x="5" y="19" width="22" height="5" rx="1"/><path d="M5 5v23M27 5v23M9 12v7M9 16h5"/>',
 		'SOFA_BED' => '<path d="M6 16v-4a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v4M4 16h24v9H4zM7 25v3M25 25v3"/>',
 		'CRIB' => '<rect x="4" y="8" width="24" height="15" rx="2"/><path d="M9 9v13M14 9v13M19 9v13M24 9v13M7 23v4M25 23v4"/>',
-		'SINGLE_BED' => '<path d="M5 10h5v7H5zM10 11h17v6H10zM4 17h24v7H4zM6 24v4M26 24v4"/>',
 	);
 	$path = $paths[ $type ] ?? '<path d="M4 13h24v11H4zM4 12V8h8v5M12 10h16v3M6 24v4M26 24v4"/>';
 	return '<svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';
@@ -186,17 +201,7 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 		$rental = \AlohaWPBridge\RentalPublicData::preview( $id );
 	}
 	if ( null === $rental ) { return ''; }
-	$facts = array();
-	foreach ( array( 'guests' => __( 'guests', 'aloha-hello' ), 'bedrooms' => __( 'bedrooms', 'aloha-hello' ),
-		'bathrooms' => __( 'bathrooms', 'aloha-hello' ), 'beds' => __( 'beds', 'aloha-hello' ) ) as $key => $label ) {
-		$value = aloha_rental_fact( $rental, $key );
-		if ( null !== $value ) { $facts[] = $value . ' ' . $label; }
-	}
-	$size = aloha_rental_fact( $rental, 'areaSquareFeet' );
-	if ( $size ) { $facts[] = $size . ' ft²'; }
 	$gallery = aloha_rental_gallery_render( $rental );
-	$about = array_filter( $rental['about'], static fn( $value ) => is_string( $value ) && $value !== '' );
-	if ( ! $about && $rental['excerpt'] ) { $about['summary'] = $rental['excerpt']; }
 	ob_start();
 	?>
 	<div <?php echo get_block_wrapper_attributes( array( 'class' => 'aloha-rental-detail' ) ); ?>>
@@ -223,49 +228,37 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 					<span class="aloha-rental-action-status" role="status"></span>
 				</div>
 			</div>
-			<?php if ( $facts ) : ?><p class="aloha-rental-facts"><?php echo esc_html( implode( ' · ', $facts ) ); ?></p><?php endif; ?>
 		</div>
 		<div class="aloha-container"><?php echo $gallery; // Escaped inside renderer. ?></div>
 		<div class="aloha-container aloha-rental-body">
+			<?php aloha_rental_overview( $rental ); ?>
+			<aside class="aloha-rental-booking" aria-labelledby="aloha-rental-booking-title">
+				<div class="aloha-rental-booking-card">
+					<p class="aloha-eyebrow"><?php esc_html_e( 'Plan your stay', 'aloha-hello' ); ?></p>
+					<h2 id="aloha-rental-booking-title"><?php esc_html_e( 'Stay with Aloha', 'aloha-hello' ); ?></h2>
+					<p><?php esc_html_e( 'Availability and pricing will be available here once the booking integration is connected.', 'aloha-hello' ); ?></p>
+					<p class="aloha-rental-booking-note"><?php esc_html_e( 'Online reservations and payments are not enabled yet.', 'aloha-hello' ); ?></p>
+				</div>
+			</aside>
 			<div class="aloha-rental-content">
-				<?php if ( ! empty( $rental['highlights'] ) ) : ?>
-					<section class="aloha-rental-section" aria-labelledby="aloha-rental-highlights-title">
-						<h2 id="aloha-rental-highlights-title"><?php esc_html_e( 'What makes this home special', 'aloha-hello' ); ?></h2>
-						<div class="aloha-rental-highlights">
-							<?php foreach ( $rental['highlights'] as $highlight ) : ?>
-								<article class="aloha-rental-highlight">
-									<?php if ( is_array( $highlight['image'] ) ) : ?><img src="<?php echo esc_url( $highlight['image']['src'] ); ?>" alt="<?php echo esc_attr( $highlight['image']['alt'] ?: $highlight['headline'] ); ?>" loading="lazy" decoding="async"><?php endif; ?>
-									<div><h3><?php echo esc_html( $highlight['headline'] ); ?></h3><p><?php echo esc_html( $highlight['description'] ); ?></p></div>
-								</article>
-							<?php endforeach; ?>
-						</div>
-					</section>
-				<?php endif; ?>
-				<?php if ( $about ) : ?>
-					<section class="aloha-rental-section" aria-labelledby="aloha-rental-about-title">
-						<h2 id="aloha-rental-about-title"><?php esc_html_e( 'About this vacation rental', 'aloha-hello' ); ?></h2>
-						<?php foreach ( $about as $key => $paragraph ) : ?>
-							<?php if ( 'summary' !== $key ) : ?><h3><?php echo esc_html( array( 'space' => __( 'The space', 'aloha-hello' ), 'neighborhood' => __( 'The neighborhood', 'aloha-hello' ), 'transit' => __( 'Getting around', 'aloha-hello' ) )[ $key ] ?? ucfirst( $key ) ); ?></h3><?php endif; ?>
-							<p><?php echo nl2br( esc_html( $paragraph ) ); ?></p>
-						<?php endforeach; ?>
-					</section>
-				<?php endif; ?>
+				<?php aloha_rental_highlights( $rental['highlights'] ); ?>
+				<?php aloha_rental_about( $rental ); ?>
 				<?php if ( ! empty( $rental['sleeping'] ) ) : ?>
 					<section class="aloha-rental-section" aria-labelledby="aloha-rental-sleep-title">
-						<h2 id="aloha-rental-sleep-title"><?php esc_html_e( 'Where everyone sleeps', 'aloha-hello' ); ?></h2>
+						<h2 id="aloha-rental-sleep-title"><?php echo wp_kses( __( 'Where everyone <em>sleeps</em>', 'aloha-hello' ), array( 'em' => array() ) ); ?></h2>
 						<div class="aloha-rental-sleeping">
 							<?php foreach ( $rental['sleeping'] as $room ) : ?>
 								<article class="aloha-rental-sleep-card">
 									<div class="aloha-rental-bed-icons" aria-hidden="true">
 										<?php foreach ( $room['beds'] as $bed ) : ?>
-											<?php echo aloha_rental_bed_icon( $bed['type'] ); // SVG paths are hardcoded above. ?>
+											<?php echo aloha_rental_bed_icon( $bed['type'] ); // Static SVG geometry. ?>
 										<?php endforeach; ?>
 									</div>
 									<h3><?php echo esc_html( $room['name'] ); ?></h3>
 									<p><?php
 										$beds = array();
 										foreach ( $room['beds'] as $bed ) {
-											$beds[] = (int) $bed['quantity'] . ' ' . ucwords( strtolower( str_replace( '_', ' ', $bed['type'] ) ) );
+											$beds[] = (int) $bed['quantity'] . ' × ' . ucwords( strtolower( str_replace( '_', ' ', $bed['type'] ) ) );
 										}
 										echo esc_html( implode( ', ', $beds ) );
 									?></p>
@@ -274,27 +267,8 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 						</div>
 					</section>
 				<?php endif; ?>
-				<?php if ( ! empty( $rental['amenities']['groups'] ) || ! empty( $rental['amenities']['unmapped'] ) ) : ?>
-					<section class="aloha-rental-section" aria-labelledby="aloha-rental-amenities-title">
-						<h2 id="aloha-rental-amenities-title"><?php esc_html_e( "What's included", 'aloha-hello' ); ?></h2>
-						<div class="aloha-rental-amenities">
-							<?php foreach ( $rental['amenities']['groups'] as $group ) : ?>
-								<div><h3><?php echo esc_html( $group['name'] ); ?></h3><ul><?php foreach ( $group['items'] as $item ) : ?><li><?php echo esc_html( $item ); ?></li><?php endforeach; ?></ul></div>
-							<?php endforeach; ?>
-							<?php if ( $rental['amenities']['unmapped'] ) : ?>
-								<div><h3><?php esc_html_e( 'Other amenities', 'aloha-hello' ); ?></h3><ul><?php foreach ( $rental['amenities']['unmapped'] as $item ) : ?><li><?php echo esc_html( $item ); ?></li><?php endforeach; ?></ul></div>
-							<?php endif; ?>
-						</div>
-					</section>
-				<?php endif; ?>
-				<?php if ( ! empty( $rental['nearby'] ) ) : ?>
-					<section class="aloha-rental-section" aria-labelledby="aloha-rental-nearby-title">
-						<h2 id="aloha-rental-nearby-title"><?php esc_html_e( 'Close by', 'aloha-hello' ); ?></h2>
-						<ul class="aloha-rental-nearby"><?php foreach ( $rental['nearby'] as $place ) : ?>
-							<li><span><?php echo esc_html( $place['name'] ); ?></span><strong><?php echo esc_html( (string) $place['minutes'] . ' ' . $place['mode'] ); ?></strong></li>
-						<?php endforeach; ?></ul>
-					</section>
-				<?php endif; ?>
+				<?php aloha_rental_amenities( $rental['amenities'] ); ?>
+				<?php aloha_rental_nearby( $rental['nearby'] ); ?>
 				<?php if ( ! empty( $rental['reviews'] ) ) : ?>
 					<section class="aloha-rental-section" aria-labelledby="aloha-rental-reviews-title">
 						<h2 id="aloha-rental-reviews-title"><?php esc_html_e( 'Guests said', 'aloha-hello' ); ?></h2>
@@ -351,14 +325,6 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 					</section>
 				<?php endif; ?>
 			</div>
-			<aside class="aloha-rental-booking" aria-labelledby="aloha-rental-booking-title">
-				<div class="aloha-rental-booking-card">
-					<p class="aloha-eyebrow"><?php esc_html_e( 'Plan your stay', 'aloha-hello' ); ?></p>
-					<h2 id="aloha-rental-booking-title"><?php esc_html_e( 'Stay with Aloha', 'aloha-hello' ); ?></h2>
-					<p><?php esc_html_e( 'Availability and pricing will be available here once the booking integration is connected.', 'aloha-hello' ); ?></p>
-					<p class="aloha-rental-booking-note"><?php esc_html_e( 'Online reservations and payments are not enabled yet.', 'aloha-hello' ); ?></p>
-				</div>
-			</aside>
 		</div>
 		<?php echo aloha_rental_related( $rental ); // Generated and escaped by renderer. ?>
 	</div>

@@ -9,7 +9,7 @@ if (!defined('WP_CLI') || !WP_CLI || wp_get_environment_type() !== 'local' || ho
     exit(1);
 }
 [$operation, $key] = $args + ['', ''];
-if (!in_array($operation, ['create', 'remove'], true) || !preg_match('/\Am24-fixture-[a-f0-9]{16}\z/', $key)) {
+if (!in_array($operation, ['create', 'remove', 'map-html', 'description'], true) || !preg_match('/\Am24-fixture-[a-f0-9]{16}\z/', $key)) {
     exit(1);
 }
 global $wpdb;
@@ -21,13 +21,38 @@ $assert = static function (bool $ok, string $failure): void {
     }
 };
 
+if (in_array($operation, ['map-html', 'description'], true)) {
+    $fixture = get_posts(['post_type' => 'rental', 'post_status' => 'publish', 'name' => $key . '-public', 'numberposts' => 1])[0] ?? null;
+    $assert($fixture && !in_array($fixture->ID, [186, 365], true), 'Synthetic Rental not found.');
+    if ($operation === 'map-html') {
+        add_filter('aloha_rental_maps_config', static fn () => ['key' => 'fixture-browser-key', 'mapId' => 'fixture-map-id']);
+        aloha_rental_nearby(RentalPublicData::get($fixture->ID)['nearby']);
+        return;
+    }
+    $mode = $args[2] ?? '';
+    $assert(in_array($mode, ['custom', 'guesty', 'excerpt'], true), 'Invalid description mode.');
+    update_post_meta($fixture->ID, '_awb_description_source', $mode === 'excerpt' ? 'custom' : $mode);
+    if ($mode === 'excerpt') {
+        delete_post_meta($fixture->ID, '_awb_about_summary');
+        delete_post_meta($fixture->ID, '_awb_about_space');
+        delete_post_meta($fixture->ID, '_awb_community_id');
+        delete_post_meta($fixture->ID, '_awb_area_id');
+        $highlights = get_post_meta($fixture->ID, '_awb_highlights', true);
+        update_post_meta($fixture->ID, '_awb_highlights', array_slice($highlights, 0, 1));
+    } elseif ($mode === 'guesty') {
+        delete_post_meta($fixture->ID, '_awb_community_id');
+    }
+    return;
+}
+
 if ($operation === 'remove') {
     $rentalSlugs = array_map(static fn ($mode) => $key . '-' . $mode, ['public', 'draft', 'empty']);
     $rentals = get_posts(['post_type' => 'rental', 'post_status' => 'any', 'post_name__in' => $rentalSlugs, 'posts_per_page' => -1]);
     $areas = get_posts(['post_type' => 'area', 'post_status' => 'publish', 'post_name__in' => [$key . '-area'], 'posts_per_page' => -1]);
+    $communities = get_posts(['post_type' => 'community', 'post_status' => 'publish', 'name' => $key . '-community', 'numberposts' => 1]);
     $places = get_posts(['post_type' => 'nearby_place', 'post_status' => 'any',
         's' => $key, 'search_columns' => ['post_title'], 'posts_per_page' => -1]);
-    foreach ([...$rentals, ...$places, ...$areas] as $post) {
+    foreach ([...$rentals, ...$places, ...$communities, ...$areas] as $post) {
         if (in_array($post->ID, [186, 365], true)) {
             continue;
         }
@@ -62,13 +87,29 @@ wp_set_current_user($admin->ID);
 
 $area = wp_insert_post(['post_type' => 'area', 'post_title' => 'Keauhou', 'post_name' => $key . '-area', 'post_status' => 'publish'], true);
 $assert(is_int($area) && $area > 0, 'Could not create synthetic Area.');
-$nearby = new WP_REST_Request('POST', '/aloha-content/v1/nearby-places');
-$nearby->set_header('X-WP-Nonce', wp_create_nonce('wp_rest'));
-$nearby->set_header('Content-Type', 'application/json');
-$nearby->set_body(wp_json_encode(['name' => $key . ' Park', 'latitude' => 19.123456, 'longitude' => -155.543217, 'areaId' => $area]));
-$place = rest_do_request($nearby);
-$assert($place->get_status() === 201, 'Could not create synthetic Nearby Place.');
-$placeId = $place->get_data()['id'];
+$community = wp_insert_post(['post_type' => 'community', 'post_title' => 'Coastal Villas', 'post_name' => $key . '-community',
+    'post_status' => 'publish', 'meta_input' => ['aloha_area_id' => $area]], true);
+$assert(is_int($community) && $community > 0, 'Could not create synthetic Community.');
+$makePlace = static function (string $name, float $latitude, float $longitude) use ($key, $area, $assert): int {
+    $nearby = new WP_REST_Request('POST', '/aloha-content/v1/nearby-places');
+    $nearby->set_header('X-WP-Nonce', wp_create_nonce('wp_rest'));
+    $nearby->set_header('Content-Type', 'application/json');
+    $nearby->set_body(wp_json_encode(['name' => $key . ' ' . $name, 'latitude' => $latitude, 'longitude' => $longitude,
+        'category' => 'Outdoors', 'areaId' => $area]));
+    $place = rest_do_request($nearby);
+    $assert($place->get_status() === 201, 'Could not create synthetic Nearby Place.');
+    return $place->get_data()['id'];
+};
+$placeId = $makePlace('Park', 19.123456, -155.543217);
+$beachId = $makePlace('Beach', 19.222222, -155.444444);
+$invalidId = $makePlace('Legacy Trail', 19.345678, -155.345678);
+$draftId = $makePlace('Private Draft', 19.456789, -155.456789);
+$assert(wp_update_post(['ID' => $draftId, 'post_status' => 'draft']) === $draftId, 'Could not draft fixture place.');
+$makePlace('Unselected Lookout', 19.555555, -155.666666);
+// Simulate a malformed legacy record after the normal write path validated the original pair.
+$assert($wpdb->update($wpdb->postmeta, ['meta_value' => maybe_serialize(['latitude' => 123, 'longitude' => -155.345678,
+    'category' => 'Outdoors'])], ['post_id' => $invalidId, 'meta_key' => '_aloha_nearby_details']) === 1, 'Legacy fixture failed.');
+wp_cache_delete($invalidId, 'post_meta');
 
 $rentals = [];
 foreach (['public', 'draft', 'empty'] as $mode) {
@@ -77,7 +118,8 @@ foreach (['public', 'draft', 'empty'] as $mode) {
     $title = $mode === 'public' ? 'Lanai at Sunset' : $key . ' ' . ucfirst($mode);
     try {
         $id = wp_insert_post(['post_type' => 'rental', 'post_author' => $admin->ID, 'post_name' => $key . '-' . $mode,
-            'post_title' => $title, 'post_status' => 'draft'], true);
+            'post_title' => $title, 'post_status' => 'draft',
+            'post_excerpt' => $mode === 'public' ? 'A sunny coastal retreat.' : ''], true);
     } finally {
         add_filter('wp_insert_post_empty_content', $guard, 10, 2);
     }
@@ -95,7 +137,8 @@ foreach (['public', 'draft', 'empty'] as $mode) {
         'guesty_listing_id' => $guestyId, 'post_id' => $id, 'created_at_utc' => $now, 'updated_at_utc' => $now]) === 1, 'Map insert failed.');
     $map = $wpdb->insert_id;
     $snapshot = ['version' => 1, 'id' => $guestyId, 'title' => 'Private source title', 'beVisible' => true,
-        'pictures' => [], 'cover' => ['pictureId' => null, 'fallbackKey' => null, 'url' => null], 'address' => 'PRIVATE_FIXTURE_ADDRESS'];
+        'pictures' => [], 'cover' => ['pictureId' => null, 'fallbackKey' => null, 'url' => null], 'address' => 'PRIVATE_FIXTURE_ADDRESS',
+        'publicDescription' => $mode === 'public' ? ['summary' => 'Synthetic Guesty description.'] : []];
 
     if ($mode === 'public') {
         $pictures = [];
@@ -145,12 +188,19 @@ foreach (['public', 'draft', 'empty'] as $mode) {
         $snapshot['pictures'] = $pictures;
         $available = static fn ($value): array => ['status' => 'available', 'value' => $value];
         $source = ['version' => 1, 'source' => [
-            'listing' => ['accommodates' => $available(8), 'areaSquareFeet' => $available(2000)],
+            'listing' => ['accommodates' => $available(8), 'areaSquareFeet' => $available(2000), 'bedrooms' => $available(3),
+                'bathrooms' => $available(2.5), 'beds' => $available(4)],
             'photoLabelSuggestions' => $suggestions,
-            'privateLocation' => ['address' => 'PRIVATE_FIXTURE_ADDRESS'],
+            'privateLocation' => ['address' => 'PRIVATE_FIXTURE_ADDRESS', 'latitude' => 19.765432, 'longitude' => -155.234567],
             'sleepingSpaces' => [['id' => 'private-space-test', 'name' => 'Suite', 'type' => 'BEDROOM',
-                'beds' => [['type' => 'KING_BED', 'quantity' => 1]]]],
-            'amenities' => ['status' => 'available', 'groups' => [['name' => 'Outdoor', 'amenities' => ['Pool']]], 'unmapped' => []],
+                'beds' => [['type' => 'KING_BED', 'quantity' => 1]]],
+                ['name' => 'Garden Room', 'type' => 'BEDROOM', 'beds' => [['type' => 'QUEEN_BED', 'quantity' => 1]]],
+                ['name' => 'Twin Room', 'type' => 'BEDROOM', 'beds' => [['type' => 'SINGLE_BED', 'quantity' => 2]]]],
+            'amenities' => ['status' => 'available', 'groups' => [
+                ['name' => 'Outdoor', 'amenities' => ['Pool', 'Lanai', 'Garden', 'Grill', 'Hammock']],
+                ...array_map(static fn ($name) => ['name' => $name, 'amenities' => ['Fixture ' . $name]],
+                    ['Kitchen', 'Comfort', 'Entertainment', 'Family', 'Safety', 'Workspace']),
+            ], 'unmapped' => []],
             'houseRules' => ['petsAllowed' => $available(false), 'minimumAge' => $available(25),
                 'additionalRules' => $available('PRIVATE_FIXTURE_RULES')],
         ]];
@@ -161,10 +211,23 @@ foreach (['public', 'draft', 'empty'] as $mode) {
                 ['photoId' => 'private-photo-3', 'labelId' => null], ['photoId' => 'private-photo-6', 'visible' => false]],
             'order' => ['private-photo-2', 'private-photo-1', 'private-photo-3']]);
         update_post_meta($id, '_awb_area_id', $area);
+        update_post_meta($id, '_awb_community_id', $community);
         update_post_meta($id, '_awb_usp', 'A quiet place to start and end the day.');
+        update_post_meta($id, '_awb_description_source', 'custom');
         update_post_meta($id, '_awb_about_summary', 'Synthetic public description.');
-        update_post_meta($id, '_awb_highlights', [['attachmentId' => $images[1], 'headline' => 'Ocean air', 'description' => 'Synthetic highlight.', 'order' => 0]]);
-        update_post_meta($id, '_awb_nearby_places', [['placeId' => $placeId, 'minutes' => 7, 'mode' => 'min drive', 'order' => 0]]);
+        update_post_meta($id, '_awb_about_space', str_repeat('Relax outside and watch the light move across the water. ', 22) . 'Final description detail.');
+        $highlights = [];
+        foreach (['Ocean air', 'Sunset patio', 'Morning light', 'Open kitchen', 'Quiet nights'] as $index => $headline) {
+            $highlights[] = ['attachmentId' => $images[$index + 1], 'headline' => $headline,
+                'description' => 'Synthetic highlight.', 'order' => $index];
+        }
+        update_post_meta($id, '_awb_highlights', $highlights);
+        update_post_meta($id, '_awb_nearby_places', [
+            ['placeId' => $beachId, 'minutes' => null, 'mode' => 'min', 'order' => 1],
+            ['placeId' => $placeId, 'minutes' => 7, 'mode' => 'min drive', 'order' => 0],
+            ['placeId' => $invalidId, 'minutes' => null, 'mode' => 'min', 'order' => 2],
+            ['placeId' => $draftId, 'minutes' => null, 'mode' => 'min', 'order' => 3],
+        ]);
         update_post_meta($id, '_awb_featured_reviews', [
             ['sourceId' => str_repeat('a', 64), 'channel' => 'airbnb2', 'value' => 4.5, 'max' => 5,
                 'text' => ['body' => 'A fixture Airbnb review.'], 'date' => '2026-10-02', 'order' => 0],
@@ -189,5 +252,10 @@ $assert(array_column($dto['gallery']['photos'] ?? [], 'attachmentId') === [
 $assert(array_column($dto['gallery']['photos'], 'label') === ['Ocean view', 'Living room', null, 'Living room', 'Patio',
     'Dining area', 'Dining area', 'Dining area', 'Pool', 'Pool', 'Pool', 'Pool'],
     'Public DTO lost explicit/default label precedence.');
+$assert(array_column($dto['nearby'], 'name') === [$key . ' Park', $key . ' Beach', $key . ' Legacy Trail']
+    && array_column($dto['nearby'], 'minutes') === [7, null, null]
+    && array_column($dto['nearby'], 'latitude') === [19.123456, 19.222222, null]
+    && array_column($dto['nearby'], 'longitude') === [-155.543217, -155.444444, null]
+    && array_column($dto['nearby'], 'category') === ['Outdoors', 'Outdoors', 'Outdoors'], 'Nearby public projection mismatch.');
 $assert(RentalPublicData::get($rentals['draft']['id']) === null, 'Draft was eligible for the public DTO.');
 WP_CLI::line(wp_json_encode($rentals));
