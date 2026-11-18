@@ -60,10 +60,10 @@ function wp(file, ...args) {
             assert.ok(!html.includes(privateValue), 'Private field reached public HTML: ' + privateValue);
         }
 
-        const tiles = page.locator('.aloha-gallery-tile');
+        const tiles = page.locator('.aloha-gallery-tile:not([hidden])');
         assert.equal(await tiles.count(), 5);
         const galleryData = JSON.parse(await page.locator('.aloha-gallery-data').textContent());
-        assert.deepEqual(galleryData.map(image => image.id), [2, 1, 3, 4, 5].map(n => fixtures.images[n]));
+        assert.deepEqual(galleryData.map(image => image.id), [2, 1, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13].map(n => fixtures.images[n]));
         assert.ok(galleryData.every(image => new URL(image.url).origin === base));
         const screenshots = process.env.RENTAL_TEMPLATE_SCREENSHOTS;
         if (screenshots) mkdirSync(screenshots, {recursive: true});
@@ -73,7 +73,7 @@ function wp(file, ...args) {
             assert.ok(await main.evaluate(el => el.scrollWidth <= el.clientWidth + 2), 'Rental overflow at ' + width);
             if (screenshots) await main.screenshot({path: join(screenshots, 'public-' + width + '.png')});
         }
-        await page.getByRole('button', {name: 'Living room 2', exact: true}).click();
+        await page.getByRole('button', {name: 'Living room', exact: true}).click();
         assert.equal(await tiles.count(), 2);
         await tiles.first().locator('.aloha-gallery-photo').click();
         const modal = page.locator('dialog.aloha-media-dialog');
@@ -83,9 +83,9 @@ function wp(file, ...args) {
         await modal.getByText('2 / 2', {exact: true}).waitFor();
         await page.keyboard.press('Escape');
         await modal.waitFor({state: 'hidden'});
-        await page.getByRole('button', {name: 'Ocean view 1', exact: true}).click();
+        await page.getByRole('button', {name: 'Ocean view', exact: true}).click();
         assert.equal(await tiles.count(), 1);
-        await page.getByRole('button', {name: 'All photos 5', exact: true}).click();
+        await page.getByRole('button', {name: 'All photos', exact: true}).click();
         assert.equal(await tiles.count(), 5);
 
         await page.goto(fixtures.empty.url);

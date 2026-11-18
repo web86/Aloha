@@ -5,14 +5,30 @@
 .aloha-rental-crumbs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--wp--custom--color--muted); font-size: .875rem; }
 .aloha-rental-crumbs a { color: inherit; }
 .aloha-rental-intro h1 { max-width: 1000px; margin: 18px 0 14px; font-family: var(--wp--preset--font-family--instrument-serif); font-size: clamp(2.8rem,5.9vw,5.6rem); line-height: 1.03; font-weight: 400; }
-.aloha-rental-usp { max-width: 880px; font-size: clamp(1.125rem,2vw,1.375rem); color: var(--aloha-color-brand); margin: 0 0 14px; }
+.aloha-rental-heading { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: start; gap: 12px 28px; }
+.aloha-rental-usp { max-width: 880px; margin: 0 0 12px; color: var(--aloha-color-text); font-size: clamp(1.05rem,1.5vw,1.3rem); font-weight: 500; line-height: 1.4; }
+.aloha-rental-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 18px 10px; }
+.aloha-rental-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 6px 12px; border: 1px solid var(--aloha-color-border); border-radius: 999px; background: var(--aloha-color-surface); color: var(--aloha-color-text); font-size: .875rem; cursor: pointer; }
+.aloha-rental-actions button:hover { background: var(--aloha-color-surface-soft); }
+.aloha-rental-actions button:focus-visible { outline: 2px solid var(--aloha-color-accent); outline-offset: 2px; }
+.aloha-rental-actions svg { flex: 0 0 16px; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+.aloha-rental-action-status { flex: 0 0 100%; min-height: 0; margin: 0; font-size: .8125rem; color: var(--wp--custom--color--muted); }
+.aloha-rental-action-status:empty { flex-basis: 0; position: absolute; }
 .aloha-rental-facts { margin: 0; color: var(--wp--custom--color--muted); font-weight: 500; font-size: .95rem; line-height: 1.7; }
 .aloha-rental-gallery { margin: 0; }
-.aloha-rental-gallery .aloha-gallery-mosaic { grid-template-rows: repeat(2, minmax(0, 215px)); }
-.aloha-rental-gallery-filters { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; padding: 17px 2px 8px; scrollbar-width: thin; }
+.aloha-rental-gallery .aloha-gallery-mosaic { height: clamp(360px, 35vw, 470px); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+.aloha-rental-gallery .aloha-gallery-mosaic[data-count] > .aloha-gallery-tile { grid-area: auto; }
+.aloha-rental-gallery .aloha-gallery-tile[hidden] { display: none; }
+.aloha-rental-gallery .aloha-gallery-mosaic:not([data-count="1"]) > :nth-child(1 of .aloha-gallery-tile:not([hidden])),
+.aloha-rental-gallery .aloha-gallery-mosaic[data-count="2"] > :nth-child(2 of .aloha-gallery-tile:not([hidden])) { grid-row: span 2; }
+.aloha-rental-gallery .aloha-gallery-mosaic[data-count="4"] > :nth-child(4 of .aloha-gallery-tile:not([hidden])) { grid-column: span 2; }
+.aloha-rental-gallery .aloha-gallery-mosaic[data-count="1"] { grid-template-rows: minmax(0, 1fr); }
+.aloha-rental-gallery .aloha-gallery-mosaic[data-count="1"] .aloha-gallery-photo img { object-fit: contain; transform: none; }
+.aloha-rental-gallery .aloha-gallery-tile { background: var(--aloha-color-surface-soft); }
+.aloha-rental-gallery .aloha-gallery-photo.is-loading img { opacity: 0; }
+.aloha-rental-gallery-filters { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; max-width: 100%; margin-block-end: 12px; padding: 4px; scrollbar-width: thin; }
 .aloha-rental-gallery-filters button { flex: 0 0 auto; min-height: 40px; padding: 8px 15px; font-size: .875rem; border: 1px solid #b6c4c6; border-radius: 999px; background: transparent; color: var(--aloha-color-text); }
 .aloha-rental-gallery-filters button[aria-pressed="true"] { color: #fff; border-color: var(--aloha-color-brand); background: var(--aloha-color-brand); }
-.aloha-rental-gallery-filters button span { margin-inline-start: 5px; font-size: .75rem; opacity: .78; }
 .aloha-rental-gallery-filters button:hover:not([aria-pressed="true"]) { background: var(--aloha-color-surface-soft); }
 .aloha-rental-body { display: grid; grid-template-columns: minmax(0,1fr) minmax(300px,350px); gap: clamp(28px,5.3vw,84px); align-items: start; padding-block: clamp(30px,5vw,70px); }
 .aloha-rental-content { min-width: 0; }
@@ -69,7 +85,6 @@
 @media(max-width:1023px) {
  .aloha-rental-body { grid-template-columns: minmax(0,1fr) 290px; gap: 24px; }
  .aloha-rental-sleeping { grid-template-columns: repeat(2,minmax(0,1fr)); }
- .aloha-rental-gallery .aloha-gallery-mosaic { grid-template-rows: repeat(2,190px); }
 }
 @media(max-width:767px) {
  .aloha-rental-intro { padding-block: 28px 20px; }
@@ -78,20 +93,24 @@
  .aloha-rental-booking { position: static; order: -1; }
  .aloha-rental-booking-card { padding: 20px; }
  .aloha-rental-sleeping { grid-template-columns: repeat(2,minmax(0,1fr)); }
- .aloha-rental-gallery .aloha-gallery-mosaic { grid-template-rows: 260px; grid-auto-rows: 150px; }
- .aloha-rental-gallery-filters { margin-inline: 0; }
+ .aloha-rental-heading { grid-template-columns: minmax(0,1fr); gap: 4px; }
+ .aloha-rental-actions { margin-block: 0 10px; }
+ .aloha-rental-gallery .aloha-gallery-mosaic { height: clamp(312px, 108vw, 450px); grid-template-rows: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); }
+ .aloha-rental-gallery .aloha-gallery-mosaic:is([data-count="2"],[data-count="3"]) { grid-template-rows: minmax(0, 3fr) minmax(0, 2fr); }
+ .aloha-rental-gallery .aloha-gallery-mosaic:not([data-count="1"]) > :nth-child(1 of .aloha-gallery-tile:not([hidden])),
+ .aloha-rental-gallery .aloha-gallery-mosaic[data-count="2"] > :nth-child(2 of .aloha-gallery-tile:not([hidden])) { grid-row: auto; grid-column: 1 / -1; }
+ .aloha-rental-gallery .aloha-gallery-mosaic[data-count="1"] { grid-template-columns: minmax(0, 1fr) !important; }
  .aloha-rental-reviews, .aloha-rental-rules, .aloha-rental-related-grid { grid-template-columns: 1fr; }
  .aloha-rental-highlight { grid-template-columns: 125px minmax(0,1fr); gap: 14px; }
  .aloha-rental-related-grid { gap: 18px; }
 }
 @media(max-width:479px) {
- .aloha-rental-gallery .aloha-gallery-mosaic { grid-template-rows: 230px; grid-auto-rows: 125px; }
  .aloha-rental-sleeping { grid-template-columns: 1fr 1fr; gap: 9px; }
  .aloha-rental-sleep-card { padding: 12px; }
  .aloha-rental-highlight { display: block; }
  .aloha-rental-highlight img { margin-bottom: 13px; aspect-ratio: 16/9; }
  .aloha-rental-section h2 { font-size: 2.15rem; }
 }
-@media(prefers-reduced-motion:reduce) {
- .aloha-rental-gallery-filters button { scroll-behavior: auto; }
+@media(prefers-reduced-motion:no-preference) {
+ .aloha-rental-gallery .aloha-gallery-photo img { transition: opacity 180ms ease, transform 420ms cubic-bezier(.2,.65,.3,1); }
 }

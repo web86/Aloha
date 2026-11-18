@@ -22,17 +22,24 @@ $assert = static function (bool $ok, string $failure): void {
 };
 
 if ($operation === 'remove') {
-    $ids = get_posts(['post_type' => ['rental', 'nearby_place', 'area'], 'post_status' => 'any',
+    $rentalSlugs = array_map(static fn ($mode) => $key . '-' . $mode, ['public', 'draft', 'empty']);
+    $rentals = get_posts(['post_type' => 'rental', 'post_status' => 'any', 'post_name__in' => $rentalSlugs, 'posts_per_page' => -1]);
+    $areas = get_posts(['post_type' => 'area', 'post_status' => 'publish', 'post_name__in' => [$key . '-area'], 'posts_per_page' => -1]);
+    $places = get_posts(['post_type' => 'nearby_place', 'post_status' => 'any',
         's' => $key, 'search_columns' => ['post_title'], 'posts_per_page' => -1]);
-    usort($ids, static fn (WP_Post $a, WP_Post $b): int =>
-        array_search($a->post_type, ['rental', 'nearby_place', 'area'], true) <=> array_search($b->post_type, ['rental', 'nearby_place', 'area'], true));
-    foreach ($ids as $post) {
-        if ($post->ID === 186 || !str_starts_with($post->post_title, $key . ' ')) {
+    foreach ([...$rentals, ...$places, ...$areas] as $post) {
+        if (in_array($post->ID, [186, 365], true)) {
+            continue;
+        }
+        if ($post->post_type === 'nearby_place' && !str_starts_with($post->post_title, $key . ' ')) {
             continue;
         }
         if ($post->post_type === 'rental') {
             $map = (int) $wpdb->get_var($wpdb->prepare('SELECT id FROM %i WHERE post_id = %d AND guesty_listing_id = %s',
                 $listingTable, $post->ID, 'private-source-' . $post->post_name));
+            if (!$map && !str_starts_with($post->post_name, $key . '-')) {
+                continue;
+            }
             if ($map) {
                 $wpdb->delete($mediaTable, ['listing_map_id' => $map]);
                 $wpdb->delete($listingTable, ['id' => $map, 'post_id' => $post->ID]);
@@ -53,7 +60,7 @@ $admin = get_user_by('login', getenv('WP_ADMIN_USER'));
 $assert($admin && user_can($admin, 'manage_options'), 'Local fixture administrator required.');
 wp_set_current_user($admin->ID);
 
-$area = wp_insert_post(['post_type' => 'area', 'post_title' => $key . ' Area', 'post_status' => 'publish'], true);
+$area = wp_insert_post(['post_type' => 'area', 'post_title' => 'Keauhou', 'post_name' => $key . '-area', 'post_status' => 'publish'], true);
 $assert(is_int($area) && $area > 0, 'Could not create synthetic Area.');
 $nearby = new WP_REST_Request('POST', '/aloha-content/v1/nearby-places');
 $nearby->set_header('X-WP-Nonce', wp_create_nonce('wp_rest'));
@@ -67,9 +74,10 @@ $rentals = [];
 foreach (['public', 'draft', 'empty'] as $mode) {
     $guard = [Rentals::class, 'blockNativeWrite'];
     remove_filter('wp_insert_post_empty_content', $guard);
+    $title = $mode === 'public' ? 'Lanai at Sunset' : $key . ' ' . ucfirst($mode);
     try {
         $id = wp_insert_post(['post_type' => 'rental', 'post_author' => $admin->ID, 'post_name' => $key . '-' . $mode,
-            'post_title' => $key . ' ' . ucfirst($mode), 'post_status' => 'draft'], true);
+            'post_title' => $title, 'post_status' => 'draft'], true);
     } finally {
         add_filter('wp_insert_post_empty_content', $guard, 10, 2);
     }
@@ -93,26 +101,36 @@ foreach (['public', 'draft', 'empty'] as $mode) {
         $pictures = [];
         $suggestions = [];
         $images = [];
-        for ($n = 1; $n <= 7; ++$n) {
+        for ($n = 1; $n <= 14; ++$n) {
             $photoId = 'private-photo-' . $n;
             $pictures[] = ['id' => $photoId, 'caption' => 'Private source caption', 'large' => null, 'regular' => null,
                 'original' => 'https://assets.guesty.com/' . $key . '/private-original-' . $n . '.png', 'thumbnail' => null];
-            $room = $n === 5 ? 'Patio' : 'Living room';
+            $room = match (true) {
+                $n === 5 => 'Patio',
+                $n >= 10 => 'Pool',
+                $n >= 7 => 'Dining area',
+                default => 'Living room',
+            };
             $suggestions[$photoId] = ['spaceIds' => ['private-space-' . sanitize_title($room)], 'reason' => 'verified_space', 'suggestedLabel' => $room];
-            if ($n === 7) {
+            if ($n === 14) {
                 continue;
             }
-            $image = imagecreatetruecolor(640, 440);
-            imagefilledrectangle($image, 0, 0, 639, 439, imagecolorallocate($image, 175 + $n * 8, 224 - $n * 7, 215 - $n * 9));
-            imagefilledellipse($image, 508, 103, 90, 90, imagecolorallocate($image, 248, 213, 145));
-            imagefilledpolygon($image, [0, 439, 160 + $n * 14, 166, 310, 378, 470, 215, 639, 439], imagecolorallocate($image, 80, 117, 113));
+            [$width, $height] = $n === 5 ? [1400, 2200] : [2200, 1466];
+            $image = imagecreatetruecolor($width, $height);
+            $sky = imagecolorallocate($image, 143 + $n * 6, 218 - $n * 4, 206 - $n * 5);
+            $sun = imagecolorallocate($image, 248, 213, 145);
+            $hill = imagecolorallocate($image, 66 + $n * 2, 112, 111);
+            imagefilledrectangle($image, 0, 0, $width - 1, $height - 1, $sky);
+            imagefilledellipse($image, (int) ($width * .78), (int) ($height * .24), 280, 280, $sun);
+            imagefilledpolygon($image, [0, $height, (int) ($width * .29), (int) ($height * .38),
+                (int) ($width * .52), (int) ($height * .82), (int) ($width * .75), (int) ($height * .53), $width, $height], $hill);
             ob_start();
-            imagepng($image);
+            imagejpeg($image, null, 88);
             $bytes = ob_get_clean();
             imagedestroy($image);
-            $file = wp_upload_bits($key . '-' . $n . '.png', null, $bytes);
+            $file = wp_upload_bits($key . '-' . $n . '.jpg', null, $bytes);
             $assert(empty($file['error']), 'Fixture media upload failed.');
-            $attach = wp_insert_attachment(['post_mime_type' => 'image/png', 'post_title' => $key . ' Image ' . $n,
+            $attach = wp_insert_attachment(['post_mime_type' => 'image/jpeg', 'post_title' => $key . ' Image ' . $n,
                 'post_excerpt' => 'Local caption ' . $n, 'post_status' => 'inherit', 'guid' => $file['url']], $file['file'], $id, true);
             if (is_wp_error($attach)) {
                 wp_delete_file($file['file']);
@@ -143,6 +161,7 @@ foreach (['public', 'draft', 'empty'] as $mode) {
                 ['photoId' => 'private-photo-3', 'labelId' => null], ['photoId' => 'private-photo-6', 'visible' => false]],
             'order' => ['private-photo-2', 'private-photo-1', 'private-photo-3']]);
         update_post_meta($id, '_awb_area_id', $area);
+        update_post_meta($id, '_awb_usp', 'A quiet place to start and end the day.');
         update_post_meta($id, '_awb_about_summary', 'Synthetic public description.');
         update_post_meta($id, '_awb_highlights', [['attachmentId' => $images[1], 'headline' => 'Ocean air', 'description' => 'Synthetic highlight.', 'order' => 0]]);
         update_post_meta($id, '_awb_nearby_places', [['placeId' => $placeId, 'minutes' => 7, 'mode' => 'min drive', 'order' => 0]]);
@@ -161,13 +180,14 @@ foreach (['public', 'draft', 'empty'] as $mode) {
     if ($mode !== 'draft') {
         $assert(wp_update_post(['ID' => $id, 'post_status' => 'publish'], true) === $id && get_post_status($id) === 'publish', 'Fixture publish failed.');
     }
-    $rentals[$mode] = ['id' => $id, 'url' => get_permalink($id), 'title' => $key . ' ' . ucfirst($mode)];
+    $rentals[$mode] = ['id' => $id, 'url' => get_permalink($id), 'title' => $title];
 }
 $dto = RentalPublicData::get($rentals['public']['id']);
 $assert(array_column($dto['gallery']['photos'] ?? [], 'attachmentId') === [
-    $rentals['images'][2], $rentals['images'][1], $rentals['images'][3], $rentals['images'][4], $rentals['images'][5],
+    ...array_map(static fn ($n) => $rentals['images'][$n], [2, 1, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13]),
 ], 'Published DTO lost mapping, visibility or order.');
-$assert(array_column($dto['gallery']['photos'], 'label') === ['Ocean view', 'Living room', null, 'Living room', 'Patio'],
+$assert(array_column($dto['gallery']['photos'], 'label') === ['Ocean view', 'Living room', null, 'Living room', 'Patio',
+    'Dining area', 'Dining area', 'Dining area', 'Pool', 'Pool', 'Pool', 'Pool'],
     'Public DTO lost explicit/default label precedence.');
 $assert(RentalPublicData::get($rentals['draft']['id']) === null, 'Draft was eligible for the public DTO.');
 WP_CLI::line(wp_json_encode($rentals));

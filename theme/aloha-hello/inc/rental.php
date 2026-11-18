@@ -38,10 +38,19 @@ function aloha_rental_photo_collection( array $rental ): array {
 		$img = $row['image'] ?? null;
 		if ( ! is_array( $img ) || ! is_string( $img['full'] ?? null ) || ! is_string( $img['src'] ?? null )
 			|| empty( $img['width'] ) || empty( $img['height'] ) ) { continue; }
+		$attachment = (int) ( $row['attachmentId'] ?? 0 );
+		$tile       = wp_get_attachment_image_src( $attachment, 'medium_large' );
+		$ratio      = round( $img['width'] / $img['height'], 5 );
+		$desktop = 'calc(clamp(360px, 35vw, 470px) * ' . $ratio . ')';
+		$mobile  = 'calc(clamp(312px, 108vw, 450px) * ' . $ratio . ')';
 		$photos[] = array(
-			'id' => (int) ( $row['attachmentId'] ?? 0 ), 'url' => $img['full'], 'src' => $img['src'],
+			'id' => $attachment, 'url' => $img['full'], 'src' => $img['src'],
 			'width' => (int) $img['width'], 'height' => (int) $img['height'],
 			'srcset' => (string) ( $img['srcset'] ?? '' ), 'alt' => (string) ( $img['alt'] ?? '' ),
+			'tileSrc' => $tile[0] ?? $img['src'],
+			'tileWidth' => $tile[1] ?? (int) $img['width'], 'tileHeight' => $tile[2] ?? (int) $img['height'],
+			'singleSizes' => '(min-width: 1280px) min(1200px, ' . $desktop . '), (min-width: 768px) min(calc(100vw - 80px), ' . $desktop . '), '
+				. '(min-width: 390px) min(89.5vw, ' . $mobile . '), min(calc(100vw - 40px), ' . $mobile . ')',
 			'caption' => (string) ( $img['caption'] ?? '' ), 'labelKey' => $row['labelKey'] ?? null,
 		);
 	}
@@ -51,25 +60,50 @@ function aloha_rental_photo_collection( array $rental ): array {
 function aloha_rental_gallery_render( array $rental ): string {
 	$photos = aloha_rental_photo_collection( $rental );
 	if ( ! $photos ) { return ''; }
-	$count = count( $photos );
-	$id = wp_unique_id( 'aloha-rental-gallery-' );
+	$count  = count( $photos );
+	$tiles  = min( 5, $count );
+	$id     = wp_unique_id( 'aloha-rental-gallery-' );
+	// These slots follow the grid tracks and the shared 1280px container and its gutters.
+	$mobile = '(min-width: 390px) 89.5vw, calc(100vw - 40px)';
+	$half   = '(min-width: 390px) calc(44.75vw - 5px), calc(50vw - 25px)';
+	$lead   = '(min-width: 1280px) 590px, (min-width: 768px) calc(50vw - 50px), ' . $mobile;
+	$side   = '(min-width: 1280px) 295px, (min-width: 768px) calc(25vw - 25px), ' . $half;
+	$split  = '(min-width: 1280px) 794px, (min-width: 768px) calc(66.67vw - 60px), ' . $mobile;
+	$third  = '(min-width: 1280px) 397px, (min-width: 768px) calc(33.34vw - 30px), ';
+	$slots  = array(
+		array( $photos[0]['singleSizes'] ),
+		array( $split, $third . $mobile ),
+		array( $split, $third . $half, $third . $half ),
+		array( $lead, $side, $side, '(min-width: 1280px) 600px, (min-width: 768px) calc(50vw - 40px), ' . $mobile ),
+		array( $lead, $side, $side, $side, $side ),
+	);
+	$photo_label = __( 'Open photo %1$d of %2$d', 'aloha-hello' );
+	$more_label  = __( 'Show all %d photos', 'aloha-hello' );
 	ob_start();
 	?>
 	<section class="aloha-rental-gallery" aria-label="<?php esc_attr_e( 'Rental photos', 'aloha-hello' ); ?>">
-		<div class="aloha-media-gallery" data-aloha-gallery="<?php echo esc_attr( $id ); ?>" data-aloha-media-title="<?php echo esc_attr( $rental['title'] . ' — photos' ); ?>" data-rental-gallery>
-			<div class="aloha-gallery-mosaic" data-count="<?php echo esc_attr( min( 5, $count ) ); ?>">
+		<div class="aloha-media-gallery" data-aloha-gallery="<?php echo esc_attr( $id ); ?>" data-aloha-media-title="<?php echo esc_attr( $rental['title'] . ' — photos' ); ?>" data-rental-gallery
+			data-rental-sizes="<?php echo esc_attr( wp_json_encode( $slots ) ); ?>" data-rental-photo-label="<?php echo esc_attr( $photo_label ); ?>" data-rental-more-label="<?php echo esc_attr( $more_label ); ?>">
+			<?php if ( ! empty( $rental['gallery']['labels'] ) ) : ?>
+				<div class="aloha-rental-gallery-filters" role="group" aria-label="<?php esc_attr_e( 'Filter photos', 'aloha-hello' ); ?>">
+					<button type="button" data-rental-filter="all" data-count="<?php echo esc_attr( $count ); ?>" aria-controls="<?php echo esc_attr( $id ); ?>" aria-pressed="true"><?php esc_html_e( 'All photos', 'aloha-hello' ); ?></button>
+					<?php foreach ( $rental['gallery']['labels'] as $label ) : ?>
+						<button type="button" data-rental-filter="<?php echo esc_attr( $label['id'] ); ?>" data-count="<?php echo esc_attr( $label['count'] ); ?>" aria-controls="<?php echo esc_attr( $id ); ?>" aria-pressed="false"><?php echo esc_html( $label['name'] ); ?></button>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+			<div class="aloha-gallery-mosaic" id="<?php echo esc_attr( $id ); ?>" data-count="<?php echo esc_attr( $tiles ); ?>">
 				<?php foreach ( array_slice( $photos, 0, 5 ) as $index => $photo ) : ?>
 					<figure class="aloha-gallery-tile">
-						<a class="aloha-gallery-photo" href="<?php echo esc_url( $photo['url'] ); ?>" data-aloha-photo="<?php echo esc_attr( $index ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( sprintf( __( 'Open photo %1$d of %2$d', 'aloha-hello' ), $index + 1, $count ) ); ?>">
-							<?php if ( $photo['id'] ) : ?>
-								<?php echo wp_get_attachment_image( $photo['id'], 'large', false, array( 'loading' => $index ? 'lazy' : 'eager', 'decoding' => 'async', 'fetchpriority' => $index ? 'auto' : 'high', 'sizes' => '(min-width:1280px) 600px, (min-width:768px) 50vw, 100vw' ) ); ?>
-							<?php else : ?>
-								<img src="<?php echo esc_url( $photo['src'] ); ?>" alt="<?php echo esc_attr( $photo['alt'] ); ?>" width="<?php echo esc_attr( $photo['width'] ); ?>" height="<?php echo esc_attr( $photo['height'] ); ?>">
-							<?php endif; ?>
+						<a class="aloha-gallery-photo" href="<?php echo esc_url( $photo['url'] ); ?>" data-aloha-photo="<?php echo esc_attr( $index ); ?>" aria-haspopup="dialog" aria-label="<?php echo esc_attr( sprintf( $photo_label, $index + 1, $count ) ); ?>">
+							<img src="<?php echo esc_url( $photo['tileSrc'] ); ?>" alt="<?php echo esc_attr( $photo['alt'] ); ?>"
+								width="<?php echo esc_attr( $photo['tileWidth'] ); ?>" height="<?php echo esc_attr( $photo['tileHeight'] ); ?>"
+								loading="<?php echo $index ? 'lazy' : 'eager'; ?>" decoding="async" fetchpriority="<?php echo $index ? 'auto' : 'high'; ?>"
+								<?php if ( $photo['srcset'] ) : ?>srcset="<?php echo esc_attr( $photo['srcset'] ); ?>" sizes="<?php echo esc_attr( $slots[ $tiles - 1 ][ $index ] ); ?>"<?php endif; ?>>
 						</a>
 						<?php if ( 4 === $index ) : ?>
 							<a class="aloha-gallery-more" href="#<?php echo esc_attr( $id . '-photos' ); ?>" data-aloha-photo="0" aria-haspopup="dialog">
-								<?php echo esc_html( sprintf( __( 'Show all %d photos', 'aloha-hello' ), $count ) ); ?>
+								<?php echo esc_html( sprintf( $more_label, $count ) ); ?>
 							</a>
 						<?php endif; ?>
 					</figure>
@@ -81,14 +115,6 @@ function aloha_rental_gallery_render( array $rental ): string {
 					<li><a href="<?php echo esc_url( $photo['url'] ); ?>"><?php echo esc_html( $photo['alt'] ?: __( 'Rental photo', 'aloha-hello' ) ); ?></a></li>
 				<?php endforeach; ?>
 			</ol></noscript>
-			<?php if ( ! empty( $rental['gallery']['labels'] ) ) : ?>
-				<div class="aloha-rental-gallery-filters" role="group" aria-label="<?php esc_attr_e( 'Filter photos', 'aloha-hello' ); ?>">
-					<button type="button" data-rental-filter="all" aria-pressed="true"><?php esc_html_e( 'All photos', 'aloha-hello' ); ?> <span><?php echo esc_html( $count ); ?></span></button>
-					<?php foreach ( $rental['gallery']['labels'] as $label ) : ?>
-						<button type="button" data-rental-filter="<?php echo esc_attr( $label['id'] ); ?>" aria-pressed="false"><?php echo esc_html( $label['name'] ); ?> <span><?php echo esc_html( $label['count'] ); ?></span></button>
-					<?php endforeach; ?>
-				</div>
-			<?php endif; ?>
 		</div>
 	</section>
 	<?php
@@ -180,8 +206,23 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 				<?php if ( $rental['area'] ) : ?><span aria-hidden="true">/</span><a href="<?php echo esc_url( $rental['area']['url'] ); ?>"><?php echo esc_html( $rental['area']['name'] ); ?></a><?php endif; ?>
 				<span aria-hidden="true">/</span><span aria-current="page"><?php echo esc_html( $rental['title'] ); ?></span>
 			</nav>
-			<h1><?php echo esc_html( $rental['title'] ); ?></h1>
-			<?php if ( $rental['usp'] ) : ?><p class="aloha-rental-usp"><?php echo esc_html( $rental['usp'] ); ?></p><?php endif; ?>
+			<div class="aloha-rental-heading">
+				<div>
+					<h1><?php echo esc_html( $rental['title'] ); ?></h1>
+					<?php if ( $rental['usp'] ) : ?><p class="aloha-rental-usp"><?php echo esc_html( $rental['usp'] ); ?></p><?php endif; ?>
+				</div>
+				<div class="aloha-rental-actions" data-rental-actions>
+					<button type="button" data-rental-message="<?php esc_attr_e( 'Save is coming soon.', 'aloha-hello' ); ?>">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.3 5.3 0 0 0-7.5 0L12 5.9l-1.3-1.3a5.3 5.3 0 0 0-7.5 7.5L12 21l8.8-8.9a5.3 5.3 0 0 0 0-7.5Z"/></svg>
+						<?php esc_html_e( 'Save', 'aloha-hello' ); ?>
+					</button>
+					<button type="button" data-rental-message="<?php esc_attr_e( 'Share is coming soon.', 'aloha-hello' ); ?>">
+						<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+						<?php esc_html_e( 'Share', 'aloha-hello' ); ?>
+					</button>
+					<span class="aloha-rental-action-status" role="status"></span>
+				</div>
+			</div>
 			<?php if ( $facts ) : ?><p class="aloha-rental-facts"><?php echo esc_html( implode( ' · ', $facts ) ); ?></p><?php endif; ?>
 		</div>
 		<div class="aloha-container"><?php echo $gallery; // Escaped inside renderer. ?></div>
