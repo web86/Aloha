@@ -173,3 +173,20 @@
 
 .aloha-rental-amenities-section .aloha-rental-more-button { margin-top: 32px; color: #16232a; min-height: 52px; padding: 0 28px; border-radius: 999px; font-weight: 600; font-size: 16px; border: 1.5px solid #16232a; }
 .aloha-rental-amenities-section .aloha-rental-more-button:hover { background: #e4eef0; }
+
+/* Text markers keep names visible; no InfoWindow or numbered pins. */
+.aloha-rental-map-marker { display: block; position: relative; width: 16px; height: 16px; }
+.aloha-rental-map-dot { display: grid; place-items: center; width: 16px; height: 16px; border: 2px solid #f3f6f6; border-radius: 50%; background: #075056; color: white; box-shadow: 0 2px 7px #16232a50; }
+.aloha-rental-map-label { position: absolute; inset: 50% auto auto 22px; transform: translateY(-50%); width: max-content; max-width: min(170px,42vw); padding: 6px 9px; border: 1px solid #dbe4e6; border-radius: 6px; background: #fff; color: #16232a; box-shadow: 0 2px 8px #16232a30; font: 500 13px/1.3 var(--wp--preset--font-family--outfit); display: block; overflow-wrap: anywhere; }
+.aloha-rental-map-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.aloha-rental-map-marker[data-label-slot="1"] .aloha-rental-map-label { inset: 50% 22px auto auto; }
+.aloha-rental-map-marker[data-label-slot="0"] .aloha-rental-map-label { inset: auto auto 22px 50%; transform: translateX(-50%); }
+.aloha-rental-map-marker[data-label-slot="3"] .aloha-rental-map-label { inset: 22px auto auto 50%; transform: translateX(-50%); }
+.aloha-rental-map-marker.is-home { width: 28px; height: 28px; }
+.aloha-rental-map-marker.is-home .aloha-rental-map-dot { width: 28px; height: 28px; background: #ff6400; }
+.aloha-rental-map-marker.is-home svg { width: 17px; height: 17px; }
+.aloha-rental-map-marker.is-home .aloha-rental-map-label { inset: 34px auto auto 50%; transform: translateX(-50%); background: #ff6400; border-color: #ff6400; color: white; }
+.is-selected > .aloha-rental-map-marker .aloha-rental-map-label { outline: 2px solid #ff6400; outline-offset: 2px; }
+.aloha-rental-nearby li.is-selected { background: #e4eef0; }
+
+@media(max-width:767px) { .aloha-rental-map-label { max-width: clamp(80px,calc(100vw - 240px),110px); } }
