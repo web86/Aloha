@@ -236,7 +236,7 @@ foreach (['public', 'draft', 'empty'] as $mode) {
         update_post_meta($id, AlohaWPBridge\RentalPresentation::CONTACT, $contact);
         update_post_meta($id, AlohaWPBridge\RentalPresentation::INTRO, '{First Name}, Head of Guest Experience, knows every room here. Beds, stairs, the beach club — ask anything.');
         update_post_meta($id, AlohaWPBridge\RentalPresentation::SLEEPING, [
-            AlohaWPBridge\RentalPresentation::sleepingKey('private-space-test') => ['level' => 'ground', 'steps' => 0],
+            AlohaWPBridge\RentalPresentation::sleepingKey('private-space-test') => ['level' => 'ground', 'steps' => 0, 'bathroomAccess' => ['en-suite', 'walk-in shower']],
             AlohaWPBridge\RentalPresentation::sleepingKey('fixture-twin-room') => ['level' => 'upstairs', 'steps' => 14],
         ]);
         update_post_meta($id, AlohaWPBridge\RentalPresentation::MAP, ['lat' => 19.111111, 'lng' => -155.222222]);

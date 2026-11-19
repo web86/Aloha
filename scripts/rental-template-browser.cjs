@@ -299,6 +299,7 @@ async function testMap(context, fixture, screenshots) {
         assert.ok(await about.locator('[data-description-content]').evaluate(el => el.classList.contains('is-collapsed')));
 
         assert.ok(await main.getByText('Ground floor · no steps').isVisible());
+        assert.match(await main.locator('.aloha-rental-sleep-card').first().innerText(), /King Bed · en-suite, walk-in shower/);
         assert.ok(await main.getByText('Upstairs · 14 steps').isVisible());
         const house = main.locator('section[aria-labelledby="aloha-rental-rules-title"]');
         assert.ok(await house.getByText('Confirmed fixture policy').first().isVisible());

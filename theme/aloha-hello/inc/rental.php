@@ -262,6 +262,8 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 											$beds[] = (int) $bed['quantity'] . ' × ' . ucwords( strtolower( str_replace( '_', ' ', $bed['type'] ) ) );
 										}
 										echo esc_html( implode( ', ', $beds ) );
+										$bathrooms = $room['access']['bathroomAccess'] ?? array();
+										if ( $bathrooms ) { echo ' · ' . esc_html( implode( ', ', $bathrooms ) ); }
 									?></p>
 									<?php
 									$access = $room['access'] ?? array( 'level' => '', 'steps' => null );
