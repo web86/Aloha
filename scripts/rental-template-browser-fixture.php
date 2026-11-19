@@ -218,6 +218,10 @@ foreach (['public', 'draft', 'empty'] as $mode) {
             'photos' => [['photoId' => 'private-photo-2', 'labelId' => $label],
                 ['photoId' => 'private-photo-3', 'labelId' => null], ['photoId' => 'private-photo-6', 'visible' => false]],
             'order' => ['private-photo-2', 'private-photo-1', 'private-photo-3']]);
+        update_post_meta($id, AlohaWPBridge\RentalFactsStrip::META, [
+            ['title' => 'Lanai', 'value' => 'Covered'], ['title' => 'View', 'value' => 'Ocean'],
+            ['title' => 'To the beach', 'value' => '5 min'], ['title' => 'Parking', 'value' => '2 cars'],
+        ]);
         update_post_meta($id, '_awb_area_id', $area);
         update_post_meta($id, '_awb_community_id', $community);
         update_post_meta($id, '_awb_usp', 'A quiet place to start and end the day.');

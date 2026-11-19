@@ -207,6 +207,7 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 	<div <?php echo get_block_wrapper_attributes( array( 'class' => 'aloha-rental-detail' ) ); ?>>
 		<div class="aloha-container aloha-rental-intro">
 			<nav class="aloha-rental-crumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'aloha-hello' ); ?>">
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'aloha-hello' ); ?></a><span aria-hidden="true">/</span>
 				<a href="<?php echo esc_url( home_url( '/vacation-rentals/' ) ); ?>"><?php esc_html_e( 'Vacation rentals', 'aloha-hello' ); ?></a>
 				<?php if ( $rental['area'] ) : ?><span aria-hidden="true">/</span><a href="<?php echo esc_url( $rental['area']['url'] ); ?>"><?php echo esc_html( $rental['area']['name'] ); ?></a><?php endif; ?>
 				<span aria-hidden="true">/</span><span aria-current="page"><?php echo esc_html( $rental['title'] ); ?></span>

@@ -163,7 +163,7 @@ async function testMap(context, fixture, screenshots) {
             assert.ok(await main.getByRole('heading', {name: heading, exact: true}).isVisible(), String(heading) + " / " + (await main.getByRole("heading", {level: 2}).allTextContents()).join(" | "));
         }
         assert.deepEqual(await main.locator('.aloha-rental-facts dd strong').allTextContents(),
-            ['8', '3', '2.5', '2,000', '—', '—', '—', '—']);
+            ['8', '3', '2.5', '2,000', 'Covered', 'Ocean', '5 min', '2 cars']);
         assert.equal(await main.locator('.aloha-rental-review-score').count(), 0);
         assert.deepEqual(await main.locator('.aloha-rental-review figcaption').allTextContents().then(rows => rows.map(row => row.replace(/\s+/g, ' ').trim())),
             ['Airbnb · October 2026', 'Booking.com · October 2026']);
@@ -198,7 +198,10 @@ async function testMap(context, fixture, screenshots) {
             key + ' Park', key + ' Beach', key + ' Legacy Trail',
         ]);
         assert.deepEqual(await nearby.locator('strong').allTextContents(), ['7 min drive']);
-        assert.equal(await nearby.getByText('Outdoors').count(), 3);
+        assert.equal(await nearby.getByText('Outdoors').count(), 0);
+        assert.equal(await nearby.locator('.aloha-rental-place-number').count(), 0);
+        assert.equal(await main.locator('.aloha-rental-crumbs a').first().innerText(), 'Home');
+        assert.equal(await main.locator('.aloha-rental-crumbs a').first().getAttribute('href'), base + '/');
         assert.ok(await main.getByText('The interactive map is unavailable.').isVisible());
         assert.equal(await main.locator('[data-map-config]').count(), 0);
         assert.ok([401, 403].includes((await publicContext.request.get(base + '/wp-json/aloha-content/v1/nearby-places')).status()));

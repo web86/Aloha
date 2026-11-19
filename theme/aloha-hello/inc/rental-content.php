@@ -11,11 +11,11 @@ function aloha_rental_overview( array $rental ): void {
 		array( __( 'Bedrooms', 'aloha-hello' ), $bedrooms, $beds ? sprintf( __( '%s beds', 'aloha-hello' ), $beds ) : '' ),
 		array( __( 'Bathrooms', 'aloha-hello' ), aloha_rental_fact( $rental, 'bathrooms' ), '' ),
 		array( __( 'Size', 'aloha-hello' ), $size, $size !== null ? 'ft²' : '' ),
-		array( __( 'Lanai', 'aloha-hello' ), null, '' ),
-		array( __( 'View', 'aloha-hello' ), null, '' ),
-		array( __( 'To the beach', 'aloha-hello' ), null, '' ),
-		array( __( 'Parking', 'aloha-hello' ), null, '' ),
+
 	);
+	foreach ( $rental['factsStripCustom'] ?? array_fill( 0, 4, array( 'title' => '', 'value' => '' ) ) as $row ) {
+		$facts[] = array( $row['title'] ?: ' ', $row['value'] !== '' ? $row['value'] : null, '' );
+	}
 	?>
 	<dl class="aloha-rental-facts" aria-label="<?php esc_attr_e( 'Property overview', 'aloha-hello' ); ?>">
 		<?php foreach ( $facts as [ $label, $value, $unit ] ) : ?>
@@ -141,13 +141,11 @@ function aloha_rental_nearby( array $places, ?array $home = null, string $title 
 			<ol class="aloha-rental-nearby">
 				<?php foreach ( $places as $index => $place ) : ?>
 					<li>
-						<span class="aloha-rental-place-number" aria-hidden="true"><?php echo esc_html( $index + 1 ); ?></span>
 						<div>
 							<span data-map-place-name><?php echo esc_html( $place['name'] ); ?></span>
 							<?php if ( $can_map && isset( $points[ $index ] ) ) : ?>
 								<button class="aloha-rental-place-button" type="button" hidden data-map-point="<?php echo esc_attr( $index ); ?>" aria-pressed="false" aria-controls="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $place['name'] ); ?></button>
 							<?php endif; ?>
-							<?php if ( ! empty( $place['category'] ) ) : ?><small><?php echo esc_html( $place['category'] ); ?></small><?php endif; ?>
 						</div>
 						<?php if ( $place['minutes'] !== null ) : ?><strong><?php echo esc_html( $place['minutes'] . ' ' . $place['mode'] ); ?></strong><?php endif; ?>
 					</li>

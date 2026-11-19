@@ -76,11 +76,9 @@
 .aloha-rental-amenities li { padding: 2px 0; font-size: .9rem; color: var(--wp--custom--color--muted); }
 .aloha-rental-nearby-layout { display: grid; gap: 24px; }
 .aloha-rental-nearby { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 28px; padding: 0; margin: 0; list-style: none; }
-.aloha-rental-nearby li { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: baseline; gap: 7px; padding: 10px 0; border-bottom: 1px solid #d6e0e1; font-size: .88rem; }
+.aloha-rental-nearby li { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: baseline; gap: 7px; padding: 10px 0; border-bottom: 1px solid #d6e0e1; font-size: 1rem; }
 .aloha-rental-nearby li:last-child { border-bottom: none; }
 .aloha-rental-nearby strong { font-weight: 600; color: var(--aloha-color-brand); white-space: nowrap; }
-.aloha-rental-nearby small { display: block; color: var(--wp--custom--color--muted); }
-.aloha-rental-place-number { display: inline-grid; place-items: center; min-width: 1.375rem; min-height: 1.375rem; border-radius: 99px; background: #e2ebeb; font-weight: 600; }
 .aloha-rental-place-button { padding: 0; border: 0; background: transparent; color: var(--aloha-color-text); text-align: start; text-decoration: underline; cursor: pointer; }
 .aloha-rental-place-button[aria-pressed="true"] { color: var(--aloha-color-brand); font-weight: 700; }
 .aloha-rental-map { display: grid; min-width: 0; min-height: 290px; border-radius: 10px; overflow: hidden; background: linear-gradient(135deg,#cfe0e3,#e3ece4 55%,#bcd6dd); }
