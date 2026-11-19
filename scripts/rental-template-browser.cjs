@@ -166,7 +166,7 @@ async function testMap(context, fixture, screenshots) {
             ['8', '3', '2.5', '2,000', 'Covered', 'Ocean', '5 min', '2 cars']);
         assert.equal(await main.locator('.aloha-rental-review-score').count(), 0);
         assert.deepEqual(await main.locator('.aloha-rental-review figcaption').allTextContents().then(rows => rows.map(row => row.replace(/\s+/g, ' ').trim())),
-            ['Airbnb · October 2026', 'Booking.com · October 2026']);
+            ['Anna · Family trip · Airbnb · October 2026', 'Booking.com · October 2026']);
         assert.ok(await main.getByRole('link', {name: /View all reviews for this home on Airbnb/}).isVisible());
         assert.ok(await main.getByText('Fixture road noise.', {exact: true}).isVisible());
         const html = await page.content();
@@ -197,7 +197,7 @@ async function testMap(context, fixture, screenshots) {
         assert.deepEqual(await nearby.locator('[data-map-place-name]').allTextContents(), [
             key + ' Park', key + ' Beach', key + ' Legacy Trail',
         ]);
-        assert.deepEqual(await nearby.locator('strong').allTextContents(), ['7 min drive']);
+        assert.deepEqual(await nearby.locator('.aloha-rental-travel-time').allTextContents(), ['7 min drive']);
         assert.equal(await nearby.getByText('Outdoors').count(), 0);
         assert.equal(await nearby.locator('.aloha-rental-place-number').count(), 0);
         assert.equal(await main.locator('.aloha-rental-crumbs a').first().innerText(), 'Home');
@@ -210,6 +210,39 @@ async function testMap(context, fixture, screenshots) {
             await page.reload();
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), 'Page overflow at ' + width);
             assert.ok(await main.evaluate(el => el.scrollWidth <= el.clientWidth + 2), 'Rental overflow at ' + width);
+            const styles = async (selector, properties) => main.locator(selector).first().evaluate((el, keys) => {
+                const css = getComputedStyle(el); return keys.map(key => css[key]);
+            }, properties);
+            assert.deepEqual(await styles('.aloha-rental-fact-custom dd strong',['fontSize']),['17px']);
+            assert.notDeepEqual(await styles('.aloha-rental-facts > div:first-child dd strong',['fontSize']),['17px']);
+            assert.deepEqual(await styles('.aloha-rental-sleep-card',['padding','gap','flexDirection']),['22px','8px','column']);
+            assert.deepEqual(await styles('.aloha-rental-sleep-card h3',['fontSize']),['19px']);
+            assert.deepEqual(await styles('.aloha-rental-sleep-card p',['fontSize','color']),['16px','rgb(22, 35, 42)']);
+            assert.deepEqual(await styles('.aloha-rental-access.is-ground',['fontSize','padding','borderRadius','backgroundColor','color']),
+                ['13px','3px 10px','999px','rgb(7, 80, 86)','rgb(243, 246, 246)']);
+            assert.deepEqual(await styles('.aloha-rental-access:not(.is-ground)',['backgroundColor','color']),['rgb(228, 238, 240)','rgb(22, 35, 42)']);
+            assert.deepEqual(await styles('.aloha-rental-amenities-section .aloha-rental-more-button',['marginTop','minHeight','padding','borderRadius','fontWeight','fontSize','color','borderTopColor']),
+                ['32px','52px','0px 28px','999px','600','16px','rgb(22, 35, 42)','rgba(0, 0, 0, 0)']);
+            assert.deepEqual(await styles('.aloha-rental-about [data-rental-more]',['borderRadius']),['0px']);
+            for(const li of await nearby.locator('li').all()) assert.deepEqual(await li.evaluate(el=>{
+                const s=getComputedStyle(el);return [s.margin,s.borderBottomColor,s.fontSize,s.color];
+            }),['0px','rgb(219, 228, 230)','17px','rgb(22, 35, 42)']);
+            assert.deepEqual(await styles('.aloha-rental-travel-time',['opacity','fontWeight','whiteSpace']),['0.72','400','nowrap']);
+            assert.deepEqual(await styles('.aloha-rental-review',['padding']),['32px']);
+            assert.deepEqual(await styles('.aloha-rental-review blockquote',['margin','fontSize','webkitLineClamp']),['0px 0px 24px','18px','3']);
+            assert.deepEqual(await styles('.aloha-rental-review figcaption',['fontSize']),['15px']);
+            assert.deepEqual(await styles('.aloha-rental-contact',['backgroundColor','color','padding','borderRadius']),
+                ['rgb(7, 80, 86)','rgb(243, 246, 246)','32px','10px']);
+            assert.deepEqual(await styles('.aloha-rental-contact img',['width','height','objectFit','borderRadius']),['96px','96px','cover','50%']);
+            assert.ok((await main.locator('.aloha-rental-contact img').getAttribute('src')).startsWith(base));
+            assert.deepEqual(await styles('.aloha-rental-contact p',['fontSize','opacity']),['16px','0.85']);
+            assert.deepEqual(await styles('.aloha-rental-rule-summary dt',['fontSize']),['18px']);
+            assert.deepEqual(await styles('.aloha-rental-rule-summary dd',['fontSize','color']),['16px','rgb(22, 35, 42)']);
+            const columns = async selector => (await styles(selector,['gridTemplateColumns']))[0].split(' ').length;
+            assert.equal(await columns('.aloha-rental-rule-summary'),width>=1024?3:width>=768?2:1);
+            assert.equal(await columns('.aloha-rental-nearby'),width>=768?2:1);
+            assert.equal(await columns('.aloha-rental-reviews'),width>=768?2:1);
+            console.log('PASS computed styles at',width);
             await page.evaluate(() => scrollTo(0, 0));
             await page.evaluate(() => document.fonts.ready);
             const before = await actionButtons.evaluateAll(buttons => buttons.map(button => {
@@ -247,6 +280,9 @@ async function testMap(context, fixture, screenshots) {
                 await viewport.evaluate(el => { el.scrollLeft = 0; });
                 await page.evaluate(() => scrollTo(0, 0));
                 await main.screenshot({path: join(screenshots, 'public-' + width + '.png')});
+                for(const [name,selector] of Object.entries({facts:'.aloha-rental-facts',sleeping:'.aloha-rental-sleeping',nearby:'.aloha-rental-nearby',reviews:'.aloha-rental-reviews',contact:'.aloha-rental-contact',rules:'section[aria-labelledby="aloha-rental-rules-title"]'})) {
+                    await main.locator(selector).screenshot({path:join(screenshots,name+'-'+width+'.png')});
+                }
             }
         }
         const cls = await page.evaluate(() => window.rentalShift);
@@ -308,7 +344,7 @@ async function testMap(context, fixture, screenshots) {
         assert.ok(await house.getByText('Minimum guest age').isVisible());
         await house.getByRole('button', {name: 'Show less ↑'}).click();
         const contactText = await main.locator('.aloha-rental-contact p').innerText();
-        assert.equal((contactText.match(/Alex Fixture/g) || []).length, 1);
+        assert.equal((contactText.match(/Alex/g) || []).length, 1);
         assert.ok(!contactText.includes('{First Name}'));
         const ask = main.getByRole('link', {name: 'Ask Alex'});
         assert.match(await ask.getAttribute('href'), /^mailto:.*example[.]test[?]subject=/);

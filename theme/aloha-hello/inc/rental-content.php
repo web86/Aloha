@@ -210,14 +210,14 @@ function aloha_rental_contact( array $rental ): void {
 	<section class="aloha-rental-contact" aria-labelledby="aloha-rental-contact-title">
 		<div class="aloha-rental-contact-person">
 			<span class="aloha-rental-contact-picture">
-				<?php if ( $contact['image'] ) : ?><img data-contact-avatar src="<?php echo esc_url( $contact['image'] ); ?>" alt="" width="72" height="72" loading="lazy"><?php endif; ?>
+				<?php if ( $contact['image'] ) : ?><img data-contact-avatar src="<?php echo esc_url( $contact['image'] ); ?>" alt="" width="96" height="96" loading="lazy"><?php endif; ?>
 				<span class="aloha-rental-contact-avatar" aria-hidden="true"<?php echo $contact['image'] ? ' hidden' : ''; ?>><?php echo esc_html( mb_substr( $contact['name'], 0, 1 ) ); ?></span>
 			</span>
 			<div><h2 id="aloha-rental-contact-title"><?php esc_html_e( 'Questions about this home?', 'aloha-hello' ); ?></h2>
 				<p><?php echo nl2br( esc_html( $contact['introduction'] ) ); ?></p>
 			</div>
 		</div>
-		<a href="<?php echo esc_url( 'mailto:' . $contact['email'] . '?subject=' . rawurlencode( $subject ) ); ?>"><?php echo esc_html( sprintf( __( 'Ask %s', 'aloha-hello' ), $contact['firstName'] ) ); ?></a>
+		<a href="<?php echo esc_url( 'mailto:' . $contact['email'] . '?subject=' . rawurlencode( $subject ) ); ?>"><?php echo esc_html( $contact['firstName'] !== '' ? sprintf( __( 'Ask %s', 'aloha-hello' ), $contact['firstName'] ) : __( 'Contact our team', 'aloha-hello' ) ); ?></a>
 	</section>
 	<?php
 }

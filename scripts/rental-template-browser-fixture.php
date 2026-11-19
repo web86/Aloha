@@ -232,7 +232,7 @@ foreach (['public', 'draft', 'empty'] as $mode) {
         $assert(is_int($contact), 'Could not create fixture contact.');
         update_user_meta($contact, 'aloha_fixture_marker', $key);
         update_user_meta($contact, AlohaWPBridge\RentalPresentation::CONTACT_ALLOWED, '1');
-        update_user_meta($contact, AlohaWPBridge\RentalPresentation::CONTACT_IMAGE, $images[1]);
+        update_user_meta($contact, AlohaWPBridge\LocalProfilePicture::META, $images[1]);
         update_post_meta($id, AlohaWPBridge\RentalPresentation::CONTACT, $contact);
         update_post_meta($id, AlohaWPBridge\RentalPresentation::INTRO, '{First Name}, Head of Guest Experience, knows every room here. Beds, stairs, the beach club — ask anything.');
         update_post_meta($id, AlohaWPBridge\RentalPresentation::SLEEPING, [
@@ -269,6 +269,7 @@ foreach (['public', 'draft', 'empty'] as $mode) {
             ['sourceId' => str_repeat('b', 64), 'channel' => 'bookingCom', 'value' => 8.5, 'max' => 10,
                 'text' => ['positive' => 'A fixture Booking review.', 'negative' => 'Fixture road noise.'], 'date' => '2026-10-01', 'order' => 1],
         ]);
+        update_post_meta($id, AlohaWPBridge\FeaturedReviews::ATTRIBUTION, [str_repeat('a',64)=>['name'=>'Anna','tripType'=>'Family trip']]);
         $rentals['images'] = $images;
     } elseif ($mode === 'empty') {
         update_post_meta($id, '_awb_area_id', $area);
