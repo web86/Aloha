@@ -9,7 +9,7 @@ if (!defined('WP_CLI') || !WP_CLI || wp_get_environment_type() !== 'local' || ho
     exit(1);
 }
 [$operation, $key] = $args + ['', ''];
-if (!in_array($operation, ['create', 'remove', 'map-html', 'description'], true) || !preg_match('/\Am24-fixture-[a-f0-9]{16}\z/', $key)) {
+if (!in_array($operation, ['create', 'remove', 'map-html', 'unavailable-html', 'description', 'related', 'related-fallback', 'related-expire', 'review-link', 'map-close'], true) || !preg_match('/\Am24-fixture-[a-f0-9]{16}\z/', $key)) {
     exit(1);
 }
 global $wpdb;
@@ -21,11 +21,11 @@ $assert = static function (bool $ok, string $failure): void {
     }
 };
 
-if (in_array($operation, ['map-html', 'description'], true)) {
+if (in_array($operation, ['map-html', 'unavailable-html', 'description'], true)) {
     $fixture = get_posts(['post_type' => 'rental', 'post_status' => 'publish', 'name' => $key . '-public', 'numberposts' => 1])[0] ?? null;
     $assert($fixture && !in_array($fixture->ID, [186, 365], true), 'Synthetic Rental not found.');
-    if ($operation === 'map-html') {
-        add_filter('aloha_rental_maps_config', static fn () => ['key' => 'fixture-browser-key', 'mapId' => 'fixture-map-id']);
+    if (in_array($operation,['map-html','unavailable-html'],true)) {
+        add_filter('aloha_rental_maps_config', static fn () => $operation==='map-html' ? ['key'=>'fixture-browser-key','mapId'=>'fixture-map-id'] : ['key'=>'','mapId'=>'']);
         $dto = RentalPublicData::get($fixture->ID);
         aloha_rental_nearby($dto['nearby'], $dto['publicMapLocation'], $dto['title']);
         return;
@@ -47,18 +47,94 @@ if (in_array($operation, ['map-html', 'description'], true)) {
     return;
 }
 
+if ($operation==='map-close') {
+    $places=get_posts(['post_type'=>'nearby_place','post_status'=>'publish','s'=>$key,'numberposts'=>-1]);
+    foreach($places as $place) {
+        if(!in_array($place->post_title,[$key.' Park',$key.' Beach'],true))continue;
+        $park=$place->post_title===$key.' Park';
+        $data=get_post_meta($place->ID,'_aloha_nearby_details',true);$data['latitude']=$park?19.123456:19.123458;$data['longitude']=$park?-155.543217:-155.543215;
+        update_post_meta($place->ID,'_aloha_nearby_details',$data);
+        update_post_meta($place->ID,'aloha_fixture_marker',$key);
+        wp_update_post(['ID'=>$place->ID,'post_title'=>$park?'Sandy Beach and coastal walking path beside the historic village':'Npalu Howau park']);
+    }
+    return;
+}
+
+if ($operation==='review-link') {
+    $fixture=get_posts(['post_type'=>'rental','post_status'=>'publish','name'=>$key.'-public','numberposts'=>1])[0]??null;
+    $assert($fixture && !in_array($fixture->ID,[186,365],true),'Synthetic Rental required.');
+    $source=get_post_meta($fixture->ID,'_awb_source_data',true);
+    $mode=$args[2]??'';$assert(in_array($mode,['confirmed','unknown-count','no-url'],true),'Invalid link scenario.');
+    $source['source']['airbnb']=['status'=>$mode==='no-url'?'unconfirmed':'available','value'=>['url'=>'https://www.airbnb.com/rooms/123456789','count'=>86,'countStatus'=>$mode==='unknown-count'?'unconfirmed':'available']];
+    $assert(RentalEditor::writeSourceMeta($fixture->ID,'_awb_source_data',$source),'Link fixture failed.');return;
+}
+
+if (in_array($operation,['related','related-fallback','related-expire'],true)) {
+    $base = get_posts(['post_type'=>'rental','post_status'=>'publish','name'=>$key.'-public','numberposts'=>1])[0] ?? null;
+    $assert($base && !in_array($base->ID,[186,365],true),'Synthetic base Rental required.');
+    $admin = get_user_by('login',getenv('WP_ADMIN_USER')); wp_set_current_user($admin->ID);
+    if ($operation === 'related-expire') {
+        $target=get_posts(['post_type'=>'rental','post_status'=>'publish','name'=>$key.'-related-gallery','numberposts'=>1])[0]??null;
+        $assert((bool)$target,'Expiry fixture missing.');update_post_meta($target->ID,AlohaWPBridge\RentalListingBadge::FIRST,gmdate('Y-m-d\TH:i:s\Z',time()-8*DAY_IN_SECONDS));return;
+    }
+    if ($operation === 'related-fallback') {
+        $target=get_posts(['post_type'=>'rental','post_status'=>'publish','name'=>$key.'-related-none','numberposts'=>1])[0]??null;
+        $empty=get_posts(['post_type'=>'rental','post_status'=>'publish','name'=>$key.'-empty','numberposts'=>1])[0]??null;
+        $assert($target && $empty,'Fallback fixtures missing.');
+        set_post_thumbnail($target->ID,get_post_thumbnail_id($empty->ID)); return;
+    }
+    $baseMap=(int)$wpdb->get_var($wpdb->prepare('SELECT id FROM %i WHERE post_id=%d',$listingTable,$base->ID));
+    $images=$wpdb->get_results($wpdb->prepare('SELECT * FROM %i WHERE listing_map_id=%d',$mediaTable,$baseMap),ARRAY_A);
+    $result=[];
+    foreach (['related-none','related-single','related-gallery','related-other','related-private','related-unmapped'] as $mode) {
+        $guard=[Rentals::class,'blockNativeWrite'];remove_filter('wp_insert_post_empty_content',$guard);
+        try { $id=wp_insert_post(['post_type'=>'rental','post_status'=>'draft','post_name'=>$key.'-'.$mode,'post_title'=>match($mode){
+            'related-gallery'=>'Access to private Beach Club',
+            'related-single'=>'A peaceful island home with a deliberately long title overlooking the coastline',
+            'related-none'=>'Morning light', default=>'Excluded '.$mode,
+        }],true); } finally { add_filter('wp_insert_post_empty_content',$guard,10,2); }
+        $assert(is_int($id)&&$id>365,'Related fixture creation failed.');
+        $guestyId='private-source-'.get_post_field('post_name',$id);$now=gmdate('Y-m-d H:i:s');
+        $assert($wpdb->insert($listingTable,['connection_key'=>'booking_engine','provider_environment'=>'sandbox','guesty_listing_id'=>$guestyId,'post_id'=>$id,'created_at_utc'=>$now,'updated_at_utc'=>$now])===1,'Related map failed.');$map=$wpdb->insert_id;
+        $snapshot=get_post_meta($base->ID,'_awb_source_snapshot',true);$snapshot['id']=$guestyId;
+        $snapshot['pictures']=$mode==='related-gallery'?$snapshot['pictures']:($mode==='related-single'?array_slice($snapshot['pictures'],0,2):[]);
+        $assert(RentalEditor::writeSourceMeta($id,'_awb_source_snapshot',$snapshot),'Related source failed.');
+        RentalEditor::writeSourceMeta($id,'_awb_source_data',get_post_meta($base->ID,'_awb_source_data',true));
+        update_post_meta($id,'_awb_area_id',$mode==='related-other'?0:(int)get_post_meta($base->ID,'_awb_area_id',true));
+        update_post_meta($id,'_awb_usp',$mode==='related-none'?'A quiet island escape.':'One line of complete, accessible highlights with extra detail about outdoor dining, beach access and the private lanai.');
+        update_post_meta($id,AlohaWPBridge\RentalListingBadge::META,$mode==='related-gallery'?'new':($mode==='related-single'?'luxe':'none'));
+        if ($mode==='related-gallery') update_post_meta($id,'_awb_gallery',get_post_meta($base->ID,'_awb_gallery',true));
+        foreach ($images as $row) {
+            if (!in_array($mode,['related-gallery','related-single'],true) || ($mode==='related-single' && !in_array($row['guesty_picture_id'],['private-photo-1','private-photo-2'],true))) continue;
+            require_once ABSPATH.'wp-admin/includes/image.php';
+            $file=wp_upload_bits($key.'-'.$mode.'-'.substr(hash('sha256',$row['guesty_picture_id']),0,12).'.jpg',null,file_get_contents(get_attached_file((int)$row['attachment_id'])));
+            $assert(empty($file['error']),'Related image copy failed.');
+            $attach=wp_insert_attachment(['post_mime_type'=>'image/jpeg','post_title'=>$key.' Related image','post_status'=>'inherit','guid'=>$file['url']],$file['file'],$id,true);
+            $assert(is_int($attach),'Related attachment failed.');
+            wp_update_attachment_metadata($attach,wp_generate_attachment_metadata($attach,$file['file']));
+            unset($row['id']);$row['listing_map_id']=$map;$row['attachment_id']=$attach;
+            $assert($wpdb->insert($mediaTable,$row)===1,'Related media map failed.');
+        }
+        $assert(wp_update_post(['ID'=>$id,'post_status'=>$mode==='related-private'?'private':'publish'],true)===$id,'Related publish failed.');
+        if($mode==='related-unmapped') $wpdb->delete($listingTable,['id'=>$map,'post_id'=>$id]);
+        $result[$mode]=$id;
+    }
+    WP_CLI::line(wp_json_encode($result));return;
+}
+
 if ($operation === 'remove') {
-    $rentalSlugs = array_map(static fn ($mode) => $key . '-' . $mode, ['public', 'draft', 'empty']);
+    $rentalSlugs = array_map(static fn ($mode) => $key . '-' . $mode, ['public', 'draft', 'empty', 'related-none', 'related-single', 'related-gallery', 'related-other', 'related-private', 'related-unmapped']);
     $rentals = get_posts(['post_type' => 'rental', 'post_status' => 'any', 'post_name__in' => $rentalSlugs, 'posts_per_page' => -1]);
     $areas = get_posts(['post_type' => 'area', 'post_status' => 'publish', 'post_name__in' => [$key . '-area'], 'posts_per_page' => -1]);
     $communities = get_posts(['post_type' => 'community', 'post_status' => 'publish', 'name' => $key . '-community', 'numberposts' => 1]);
     $places = get_posts(['post_type' => 'nearby_place', 'post_status' => 'any',
         's' => $key, 'search_columns' => ['post_title'], 'posts_per_page' => -1]);
+    $places=array_merge($places,get_posts(['post_type'=>'nearby_place','post_status'=>'any','meta_key'=>'aloha_fixture_marker','meta_value'=>$key,'numberposts'=>-1]));
     foreach ([...$rentals, ...$places, ...$communities, ...$areas] as $post) {
         if (in_array($post->ID, [186, 365], true)) {
             continue;
         }
-        if ($post->post_type === 'nearby_place' && !str_starts_with($post->post_title, $key . ' ')) {
+        if ($post->post_type === 'nearby_place' && !str_starts_with($post->post_title, $key . ' ') && get_post_meta($post->ID,'aloha_fixture_marker',true)!==$key) {
             continue;
         }
         if ($post->post_type === 'rental') {

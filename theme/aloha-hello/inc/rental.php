@@ -3,6 +3,16 @@
 defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/rental-content.php';
 
+// These local faces are all used above the fold. Preload them only on Rental pages
+// so fallback-font wrapping does not move the facts and gallery after first paint.
+add_filter( 'wp_preload_resources', function ( $resources ) {
+	if ( ! is_singular( 'rental' ) ) { return $resources; }
+	foreach ( array( 'outfit-latin-variable.woff2', 'instrument-serif-latin-400-normal.woff2', 'instrument-serif-latin-400-italic.woff2' ) as $font ) {
+		$resources[] = array( 'href' => get_theme_file_uri( 'assets/fonts/' . $font ), 'as' => 'font', 'type' => 'font/woff2', 'crossorigin' => 'anonymous' );
+	}
+	return $resources;
+} );
+
 add_action( 'wp_enqueue_scripts', function () {
 	if ( ! is_singular( 'rental' ) ) { return; }
 	$path = 'assets/css/rental.css';
@@ -127,47 +137,95 @@ function aloha_rental_gallery_render( array $rental ): string {
 }
 
 function aloha_rental_related( array $rental ): string {
-	$area = (int) ( $rental['area']['id'] ?? 0 );
-	$community = (int) ( $rental['community']['id'] ?? 0 );
+	$area = $rental['area'] ?? null;
 	if ( ! $area || ! class_exists( '\AlohaWPBridge\RentalPublicData' ) ) { return ''; }
 	$query = new WP_Query( array( 'post_type' => 'rental', 'post_status' => 'publish',
 		'post__not_in' => array( $rental['id'] ), 'posts_per_page' => 12, 'no_found_rows' => true,
-		'meta_key' => '_awb_area_id', 'meta_value' => $area, 'orderby' => 'date', 'order' => 'DESC',
+		'meta_key' => '_awb_area_id', 'meta_value' => $area['id'], 'orderby' => array( 'date' => 'DESC', 'ID' => 'DESC' ),
 	) );
 	$items = array();
 	foreach ( $query->posts as $post ) {
 		$data = \AlohaWPBridge\RentalPublicData::get( (int) $post->ID );
-		if ( ! $data ) { continue; }
-		$items[] = $data;
+		if ( $data && ( $data['area']['id'] ?? 0 ) === $area['id'] ) { $items[] = $data; }
+		if ( count( $items ) === 3 ) { break; }
 	}
-	usort( $items, static fn( $a, $b ) => (int) ( ( $b['community']['id'] ?? 0 ) === $community )
-		<=> (int) ( ( $a['community']['id'] ?? 0 ) === $community ) );
-	$items = array_slice( $items, 0, 3 );
 	if ( ! $items ) { return ''; }
 	ob_start();
 	?>
 	<section class="aloha-rental-related aloha-section--unit" aria-labelledby="aloha-rental-related-title">
 		<div class="aloha-container">
-			<h2 id="aloha-rental-related-title"><?php esc_html_e( 'More vacation rentals', 'aloha-hello' ); ?><?php if ( ! empty( $rental['area']['name'] ) ) : ?> <em><?php echo esc_html( sprintf( __( 'in %s', 'aloha-hello' ), $rental['area']['name'] ) ); ?></em><?php endif; ?></h2>
+			<div class="aloha-rental-related-heading">
+				<h2 id="aloha-rental-related-title"><?php esc_html_e( 'More vacation rentals', 'aloha-hello' ); ?> <?php if ( $area['name'] ?? '' ) : ?><em><?php echo esc_html( sprintf( __( 'in %s', 'aloha-hello' ), $area['name'] ) ); ?></em><?php endif; ?></h2>
+				<a class="aloha-button aloha-button--secondary" href="<?php echo esc_url( $area['url'] ); ?>"><?php esc_html_e( 'See all homes', 'aloha-hello' ); ?></a>
+			</div>
 			<div class="aloha-rental-related-grid">
-				<?php foreach ( $items as $item ) :
-					$cover = $item['gallery']['photos'][0]['image'] ?? $item['featuredImage'];
-					?>
-					<article class="aloha-rental-related-card">
-						<a href="<?php echo esc_url( $item['url'] ); ?>">
-							<?php if ( is_array( $cover ) ) : ?>
-								<img src="<?php echo esc_url( $cover['src'] ); ?>" alt="<?php echo esc_attr( $cover['alt'] ?: $item['title'] ); ?>" loading="lazy" decoding="async" width="<?php echo esc_attr( $cover['width'] ); ?>" height="<?php echo esc_attr( $cover['height'] ); ?>">
-							<?php endif; ?>
-							<h3><?php echo esc_html( $item['title'] ); ?></h3>
-							<?php if ( $item['area'] ) : ?><p><?php echo esc_html( $item['area']['name'] ); ?></p><?php endif; ?>
-						</a>
-					</article>
-				<?php endforeach; ?>
+				<?php foreach ( $items as $item ) { aloha_rental_related_card( $item ); } ?>
 			</div>
 		</div>
 	</section>
 	<?php
 	return (string) ob_get_clean();
+}
+
+function aloha_rental_related_card( array $item ): void {
+	$images = array_slice( array_column( $item['gallery']['photos'], 'image' ), 0, 6 );
+	if ( ! $images && is_array( $item['featuredImage'] ) ) { $images[] = $item['featuredImage']; }
+	$count = count( $images );
+	$id = wp_unique_id( 'aloha-related-' );
+	?>
+	<article class="aloha-rental-related-card">
+		<div class="aloha-related-gallery"<?php echo $count > 1 ? ' data-related-carousel' : ''; ?>>
+			<?php if ( $count ) : ?>
+				<div class="aloha-related-viewport"<?php if ( $count > 1 ) : ?> data-related-viewport tabindex="0" role="region" aria-label="<?php echo esc_attr( sprintf( __( '%s photos', 'aloha-hello' ), $item['title'] ) ); ?>"<?php endif; ?>>
+					<div class="aloha-related-slides">
+						<?php foreach ( $images as $index => $image ) : ?>
+							<a class="aloha-related-slide" href="<?php echo esc_url( $item['url'] ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'View %s', 'aloha-hello' ), $item['title'] ) ); ?>"<?php echo $index ? ' tabindex="-1"' : ''; ?>>
+								<img <?php echo $index ? 'data-src' : 'src'; ?>="<?php echo esc_url( $image['src'] ); ?>" alt="<?php echo esc_attr( $image['alt'] ); ?>"
+									width="<?php echo esc_attr( $image['width'] ); ?>" height="<?php echo esc_attr( $image['height'] ); ?>" loading="lazy" decoding="async"
+									<?php if ( $image['srcset'] ) : ?><?php echo $index ? 'data-srcset' : 'srcset'; ?>="<?php echo esc_attr( $image['srcset'] ); ?>" sizes="(min-width: 1280px) 382px, (min-width: 1024px) calc((100vw - 136px) / 3), (min-width: 600px) calc((100vw - 88px) / 2), calc(100vw - 40px)"<?php endif; ?>>
+							</a>
+						<?php endforeach; ?>
+					</div>
+				</div>
+			<?php else : ?>
+				<a class="aloha-related-placeholder" href="<?php echo esc_url( $item['url'] ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'View %s', 'aloha-hello' ), $item['title'] ) ); ?>"><?php esc_html_e( 'Photos coming soon', 'aloha-hello' ); ?></a>
+			<?php endif; ?>
+			<?php if ( $item['badge'] ?? null ) : ?><span class="aloha-related-badge"><?php echo esc_html( strtoupper( $item['badge'] ) ); ?></span><?php endif; ?>
+			<?php if ( $count > 1 ) : ?>
+				<div data-related-controls hidden>
+					<button class="aloha-related-arrow is-prev" type="button" data-related-prev aria-label="<?php echo esc_attr( sprintf( __( 'Previous photo of %s', 'aloha-hello' ), $item['title'] ) ); ?>">‹</button>
+					<button class="aloha-related-arrow is-next" type="button" data-related-next aria-label="<?php echo esc_attr( sprintf( __( 'Next photo of %s', 'aloha-hello' ), $item['title'] ) ); ?>">›</button>
+					<div class="aloha-related-dots" role="group" aria-label="<?php esc_attr_e( 'Choose a photo', 'aloha-hello' ); ?>">
+						<?php foreach ( $images as $index => $_image ) : ?>
+							<button type="button" data-related-dot="<?php echo esc_attr( $index ); ?>" aria-pressed="<?php echo $index ? 'false' : 'true'; ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Show photo %1$d of %2$s', 'aloha-hello' ), $index + 1, $item['title'] ) ); ?>"></button>
+						<?php endforeach; ?>
+					</div>
+				</div>
+			<?php endif; ?>
+		</div>
+		<p class="aloha-related-area"><?php echo esc_html( $item['area']['name'] ?? '' ); ?></p>
+		<h3><a href="<?php echo esc_url( $item['url'] ); ?>" aria-describedby="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $item['title'] ); ?></a></h3>
+		<p class="aloha-related-usp" id="<?php echo esc_attr( $id ); ?>" title="<?php echo esc_attr( $item['usp'] ); ?>"><?php echo esc_html( $item['usp'] ); ?></p>
+		<ul class="aloha-related-facts" aria-label="<?php esc_attr_e( 'Property facts', 'aloha-hello' ); ?>">
+			<?php foreach ( array( 'bedrooms' => __( '%s bedrooms', 'aloha-hello' ), 'bathrooms' => __( '%s baths', 'aloha-hello' ), 'guests' => __( '%s guests', 'aloha-hello' ) ) as $key => $label ) : $value = aloha_rental_fact( $item, $key ); ?>
+				<?php if ( $value !== null ) : ?><li><?php echo esc_html( sprintf( $label, $value ) ); ?></li><?php endif; ?>
+			<?php endforeach; ?>
+		</ul>
+		<?php aloha_rental_related_price(); ?>
+	</article>
+	<?php
+}
+
+/** A future verified Pricing DTO may supply amount/currency/perNight; never infer a rate. */
+function aloha_rental_related_price( ?array $pricing = null ): void {
+	$valid = $pricing && ( $pricing['perNight'] ?? null ) === true && is_numeric( $pricing['amount'] ?? null )
+		&& is_finite( (float) $pricing['amount'] ) && (float) $pricing['amount'] > 0
+		&& is_string( $pricing['currency'] ?? null ) && preg_match( '/^[A-Z]{3}$/', $pricing['currency'] );
+	?>
+	<p class="aloha-related-price"><?php if ( $valid ) : ?>
+		<?php esc_html_e( 'from', 'aloha-hello' ); ?> <strong><?php echo esc_html( $pricing['currency'] . ' ' . number_format_i18n( (float) $pricing['amount'], 2 ) ); ?></strong> <?php esc_html_e( '/ night', 'aloha-hello' ); ?>
+	<?php else : ?><?php esc_html_e( 'Check dates for pricing', 'aloha-hello' ); ?><?php endif; ?></p>
+	<?php
 }
 
 /** Decorative bed symbols reflect Guesty bed type; labels remain available as text. */
@@ -204,7 +262,7 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 	$gallery = aloha_rental_gallery_render( $rental );
 	ob_start();
 	?>
-	<div <?php echo get_block_wrapper_attributes( array( 'class' => 'aloha-rental-detail' ) ); ?>>
+	<div <?php echo get_block_wrapper_attributes( array( 'class' => 'aloha-rental-detail', 'data-listing-badge' => $rental['badge'] ?? '' ) ); ?>>
 		<div class="aloha-container aloha-rental-intro">
 			<nav class="aloha-rental-crumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'aloha-hello' ); ?>">
 				<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'aloha-hello' ); ?></a><span aria-hidden="true">/</span>

@@ -32,10 +32,11 @@ async function testMap(context, fixture, screenshots) {
                 this.surface = surface;
                 surface.dataset.center = JSON.stringify(options.center);
             }
+            addListener() {}
             fitBounds(bounds) { this.surface.dataset.bounds = JSON.stringify(bounds.points); }
             panTo(position) { this.surface.dataset.selection = JSON.stringify(position); }
         }
-        class InfoWindow {
+        class UnusedInfoWindow {
             setContent(node) { this.content = node; }
             open() { sample.surface.dataset.popup = this.content.textContent; }
         }
@@ -55,7 +56,7 @@ async function testMap(context, fixture, screenshots) {
             }
         }
         window.google = {maps: {importLibrary: async name => ({
-            maps: {Map: MockMap, InfoWindow}, marker: {AdvancedMarkerElement, PinElement}, core: {LatLngBounds},
+            maps: {Map: MockMap}, marker: {AdvancedMarkerElement, PinElement}, core: {LatLngBounds},
         })[name]}};
         window.alohaRentalMapsReady();
     `;
@@ -74,8 +75,9 @@ async function testMap(context, fixture, screenshots) {
         await page.route(fixture.url, async route => {
             const response = await route.fetch();
             const html = await response.text();
-            const fixtureHtml = html.replace(/<section class="aloha-rental-section" aria-labelledby="aloha-rental-nearby-title"[^>]*>[\s\S]*?<\/section>/, fragment)
-                .replace('</body>', '<script src="/wp-content/themes/aloha-hello/assets/js/rental-map.js"></script></body>');
+            let fixtureHtml = html.replace(/<section class="aloha-rental-section" aria-labelledby="aloha-rental-nearby-title"[^>]*>[\s\S]*?<\/section>/, fragment)
+                ;
+            if(!html.includes('/assets/js/rental-map.js')) fixtureHtml=fixtureHtml.replace('</body>', '<script src="/wp-content/themes/aloha-hello/assets/js/rental-map.js"></script></body>');
             await route.fulfill({response, body: fixtureHtml});
         });
         await page.route('https://maps.googleapis.com/maps/api/js?**', route => {
@@ -102,14 +104,17 @@ async function testMap(context, fixture, screenshots) {
             const surface = section.getByRole('region', {name: 'Map of nearby places'});
             await surface.waitFor();
             const markers = surface.getByRole('button');
-            assert.deepEqual(await markers.allTextContents(), ['1', '2', '⌂']);
+            assert.deepEqual(await markers.allTextContents(), [key+' Park',key+' Beach',fixture.title]);
+            assert.equal(await surface.locator('.aloha-rental-map-label').count(),3);
+            assert.equal(await surface.locator('.is-home').count(),1);
             assert.deepEqual(JSON.parse(await surface.getAttribute('data-bounds')), [
                 {lat: 19.123456, lng: -155.543217}, {lat: 19.222222, lng: -155.444444}, {lat: 19.111111, lng: -155.222222},
             ]);
             await list.getByRole('button', {name: key + ' Beach'}).click();
-            assert.equal(await surface.getAttribute('data-popup'), key + ' Beach');
+            assert.equal(await markers.nth(1).getAttribute('aria-pressed'),'true');
+            assert.equal(await list.getByRole('button',{name:key+' Beach'}).getAttribute('aria-pressed'),'true');
             await markers.first().dispatchEvent('gmp-click');
-            assert.equal(await surface.getAttribute('data-popup'), key + ' Park');
+            assert.equal(await markers.first().getAttribute('aria-pressed'),'true');
             assert.equal(await list.getByRole('button', {name: key + ' Park'}).getAttribute('aria-pressed'), 'true');
             assert.equal(await list.getByRole('button', {name: key + ' Legacy Trail'}).count(), 0);
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
@@ -146,19 +151,21 @@ async function testMap(context, fixture, screenshots) {
 
         const page = await publicContext.newPage();
         await page.addInitScript(() => {
-            window.rentalShift = 0;
+            window.rentalShift = 0; window.rentalShiftSources = [];
             new PerformanceObserver(list => {
                 for (const entry of list.getEntries()) {
-                    if (!entry.hadRecentInput) window.rentalShift += entry.value;
+                    if (!entry.hadRecentInput) { window.rentalShift += entry.value; window.rentalShiftSources.push({value:entry.value,nodes:entry.sources?.map(item=>({tag:item.node?.tagName,class:item.node?.className,from:item.previousRect.y,to:item.currentRect.y}))}); }
                 }
             }).observe({type: 'layout-shift', buffered: true});
         });
+        const unavailableMap = wp('rental-template-browser-fixture.php', 'unavailable-html', key);
+        await page.route(fixtures.public.url,async route=>{const response=await route.fetch();const body=(await response.text()).replace(/<section class="aloha-rental-section" aria-labelledby="aloha-rental-nearby-title"[^>]*>[\s\S]*?<\/section>/,unavailableMap);await route.fulfill({response,body});});
         assert.equal((await page.goto(fixtures.public.url)).status(), 200);
         const main = page.locator('.aloha-rental-detail');
         await main.getByRole('heading', {name: fixtures.public.title}).waitFor();
         for (const heading of [
-            'What makes this home special', 'About this Coastal Villas vacation rental', 'Where everyone sleeps',
-            /^What['’]s included$/, 'Close by', 'Guests said', 'House rules', 'More vacation rentals',
+            'What makes this home special', 'About this Keauhou vacation rental', 'Where everyone sleeps',
+            /^What['’]s included$/, 'Close by', 'Guests said', 'House rules', /^More vacation rentals/,
         ]) {
             assert.ok(await main.getByRole('heading', {name: heading, exact: true}).isVisible(), String(heading) + " / " + (await main.getByRole("heading", {level: 2}).allTextContents()).join(" | "));
         }
@@ -166,7 +173,7 @@ async function testMap(context, fixture, screenshots) {
             ['8', '3', '2.5', '2,000', 'Covered', 'Ocean', '5 min', '2 cars']);
         assert.equal(await main.locator('.aloha-rental-review-score').count(), 0);
         assert.deepEqual(await main.locator('.aloha-rental-review figcaption').allTextContents().then(rows => rows.map(row => row.replace(/\s+/g, ' ').trim())),
-            ['Anna · Family trip · Airbnb · October 2026', 'Booking.com · October 2026']);
+            ['Anna · Family trip · October 2026', 'October 2026']);
         assert.ok(await main.getByRole('link', {name: /View all reviews for this home on Airbnb/}).isVisible());
         assert.ok(await main.getByText('Fixture road noise.', {exact: true}).isVisible());
         const html = await page.content();
@@ -222,7 +229,7 @@ async function testMap(context, fixture, screenshots) {
                 ['13px','3px 10px','999px','rgb(7, 80, 86)','rgb(243, 246, 246)']);
             assert.deepEqual(await styles('.aloha-rental-access:not(.is-ground)',['backgroundColor','color']),['rgb(228, 238, 240)','rgb(22, 35, 42)']);
             assert.deepEqual(await styles('.aloha-rental-amenities-section .aloha-rental-more-button',['marginTop','minHeight','padding','borderRadius','fontWeight','fontSize','color','borderTopColor']),
-                ['32px','52px','0px 28px','999px','600','16px','rgb(22, 35, 42)','rgba(0, 0, 0, 0)']);
+                ['32px','52px','0px 28px','999px','600','16px','rgb(22, 35, 42)','rgb(22, 35, 42)']);
             assert.deepEqual(await styles('.aloha-rental-about [data-rental-more]',['borderRadius']),['0px']);
             for(const li of await nearby.locator('li').all()) assert.deepEqual(await li.evaluate(el=>{
                 const s=getComputedStyle(el);return [s.margin,s.borderBottomColor,s.fontSize,s.color];
@@ -286,6 +293,7 @@ async function testMap(context, fixture, screenshots) {
             }
         }
         const cls = await page.evaluate(() => window.rentalShift);
+        if(cls>=.1)console.log('Layout shift sources:',JSON.stringify(await page.evaluate(()=>window.rentalShiftSources)));
         assert.ok(cls < 0.1, 'Unexpected layout shift: ' + cls);
         console.log('Desktop initial layout shift:', cls.toFixed(4));
         await page.emulateMedia({reducedMotion: 'reduce'});
