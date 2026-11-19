@@ -306,6 +306,9 @@ async function testMap(context, fixture, screenshots) {
         await house.getByRole('button', {name: 'All house rules & guest info →'}).click();
         assert.ok(await house.getByText('Minimum guest age').isVisible());
         await house.getByRole('button', {name: 'Show less ↑'}).click();
+        const contactText = await main.locator('.aloha-rental-contact p').innerText();
+        assert.equal((contactText.match(/Alex Fixture/g) || []).length, 1);
+        assert.ok(!contactText.includes('{First Name}'));
         const ask = main.getByRole('link', {name: 'Ask Alex'});
         assert.match(await ask.getAttribute('href'), /^mailto:.*example[.]test[?]subject=/);
         const amenities = main.locator('section[aria-labelledby="aloha-rental-amenities-title"]');

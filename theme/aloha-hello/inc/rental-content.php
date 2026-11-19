@@ -206,10 +206,12 @@ function aloha_rental_contact( array $rental ): void {
 	?>
 	<section class="aloha-rental-contact" aria-labelledby="aloha-rental-contact-title">
 		<div class="aloha-rental-contact-person">
-			<?php if ( $contact['image'] ) : ?><img src="<?php echo esc_url( $contact['image'] ); ?>" alt="" width="72" height="72" loading="lazy">
-			<?php else : ?><span class="aloha-rental-contact-avatar" aria-hidden="true"><?php echo esc_html( mb_substr( $contact['name'], 0, 1 ) ); ?></span><?php endif; ?>
+			<span class="aloha-rental-contact-picture">
+				<?php if ( $contact['image'] ) : ?><img data-contact-avatar src="<?php echo esc_url( $contact['image'] ); ?>" alt="" width="72" height="72" loading="lazy"><?php endif; ?>
+				<span class="aloha-rental-contact-avatar" aria-hidden="true"<?php echo $contact['image'] ? ' hidden' : ''; ?>><?php echo esc_html( mb_substr( $contact['name'], 0, 1 ) ); ?></span>
+			</span>
 			<div><h2 id="aloha-rental-contact-title"><?php esc_html_e( 'Questions about this home?', 'aloha-hello' ); ?></h2>
-				<p><strong><?php echo esc_html( $contact['name'] ); ?></strong><?php if ( $contact['introduction'] !== '' ) : ?>, <?php echo nl2br( esc_html( $contact['introduction'] ) ); ?><?php endif; ?></p>
+				<p><?php echo nl2br( esc_html( $contact['introduction'] ) ); ?></p>
 			</div>
 		</div>
 		<a href="<?php echo esc_url( 'mailto:' . $contact['email'] . '?subject=' . rawurlencode( $subject ) ); ?>"><?php echo esc_html( sprintf( __( 'Ask %s', 'aloha-hello' ), $contact['firstName'] ) ); ?></a>

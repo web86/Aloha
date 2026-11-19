@@ -1,6 +1,15 @@
 (() => {
     'use strict';
 
+    document.querySelectorAll('[data-contact-avatar]').forEach(image => {
+        const fallback = () => {
+            image.hidden = true;
+            image.nextElementSibling.hidden = false;
+        };
+        image.addEventListener('error', fallback, {once: true});
+        if (image.complete && !image.naturalWidth) fallback();
+    });
+
     document.querySelectorAll('[data-rental-disclosure]').forEach(section => {
         const button = section.querySelector('[data-rental-more]');
         if (!button) return;

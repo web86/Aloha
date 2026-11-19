@@ -232,7 +232,7 @@ foreach (['public', 'draft', 'empty'] as $mode) {
         update_user_meta($contact, AlohaWPBridge\RentalPresentation::CONTACT_ALLOWED, '1');
         update_user_meta($contact, AlohaWPBridge\RentalPresentation::CONTACT_IMAGE, $images[1]);
         update_post_meta($id, AlohaWPBridge\RentalPresentation::CONTACT, $contact);
-        update_post_meta($id, AlohaWPBridge\RentalPresentation::INTRO, 'Head of Guest Experience, knows every room here. Beds, stairs, the beach club — ask anything.');
+        update_post_meta($id, AlohaWPBridge\RentalPresentation::INTRO, '{First Name}, Head of Guest Experience, knows every room here. Beds, stairs, the beach club — ask anything.');
         update_post_meta($id, AlohaWPBridge\RentalPresentation::SLEEPING, [
             AlohaWPBridge\RentalPresentation::sleepingKey('private-space-test') => ['level' => 'ground', 'steps' => 0],
             AlohaWPBridge\RentalPresentation::sleepingKey('fixture-twin-room') => ['level' => 'upstairs', 'steps' => 14],
