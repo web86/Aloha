@@ -24,6 +24,11 @@ function aloha_rental_booking( array $rental ): void {
 		}
 		$config['nonce'] = wp_create_nonce( 'wp_rest' );
 	}
+	// Embed only the Bridge's public allowlist: opening an existing snapshot needs no fetch.
+	if ( class_exists( '\AlohaWPBridge\Pricing\LocalCalendar' ) ) {
+		$calendar = \AlohaWPBridge\Pricing\LocalCalendar::availability( $id );
+		if ( is_array( $calendar ) ) { $config['calendar'] = $calendar; }
+	}
 	$minimum = $rental['minimumNightlyPrice'] ?? array();
 	$price = ( $minimum['status'] ?? '' ) === 'available' ? aloha_rental_money( $minimum ) : '';
 	$capacity = (int) ( $rental['facts']['guests']['value'] ?? 0 );
@@ -36,8 +41,8 @@ function aloha_rental_booking( array $rental ): void {
 				<span class="aloha-booking-instant"><span aria-hidden="true">ϟ</span> <?php esc_html_e( 'Instant booking', 'aloha-hello' ); ?></span>
 			</div>
 			<div class="aloha-booking-fields">
-				<button type="button" data-booking-dates="in" aria-haspopup="dialog" aria-controls="aloha-booking-calendar"><span><?php esc_html_e( 'Check-in', 'aloha-hello' ); ?></span><strong data-check-in><?php esc_html_e( 'Add date', 'aloha-hello' ); ?></strong></button>
-				<button type="button" data-booking-dates="out" aria-haspopup="dialog" aria-controls="aloha-booking-calendar"><span><?php esc_html_e( 'Checkout', 'aloha-hello' ); ?></span><strong data-check-out><?php esc_html_e( 'Add date', 'aloha-hello' ); ?></strong></button>
+				<button type="button" data-booking-dates="in" aria-haspopup="dialog" aria-expanded="false" aria-controls="aloha-booking-calendar"><span><?php esc_html_e( 'Check-in', 'aloha-hello' ); ?></span><strong data-check-in><?php esc_html_e( 'Add date', 'aloha-hello' ); ?></strong></button>
+				<button type="button" data-booking-dates="out" aria-haspopup="dialog" aria-expanded="false" aria-controls="aloha-booking-calendar"><span><?php esc_html_e( 'Checkout', 'aloha-hello' ); ?></span><strong data-check-out><?php esc_html_e( 'Add date', 'aloha-hello' ); ?></strong></button>
 				<details class="aloha-booking-guests">
 					<summary><span><?php esc_html_e( 'Guests', 'aloha-hello' ); ?></span><strong data-guest-summary><?php echo esc_html( $capacity === 1 ? __( '1 guest', 'aloha-hello' ) : __( '2 guests', 'aloha-hello' ) ); ?></strong><span class="aloha-booking-chevron" aria-hidden="true">⌄</span></summary>
 					<div class="aloha-booking-party">
@@ -67,13 +72,13 @@ function aloha_rental_booking( array $rental ): void {
 			<p class="aloha-booking-direct"><?php esc_html_e( 'Book direct with Aloha', 'aloha-hello' ); ?></p>
 			<noscript><p><?php esc_html_e( 'Enable JavaScript to check dates and estimated prices.', 'aloha-hello' ); ?></p></noscript>
 		</div>
-		<dialog id="aloha-booking-calendar" class="aloha-booking-calendar" aria-labelledby="aloha-calendar-title" aria-describedby="aloha-calendar-help">
-			<header><h2 id="aloha-calendar-title"><?php esc_html_e( 'Choose your dates', 'aloha-hello' ); ?></h2><button type="button" data-calendar-close aria-label="<?php esc_attr_e( 'Close calendar', 'aloha-hello' ); ?>">×</button></header>
-			<p id="aloha-calendar-help" data-calendar-help role="status"><?php esc_html_e( 'Choose check-in, then checkout.', 'aloha-hello' ); ?></p>
+		<div id="aloha-booking-calendar" class="aloha-booking-calendar" role="dialog" aria-modal="false" aria-label="<?php esc_attr_e( 'Booking dates', 'aloha-hello' ); ?>" hidden>
+			<button type="button" class="screen-reader-text" data-calendar-close aria-label="<?php esc_attr_e( 'Close calendar', 'aloha-hello' ); ?>">×</button>
+			<p class="screen-reader-text" data-calendar-help role="status" aria-live="polite"></p>
 			<div class="aloha-calendar-loading" data-calendar-loading hidden><span class="aloha-booking-spinner" aria-hidden="true"></span><?php esc_html_e( 'Loading availability…', 'aloha-hello' ); ?></div>
 			<div data-calendar-surface><input data-calendar-input type="text" tabindex="-1" aria-hidden="true" hidden></div>
-			<footer><button type="button" class="aloha-booking-text-button" data-calendar-clear><?php esc_html_e( 'Clear dates', 'aloha-hello' ); ?></button><button type="button" class="aloha-booking-text-button" data-calendar-retry hidden><?php esc_html_e( 'Retry', 'aloha-hello' ); ?></button><button type="button" class="aloha-booking-primary" data-calendar-apply disabled><?php esc_html_e( 'Check availability', 'aloha-hello' ); ?></button></footer>
-		</dialog>
+			<button type="button" class="aloha-booking-text-button" data-calendar-retry hidden><?php esc_html_e( 'Retry', 'aloha-hello' ); ?></button>
+		</div>
 	</aside>
 	<?php
 }

@@ -1,5 +1,7 @@
 # M2.4C.1 — Booking widget and availability calendar
 
+> Calendar presentation, local-first loading and estimate retention are updated by [M2.4C.1a](m2-4c1a-compact-booking-calendar.md). This report preserves the original M2.4C.1 evidence.
+
 Implemented 2026-11-19 on `feature/m2-4b-rental-template`. Bridge dependency: M2.4C.1 / 0.3.15 on `codex/m2-3-rental-data-editor`. No main merge or production deployment.
 
 ## Presentation contract
