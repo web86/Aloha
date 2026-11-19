@@ -274,7 +274,8 @@ async function testMap(context, fixture, screenshots) {
                 assert.ok((await booking.boundingBox()).x > (await facts.boundingBox()).x);
                 assert.equal(await booking.evaluate(node => getComputedStyle(node).position), 'sticky');
                 await main.locator('.aloha-rental-about').scrollIntoViewIfNeeded();
-                assert.ok(Math.abs((await booking.boundingBox()).y - 96) < 4, 'Booking sticky offset at ' + width);
+                const expectedOffset = await booking.evaluate(node => parseFloat(getComputedStyle(node).getPropertyValue('--aloha-booking-offset')));
+                assert.ok(Math.abs((await booking.boundingBox()).y - expectedOffset) < 4, 'Booking sticky offset at ' + width);
             } else {
                 assert.ok((await booking.boundingBox()).y > (await facts.boundingBox()).y);
             }
