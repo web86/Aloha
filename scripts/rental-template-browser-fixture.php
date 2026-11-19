@@ -9,7 +9,7 @@ if (!defined('WP_CLI') || !WP_CLI || wp_get_environment_type() !== 'local' || ho
     exit(1);
 }
 [$operation, $key] = $args + ['', ''];
-if (!in_array($operation, ['create', 'remove', 'map-html', 'unavailable-html', 'description', 'related', 'related-fallback', 'related-expire', 'review-link', 'map-close'], true) || !preg_match('/\Am24-fixture-[a-f0-9]{16}\z/', $key)) {
+if (!in_array($operation, ['create', 'remove', 'map-html', 'unavailable-html', 'description', 'related', 'related-fallback', 'related-expire', 'related-minimum', 'review-link', 'map-close'], true) || !preg_match('/\Am24-fixture-[a-f0-9]{16}\z/', $key)) {
     exit(1);
 }
 global $wpdb;
@@ -69,10 +69,22 @@ if ($operation==='review-link') {
     $assert(RentalEditor::writeSourceMeta($fixture->ID,'_awb_source_data',$source),'Link fixture failed.');return;
 }
 
-if (in_array($operation,['related','related-fallback','related-expire'],true)) {
+if (in_array($operation,['related','related-fallback','related-expire','related-minimum'],true)) {
     $base = get_posts(['post_type'=>'rental','post_status'=>'publish','name'=>$key.'-public','numberposts'=>1])[0] ?? null;
     $assert($base && !in_array($base->ID,[186,365],true),'Synthetic base Rental required.');
     $admin = get_user_by('login',getenv('WP_ADMIN_USER')); wp_set_current_user($admin->ID);
+    if ($operation === 'related-minimum') {
+        foreach (['related-gallery','related-single','related-none'] as $n=>$slug) {
+            $target=get_posts(['post_type'=>'rental','post_status'=>'publish','name'=>$key.'-'.$slug,'numberposts'=>1])[0]??null;
+            $assert($target && !in_array($target->ID,[186,365],true),'Synthetic related price target required.');
+            $source=get_post_meta($target->ID,'_awb_source_data',true);
+            $today=\AlohaWPBridge\Pricing\Calendar::today('Pacific/Honolulu');
+            $source['source']['minimumNightlyPrice']=['status'=>$n===2?'absent':'available','amount'=>'345.00','currency'=>'USD','periodStart'=>$today,'periodEnd'=>\AlohaWPBridge\Pricing\Calendar::add($today,364),'calculatedAt'=>gmdate(DATE_ATOM),'source'=>'open-calendar'];
+            $source['staleSections']['minimumNightlyPrice']=$n===1;
+            $assert(RentalEditor::writeSourceMeta($target->ID,'_awb_source_data',$source),'Related minimum fixture failed.');
+        }
+        return;
+    }
     if ($operation === 'related-expire') {
         $target=get_posts(['post_type'=>'rental','post_status'=>'publish','name'=>$key.'-related-gallery','numberposts'=>1])[0]??null;
         $assert((bool)$target,'Expiry fixture missing.');update_post_meta($target->ID,AlohaWPBridge\RentalListingBadge::FIRST,gmdate('Y-m-d\TH:i:s\Z',time()-8*DAY_IN_SECONDS));return;

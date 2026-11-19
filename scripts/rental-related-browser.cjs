@@ -76,6 +76,9 @@ function fixture(action,...args){const r=spawnSync('./bin/local',['wp','eval-fil
  fixture('review-link','no-url');await page.reload();assert.equal(await page.getByRole('link',{name:'View all reviews for this home on Airbnb (opens in a new tab)'}).count(),0);
  assert.equal(await page.locator('.aloha-rental-review figcaption').first().innerText(),'Anna · Family trip · October 2026');
  assert.equal(await page.locator('.aloha-rental-review figcaption').last().innerText(),'October 2026');
+ fixture('related-minimum');await page.reload();
+ assert.match(await cards.first().locator('.aloha-related-price').innerText(),/from.*345.*night/);
+ assert.equal(await section.locator('.aloha-related-price').filter({hasText:'Check dates for pricing'}).count(),2);
  assert.equal(external.filter(h=>h.includes('guesty')).length,0);
  console.log('PASS: related Area selection/exclusions, local visible ordered photos, two independent carousels, arrows/dots/swipe/keyboard/cache, 0/1/multiple images, NEW expiry/LUXE, accessible highlights, image sizes, CLS='+cls.toFixed(4)+', Airbnb confirmed/unknown/missing link states.');
  }finally{fixture('remove');await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

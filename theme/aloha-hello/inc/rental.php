@@ -216,19 +216,17 @@ function aloha_rental_related_card( array $item ): void {
 				<?php if ( $value !== null ) : ?><li><?php echo esc_html( sprintf( $label, $value ) ); ?></li><?php endif; ?>
 			<?php endforeach; ?>
 		</ul>
-		<?php aloha_rental_related_price(); ?>
+		<?php aloha_rental_related_price( $item['minimumNightlyPrice'] ?? null ); ?>
 	</article>
 	<?php
 }
 
 /** The shared source minimum is observed pricing, never an inferred stay total. */
 function aloha_rental_related_price( ?array $pricing = null ): void {
-	$valid = $pricing && ( $pricing['perNight'] ?? null ) === true && is_numeric( $pricing['amount'] ?? null )
-		&& is_finite( (float) $pricing['amount'] ) && (float) $pricing['amount'] > 0
-		&& is_string( $pricing['currency'] ?? null ) && preg_match( '/^[A-Z]{3}$/', $pricing['currency'] );
+	$valid = $pricing && ( $pricing['status'] ?? '' ) === 'available' && aloha_rental_money( $pricing ) !== '';
 	?>
 	<p class="aloha-related-price"><?php if ( $valid ) : ?>
-		<?php esc_html_e( 'from', 'aloha-hello' ); ?> <strong><?php echo esc_html( $pricing['currency'] . ' ' . number_format_i18n( (float) $pricing['amount'], 2 ) ); ?></strong> <?php esc_html_e( '/ night', 'aloha-hello' ); ?>
+		<?php esc_html_e( 'from', 'aloha-hello' ); ?> <strong><?php echo esc_html( aloha_rental_money( $pricing ) ); ?></strong> <?php esc_html_e( '/ night', 'aloha-hello' ); ?>
 	<?php else : ?><?php esc_html_e( 'Check dates for pricing', 'aloha-hello' ); ?><?php endif; ?></p>
 	<?php
 }
