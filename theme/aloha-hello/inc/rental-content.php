@@ -18,8 +18,8 @@ function aloha_rental_overview( array $rental ): void {
 	}
 	?>
 	<dl class="aloha-rental-facts" aria-label="<?php esc_attr_e( 'Property overview', 'aloha-hello' ); ?>">
-		<?php foreach ( $facts as [ $label, $value, $unit ] ) : ?>
-			<div><dt><?php echo esc_html( $label ); ?></dt><dd>
+		<?php foreach ( $facts as $index => [ $label, $value, $unit ] ) : ?>
+			<div<?php echo $index >= 4 ? ' class="aloha-rental-fact-custom"' : ''; ?>><dt><?php echo esc_html( $label ); ?></dt><dd>
 				<strong><?php echo esc_html( $value ?? '—' ); ?></strong>
 				<?php if ( $unit !== '' ) : ?><span><?php echo esc_html( $unit ); ?></span><?php endif; ?>
 			</dd></div>
@@ -94,7 +94,7 @@ function aloha_rental_amenities( array $amenities ): void {
 	$overflow = false;
 	$count = array_sum( array_map( static fn( $group ) => count( $group['items'] ), $groups ) );
 	?>
-	<section class="aloha-rental-section" aria-labelledby="aloha-rental-amenities-title" data-rental-disclosure>
+	<section class="aloha-rental-section aloha-rental-amenities-section" aria-labelledby="aloha-rental-amenities-title" data-rental-disclosure>
 		<h2 id="aloha-rental-amenities-title"><?php echo wp_kses( __( "What's <em>included</em>", 'aloha-hello' ), array( 'em' => array() ) ); ?></h2>
 		<div class="aloha-rental-amenities" id="<?php echo esc_attr( $id ); ?>">
 			<?php foreach ( $groups as $index => $group ) : $hide_group = $index >= 6; ?>
@@ -147,7 +147,7 @@ function aloha_rental_nearby( array $places, ?array $home = null, string $title 
 								<button class="aloha-rental-place-button" type="button" hidden data-map-point="<?php echo esc_attr( $index ); ?>" aria-pressed="false" aria-controls="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $place['name'] ); ?></button>
 							<?php endif; ?>
 						</div>
-						<?php if ( $place['minutes'] !== null ) : ?><strong><?php echo esc_html( $place['minutes'] . ' ' . $place['mode'] ); ?></strong><?php endif; ?>
+						<?php if ( $place['minutes'] !== null ) : ?><span class="aloha-rental-travel-time"><?php echo esc_html( $place['minutes'] . ' ' . $place['mode'] ); ?></span><?php endif; ?>
 					</li>
 				<?php endforeach; ?>
 			</ol>
