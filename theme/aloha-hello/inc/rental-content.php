@@ -190,7 +190,10 @@ function aloha_rental_reviews( array $rental ): void {
 				<blockquote><?php foreach ( $review['text'] as $part => $line ) : ?>
 					<p><?php echo esc_html( $line ); ?></p>
 				<?php endforeach; ?></blockquote>
-				<figcaption><?php echo esc_html( $review['channel'] ); ?>
+				<figcaption><?php
+					$parts = array_filter( array( $review['name'] ?? '', $review['tripType'] ?? '', $review['channel'] ) );
+					echo esc_html( implode( ' · ', $parts ) );
+				?>
 					<?php if ( $review['date'] ) : ?> · <time datetime="<?php echo esc_attr( $review['date'] ); ?>"><?php echo esc_html( wp_date( 'F Y', strtotime( $review['date'] . ' UTC' ) ) ); ?></time><?php endif; ?>
 				</figcaption>
 			</figure>
