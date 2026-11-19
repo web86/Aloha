@@ -221,46 +221,39 @@ function aloha_rental_contact( array $rental ): void {
 
 function aloha_rental_rules( array $rental ): void {
 	$source = $rental['houseRules'];
-	$info = $rental['guestInformation'] ?? array();
 	$value = static fn( $key ) => in_array( $source[ $key ]['status'] ?? '', array( 'available', 'stale' ), true ) ? ( $source[ $key ]['value'] ?? null ) : null;
 	$times = array();
 	foreach ( array( 'checkIn' => __( 'In', 'aloha-hello' ), 'checkOut' => __( 'Out', 'aloha-hello' ) ) as $key => $label ) {
 		if ( is_string( $value( $key ) ) && $value( $key ) !== '' ) { $times[] = $label . ' ' . $value( $key ); }
 	}
-	$summary = array_filter( array(
-		__( 'Check-in / out', 'aloha-hello' ) => implode( ' / ', $times ),
-		__( 'Cancellation', 'aloha-hello' ) => $info['cancellation'] ?? '',
-		__( 'Deposit', 'aloha-hello' ) => $info['deposit'] ?? '',
-	) );
 	$rules = array();
+	foreach ( $rental['additionalHouseRules'] ?? array() as $row ) {
+		if ( $row['title'] !== '' && $row['value'] !== '' ) { $rules[] = array( $row['title'], $row['value'] ); }
+	}
+	if ( $times ) { $rules[] = array( __( 'Check-in / out', 'aloha-hello' ), implode( ' / ', $times ) ); }
 	foreach ( array( 'smokingAllowed' => __( 'Smoking', 'aloha-hello' ), 'petsAllowed' => __( 'Pets', 'aloha-hello' ),
 		'eventsAllowed' => __( 'Events', 'aloha-hello' ), 'suitableForChildren' => __( 'Children', 'aloha-hello' ),
 		'suitableForInfants' => __( 'Infants', 'aloha-hello' ) ) as $key => $label ) {
-		if ( is_bool( $value( $key ) ) ) { $rules[ $label ] = $value( $key ) ? __( 'Allowed', 'aloha-hello' ) : __( 'Not allowed', 'aloha-hello' ); }
+		if ( is_bool( $value( $key ) ) ) { $rules[] = array( $label, $value( $key ) ? __( 'Allowed', 'aloha-hello' ) : __( 'Not allowed', 'aloha-hello' ) ); }
 	}
-	if ( is_numeric( $value( 'minimumAge' ) ) ) { $rules[ __( 'Minimum guest age', 'aloha-hello' ) ] = $value( 'minimumAge' ); }
+	if ( is_numeric( $value( 'minimumAge' ) ) ) { $rules[] = array( __( 'Minimum guest age', 'aloha-hello' ), $value( 'minimumAge' ) ); }
 	if ( $value( 'quietHoursEnabled' ) === true && $value( 'quietHoursStart' ) && $value( 'quietHoursEnd' ) ) {
-		$rules[ __( 'Quiet hours', 'aloha-hello' ) ] = $value( 'quietHoursStart' ) . '–' . $value( 'quietHoursEnd' );
+		$rules[] = array( __( 'Quiet hours', 'aloha-hello' ), $value( 'quietHoursStart' ) . '–' . $value( 'quietHoursEnd' ) );
 	}
 	foreach ( array( 'checkInEnd' => __( 'Check-in closes', 'aloha-hello' ), 'timezone' => __( 'Local timezone', 'aloha-hello' ) ) as $key => $label ) {
-		if ( is_string( $value( $key ) ) && $value( $key ) !== '' ) { $rules[ $label ] = $value( $key ); }
+		if ( is_string( $value( $key ) ) && $value( $key ) !== '' ) { $rules[] = array( $label, $value( $key ) ); }
 	}
-	if ( ! $summary && ! $rules ) { return; }
+	if ( ! $rules ) { return; }
 	$id = wp_unique_id( 'aloha-rental-rules-' );
 	?>
 	<section class="aloha-rental-section" aria-labelledby="aloha-rental-rules-title" data-rental-disclosure>
 		<h2 id="aloha-rental-rules-title"><?php echo wp_kses( __( 'House <em>rules</em>', 'aloha-hello' ), array( 'em' => array() ) ); ?></h2>
-		<dl class="aloha-rental-rule-summary"><?php foreach ( $summary as $label => $text ) : ?>
-			<div><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo esc_html( $text ); ?></dd></div>
-		<?php endforeach; ?></dl>
-		<?php if ( $rules ) : ?>
-			<div id="<?php echo esc_attr( $id ); ?>" data-rental-extra>
-				<dl class="aloha-rental-rules"><?php foreach ( $rules + $summary as $label => $text ) : ?>
-					<div><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo esc_html( $text ); ?></dd></div>
-				<?php endforeach; ?></dl>
-			</div>
-			<?php aloha_rental_more_button( $id, __( 'All house rules & guest info →', 'aloha-hello' ) ); ?>
-		<?php endif; ?>
+		<dl class="aloha-rental-rule-summary" id="<?php echo esc_attr( $id ); ?>">
+			<?php foreach ( $rules as $index => [ $label, $text ] ) : ?>
+				<div<?php echo $index >= 3 ? ' data-rental-extra' : ''; ?>><dt><?php echo esc_html( $label ); ?></dt><dd><?php echo nl2br( esc_html( $text ) ); ?></dd></div>
+			<?php endforeach; ?>
+		</dl>
+		<?php if ( count( $rules ) > 3 ) { aloha_rental_more_button( $id, __( 'All house rules & guest info →', 'aloha-hello' ) ); } ?>
 	</section>
 	<?php
 }

@@ -208,6 +208,8 @@ foreach (['public', 'draft', 'empty'] as $mode) {
                 ...array_map(static fn ($name) => ['name' => $name, 'amenities' => ['Fixture ' . $name]],
                     ['Kitchen', 'Comfort', 'Entertainment', 'Family', 'Safety', 'Workspace']),
             ], 'unmapped' => []],
+            'airbnb' => ['status'=>'available','value'=>['url'=>'https://www.airbnb.com/rooms/123456789','count'=>86,'countStatus'=>'available']],
+            'publicLocation' => ['status'=>'available','value'=>['lat'=>19.111111,'lng'=>-155.222222]],
             'houseRules' => ['petsAllowed' => $available(false), 'minimumAge' => $available(25),
                 'checkIn' => $available('16:00'), 'checkOut' => $available('10:00'),
                 'additionalRules' => $available('PRIVATE_FIXTURE_RULES')],
