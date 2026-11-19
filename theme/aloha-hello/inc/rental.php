@@ -2,6 +2,7 @@
 /** Rental detail presentation. All provider data comes from the local Bridge projection. */
 defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/rental-content.php';
+require_once __DIR__ . '/rental-booking.php';
 
 // These local faces are all used above the fold. Preload them only on Rental pages
 // so fallback-font wrapping does not move the facts and gallery after first paint.
@@ -24,6 +25,10 @@ add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_script( 'aloha-rental-gallery', get_theme_file_uri( $js ), array( 'aloha-media-dialog' ), (string) filemtime( get_theme_file_path( $js ) ), true );
 	$content = 'assets/js/rental-content.js';
 	wp_enqueue_script( 'aloha-rental-content', get_theme_file_uri( $content ), array( 'aloha-embla' ), (string) filemtime( get_theme_file_path( $content ) ), true );
+	wp_enqueue_style( 'aloha-flatpickr', get_theme_file_uri( 'assets/lib/flatpickr/flatpickr.min.css' ), array(), '4.6.13' );
+	wp_enqueue_script( 'aloha-flatpickr', get_theme_file_uri( 'assets/lib/flatpickr/flatpickr.min.js' ), array(), '4.6.13', true );
+	wp_enqueue_style( 'aloha-rental-booking', get_theme_file_uri( 'assets/css/rental-booking.css' ), array( 'aloha-rental', 'aloha-flatpickr' ), (string) filemtime( get_theme_file_path( 'assets/css/rental-booking.css' ) ) );
+	wp_enqueue_script( 'aloha-rental-booking', get_theme_file_uri( 'assets/js/rental-booking.js' ), array( 'aloha-flatpickr' ), (string) filemtime( get_theme_file_path( 'assets/js/rental-booking.js' ) ), true );
 	$map = 'assets/js/rental-map.js';
 	wp_register_script( 'aloha-rental-map', get_theme_file_uri( $map ), array(), (string) filemtime( get_theme_file_path( $map ) ), true );
 } );
@@ -216,7 +221,7 @@ function aloha_rental_related_card( array $item ): void {
 	<?php
 }
 
-/** A future verified Pricing DTO may supply amount/currency/perNight; never infer a rate. */
+/** The shared source minimum is observed pricing, never an inferred stay total. */
 function aloha_rental_related_price( ?array $pricing = null ): void {
 	$valid = $pricing && ( $pricing['perNight'] ?? null ) === true && is_numeric( $pricing['amount'] ?? null )
 		&& is_finite( (float) $pricing['amount'] ) && (float) $pricing['amount'] > 0
@@ -291,14 +296,7 @@ function aloha_rental_detail_render( $attributes, $content, $block ): string {
 		<div class="aloha-container"><?php echo $gallery; // Escaped inside renderer. ?></div>
 		<div class="aloha-container aloha-rental-body">
 			<?php aloha_rental_overview( $rental ); ?>
-			<aside class="aloha-rental-booking" aria-labelledby="aloha-rental-booking-title">
-				<div class="aloha-rental-booking-card">
-					<p class="aloha-eyebrow"><?php esc_html_e( 'Plan your stay', 'aloha-hello' ); ?></p>
-					<h2 id="aloha-rental-booking-title"><?php esc_html_e( 'Stay with Aloha', 'aloha-hello' ); ?></h2>
-					<p><?php esc_html_e( 'Availability and pricing will be available here once the booking integration is connected.', 'aloha-hello' ); ?></p>
-					<p class="aloha-rental-booking-note"><?php esc_html_e( 'Online reservations and payments are not enabled yet.', 'aloha-hello' ); ?></p>
-				</div>
-			</aside>
+			<?php aloha_rental_booking( $rental ); ?>
 			<div class="aloha-rental-content">
 				<?php aloha_rental_highlights( $rental['highlights'] ); ?>
 				<?php aloha_rental_about( $rental ); ?>
