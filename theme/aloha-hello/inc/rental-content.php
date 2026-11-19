@@ -70,7 +70,7 @@ function aloha_rental_more_button( string $controls, string $label, string $clos
 function aloha_rental_about( array $rental ): void {
 	$html = $rental['aboutHtml'] ?? '';
 	if ( $html === '' ) { return; }
-	$location = $rental['community']['name'] ?? $rental['area']['name'] ?? '';
+	$location = $rental['area']['name'] ?? '';
 	$emphasis = '<em>' . esc_html__( 'vacation rental', 'aloha-hello' ) . '</em>';
 	$title = $location ? sprintf( esc_html__( 'About this %1$s %2$s', 'aloha-hello' ), esc_html( $location ), $emphasis )
 		: sprintf( esc_html__( 'About this %s', 'aloha-hello' ), $emphasis );
@@ -190,11 +190,12 @@ function aloha_rental_reviews( array $rental ): void {
 				<blockquote><?php foreach ( $review['text'] as $part => $line ) : ?>
 					<p><?php echo esc_html( $line ); ?></p>
 				<?php endforeach; ?></blockquote>
+				<span class="screen-reader-text"><?php echo esc_html( sprintf( __( 'Review source: %s', 'aloha-hello' ), $review['channel'] ) ); ?></span>
 				<figcaption><?php
-					$parts = array_filter( array( $review['name'] ?? '', $review['tripType'] ?? '', $review['channel'] ) );
+					$parts = array_filter( array( $review['name'] ?? '', $review['tripType'] ?? '' ) );
 					echo esc_html( implode( ' · ', $parts ) );
 				?>
-					<?php if ( $review['date'] ) : ?> · <time datetime="<?php echo esc_attr( $review['date'] ); ?>"><?php echo esc_html( wp_date( 'F Y', strtotime( $review['date'] . ' UTC' ) ) ); ?></time><?php endif; ?>
+					<?php if ( $review['date'] ) : ?><?php echo $parts ? ' · ' : ''; ?><time datetime="<?php echo esc_attr( $review['date'] ); ?>"><?php echo esc_html( wp_date( 'F Y', strtotime( $review['date'] . ' UTC' ) ) ); ?></time><?php endif; ?>
 				</figcaption>
 			</figure>
 		<?php endforeach; ?></div>

@@ -148,7 +148,7 @@ function aloha_rental_related( array $rental ): string {
 	?>
 	<section class="aloha-rental-related aloha-section--unit" aria-labelledby="aloha-rental-related-title">
 		<div class="aloha-container">
-			<h2 id="aloha-rental-related-title"><?php esc_html_e( 'More vacation rentals', 'aloha-hello' ); ?></h2>
+			<h2 id="aloha-rental-related-title"><?php esc_html_e( 'More vacation rentals', 'aloha-hello' ); ?><?php if ( ! empty( $rental['area']['name'] ) ) : ?> <em><?php echo esc_html( sprintf( __( 'in %s', 'aloha-hello' ), $rental['area']['name'] ) ); ?></em><?php endif; ?></h2>
 			<div class="aloha-rental-related-grid">
 				<?php foreach ( $items as $item ) :
 					$cover = $item['gallery']['photos'][0]['image'] ?? $item['featuredImage'];

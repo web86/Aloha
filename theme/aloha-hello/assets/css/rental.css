@@ -109,7 +109,7 @@
 .aloha-rental-contact-avatar { display: grid; place-items: center; background: #f3f6f6; color: var(--aloha-color-brand); font-size: 2rem; }
 .aloha-rental-contact h2 { font: 400 clamp(1.7rem,3vw,2rem)/1.15 var(--wp--preset--font-family--instrument-serif); margin: 0 0 6px; }
 .aloha-rental-contact p { margin: 0; font-size: 16px; opacity: .85; line-height: 1.5; }
-.aloha-rental-contact > a { display: inline-flex; align-items: center; min-height: 42px; margin-block-start: 20px; padding: 4px 16px; border: 1.5px solid transparent; border-radius: 99px; color: #f3f6f6; text-decoration: none; }
+.aloha-rental-contact > a { display: inline-flex; align-items: center; min-height: 42px; margin-block-start: 20px; padding: 4px 16px; border: 1.5px solid #f3f6f6; border-radius: 99px; color: #f3f6f6; text-decoration: none; }
 .aloha-rental-contact > a:hover { background: #ffffff18; }
 .aloha-rental-contact a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .aloha-rental-rules { margin: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 22px; }
@@ -171,5 +171,5 @@
  .aloha-rental-gallery .aloha-gallery-photo img { transition: opacity 180ms ease, transform 420ms cubic-bezier(.2,.65,.3,1); }
 }
 
-.aloha-rental-amenities-section .aloha-rental-more-button { margin-top: 32px; color: #16232a; min-height: 52px; padding: 0 28px; border-radius: 999px; font-weight: 600; font-size: 16px; border: 1.5px solid transparent; }
+.aloha-rental-amenities-section .aloha-rental-more-button { margin-top: 32px; color: #16232a; min-height: 52px; padding: 0 28px; border-radius: 999px; font-weight: 600; font-size: 16px; border: 1.5px solid #16232a; }
 .aloha-rental-amenities-section .aloha-rental-more-button:hover { background: #e4eef0; }
