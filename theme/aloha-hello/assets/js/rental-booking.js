@@ -27,10 +27,11 @@
     const date = value => new Date(`${value}T12:00:00`);
     const add = (value, n) => { const d = date(value); d.setDate(d.getDate() + n); return iso(d); };
     const nights = (start, end) => (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000;
-    const money = (amount, currency, compact = false) => new Intl.NumberFormat(document.documentElement.lang || 'en-US', {
+    const locale = (document.documentElement.lang || config.locale || 'en-US').replace('_', '-');
+    const money = (amount, currency, compact = false) => new Intl.NumberFormat(locale, {
         style: 'currency', currency, ...(compact ? {maximumFractionDigits: 0, minimumFractionDigits: 0} : {}),
     }).format(Number(amount)); // Formatting only; all sums/discounts/rounding are server-side integer arithmetic.
-    const shortDate = value => date(value).toLocaleDateString(undefined, {month: 'short', day: 'numeric'});
+    const shortDate = value => new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric'}).format(date(value));
     const message = text => { find('[data-booking-status]').textContent = text; };
     const calendarHelp = text => { find('[data-calendar-help]').textContent = text; };
     function invalidate() {
@@ -48,8 +49,17 @@
     function updateDates() {
         find('[data-check-in]').textContent = state.in ? shortDate(state.in) : 'Add date';
         find('[data-check-out]').textContent = state.out ? shortDate(state.out) : 'Add date';
-        if (state.in && state.out) find('[data-booking-heading]').textContent = `${shortDate(state.in)} – ${shortDate(state.out)} · ${nights(state.in, state.out)} nights`;
-        else find('[data-booking-heading]').replaceChildren(...[...originalHeading.childNodes].map(node => node.cloneNode(true)));
+        const heading = find('[data-booking-heading]');
+        heading.classList.toggle('aloha-booking-period', Boolean(state.in && state.out));
+        if (state.in && state.out) {
+            const start = date(state.in), end = date(state.out), count = nights(state.in, state.out);
+            const formatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', ...(start.getFullYear() !== end.getFullYear() ? {year: 'numeric'} : {})});
+            const period = document.createElement('strong');
+            period.textContent = formatter.formatRange(start, end).replace(/\s*–\s*/g, ' – ');
+            const length = document.createElement('span');
+            length.textContent = '· ' + window.wp.i18n.sprintf(window.wp.i18n._n('%s night', '%s nights', count, 'aloha-hello'), new Intl.NumberFormat(locale).format(count));
+            heading.replaceChildren(period, length);
+        } else heading.replaceChildren(...[...originalHeading.childNodes].map(node => node.cloneNode(true)));
     }
     function party() {
         const adults = Number(inputs.adults.value), children = Number(inputs.children.value);
@@ -347,7 +357,9 @@
         }
         const label = document.createElement('dt'); label.textContent = 'Total'; label.className = 'aloha-price-total';
         const amount = document.createElement('dd'); amount.textContent = money(payload.estimatedTotal, payload.currency); amount.className = 'aloha-price-total'; lines.append(label, amount);
-        find('[data-price-detail-note]').textContent = payload.notices.join(' ');
+        const note = find('[data-price-detail-note]');
+        note.textContent = payload.status === 'partial' ? config.partialNotice : '';
+        note.hidden = payload.status !== 'partial';
         find('[data-booking-price]').hidden = false;
         find('[data-action-text]').textContent = 'Book now';
         find('[data-booking-charge]').hidden = false;

@@ -1,5 +1,7 @@
 # M2.4C.1c — Range calendar and booking widget polish
 
+Follow-up: [M2.4C.1d — site-language date heading and compact Price details](m2-4c1d-date-header-price-breakdown.md).
+
 Extends Aloha `1d1e2fc` on the existing remote branch `feature/m2-4b-rental-template`. Implementation and browser checks: **`e754bcb`**. Bridge remains **0.3.17**, commit **`6e3c861`**, with no source or contract changes. Both integration worktrees were clean at the start; the separate root checkout's existing WIP was preserved.
 
 ## Calendar selection

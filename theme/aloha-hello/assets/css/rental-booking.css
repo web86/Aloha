@@ -4,6 +4,9 @@
 .aloha-booking-top { display: flex; flex-wrap: nowrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 18px; }
 .aloha-booking-top p { flex: 1; min-width: 0; margin: 0; font-size: 1rem; line-height: 1.3; }
 .aloha-booking-top strong { font-size: 1.65rem; letter-spacing: -.04em; }
+.aloha-booking-top .aloha-booking-period { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; }
+.aloha-booking-top .aloha-booking-period strong { font-size: 22px; font-weight: 600; line-height: 1.3; letter-spacing: 0; }
+.aloha-booking-period > span { font-size: 16px; font-weight: 400; line-height: 1.3; color: #59666c; white-space: nowrap; }
 .aloha-booking-from { font-size: .85rem; color: #59666c; }
 .aloha-booking-instant { display: inline-flex; flex: 0 0 auto; align-items: baseline; gap: 4px; color: var(--aloha-color-brand); font-size: .75rem; line-height: 1.3; font-weight: 600; white-space: nowrap; }
 .aloha-booking-instant > span { color: #ffb522; font-size: 1.1rem; line-height: 1; }
@@ -38,7 +41,7 @@
 .aloha-booking-breakdown > summary { color: var(--aloha-color-brand); cursor: pointer; font-size: .95rem; text-decoration: underline; width: fit-content; }
 .aloha-booking-breakdown > div { padding: 18px 0 4px; }
 .aloha-booking-breakdown h3 { font-size: 1.15rem; margin: 0 0 15px; }
-.aloha-booking-breakdown dl { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px 12px; font-size: .9rem; }
+.aloha-booking-breakdown dl { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; font-size: 1rem; }
 .aloha-booking-breakdown dt, .aloha-booking-breakdown dd { margin: 0; overflow-wrap: anywhere; }
 .aloha-booking-breakdown dd { text-align: right; }
 .aloha-booking-breakdown .aloha-price-total { padding-top: 15px; border-top: 1px solid #d8e2e3; font-weight: 700; }

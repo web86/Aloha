@@ -28,7 +28,8 @@ add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_style( 'aloha-flatpickr', get_theme_file_uri( 'assets/lib/flatpickr/flatpickr.min.css' ), array(), '4.6.13' );
 	wp_enqueue_script( 'aloha-flatpickr', get_theme_file_uri( 'assets/lib/flatpickr/flatpickr.min.js' ), array(), '4.6.13', true );
 	wp_enqueue_style( 'aloha-rental-booking', get_theme_file_uri( 'assets/css/rental-booking.css' ), array( 'aloha-rental', 'aloha-flatpickr' ), (string) filemtime( get_theme_file_path( 'assets/css/rental-booking.css' ) ) );
-	wp_enqueue_script( 'aloha-rental-booking', get_theme_file_uri( 'assets/js/rental-booking.js' ), array( 'aloha-flatpickr' ), (string) filemtime( get_theme_file_path( 'assets/js/rental-booking.js' ) ), true );
+	wp_enqueue_script( 'aloha-rental-booking', get_theme_file_uri( 'assets/js/rental-booking.js' ), array( 'aloha-flatpickr', 'wp-i18n' ), (string) filemtime( get_theme_file_path( 'assets/js/rental-booking.js' ) ), true );
+	wp_set_script_translations( 'aloha-rental-booking', 'aloha-hello', get_theme_file_path( 'languages' ) );
 	$map = 'assets/js/rental-map.js';
 	wp_register_script( 'aloha-rental-map', get_theme_file_uri( $map ), array(), (string) filemtime( get_theme_file_path( $map ) ), true );
 } );

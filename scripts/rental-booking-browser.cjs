@@ -138,7 +138,7 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
             mode = 'partial'; await widget.locator('[data-guests-done]').click();
             await widget.locator('[data-total-amount]').getByText(/4,600/).waitFor();
             assert.equal(await widget.locator('[data-booking-status]').isVisible(), false);
-            assert.match(await widget.locator('[data-price-detail-note]').textContent(), /Detailed price breakdown is temporarily unavailable/);
+            assert.match(await widget.locator('[data-price-detail-note]').textContent(), /Some charges are not itemized yet/);
             await widget.screenshot({path: join(evidence, `booking-partial-${width}.png`)});
             // Error never retains the previous confirmed amount.
             mode = 'unavailable'; await widget.locator('.aloha-booking-guests summary').click();
