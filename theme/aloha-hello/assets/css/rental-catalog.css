@@ -1,0 +1,74 @@
+.aloha-catalog { padding-block: 28px 0; }
+.aloha-catalog [hidden] { display: none !important; }
+.aloha-catalog-breadcrumb { font-size: 13px; margin-bottom: 20px; }
+.aloha-catalog-breadcrumb a { color: inherit; }
+.aloha-catalog h1 { margin: 0 0 14px; font: 400 clamp(2.8rem,4.6vw,4.5rem)/1.04 var(--wp--preset--font-family--instrument-serif); }
+.aloha-catalog-intro { max-width: 760px; margin: 0 0 18px; line-height: 1.65; }
+.aloha-catalog-filters { display: flex; align-items: center; gap: 16px; background: var(--aloha-color-surface); padding: 14px 16px 14px 24px; border-radius: 38px; box-shadow: 0 7px 24px #16232a0c; }
+.aloha-catalog-filters > label, .aloha-catalog-guests { flex: 1; min-width: 0; }
+.aloha-catalog-filters label, .aloha-catalog-filters legend { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.aloha-catalog-filters input, .aloha-catalog-filters select { display: block; width: 100%; min-height: 44px; border: 0; background: transparent; color: var(--aloha-color-text); font-size: 14px; letter-spacing: normal; }
+.aloha-catalog-filters input:disabled { opacity: .65; }
+.aloha-catalog-guests { display: flex; gap: 12px; }
+.aloha-catalog-guests label { min-width: 0; width: 50%; }
+.aloha-catalog-filters fieldset { flex: 0 0 auto; border: 0; padding: 0; margin: 0; min-width: 0; }
+.aloha-catalog-filters legend { margin-bottom: 6px; }
+.aloha-catalog-filters fieldset label { display: inline-block; position: relative; }
+.aloha-catalog-filters fieldset input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.aloha-catalog-filters fieldset span { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 1px solid var(--aloha-color-border); border-radius: 99px; font-size: 13px; letter-spacing: normal; }
+.aloha-catalog-filters input:checked + span { color: white; background: var(--aloha-color-text); }
+.aloha-catalog-filters input:focus-visible + span { outline: 3px solid var(--aloha-color-brand); outline-offset: 2px; }
+.aloha-catalog-note { font-size: 12px; color: var(--wp--custom--color--muted); margin: 12px 0 24px; }
+.aloha-catalog-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.aloha-catalog-layout.is-map-hidden { grid-template-columns: minmax(0,1fr); }
+.aloha-catalog-results { min-width: 0; }
+.aloha-catalog-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; font-size: 14px; }
+.aloha-catalog-toolbar p { margin: 0 auto 0 0; font-weight: 600; }
+.aloha-catalog-sort { font-size: 12px; }
+.aloha-catalog-toolbar button { font-size: 12px; min-height: 44px; padding: 8px 16px; }
+.aloha-catalog-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 14px; font-size: 12px; }
+.aloha-catalog-chips a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 12px; background: var(--aloha-color-surface-soft); border-radius: 99px; color: inherit; text-decoration: none; }
+.aloha-catalog-chips [data-catalog-clear] { background: transparent; padding-inline: 0; text-decoration: underline; }
+.aloha-catalog-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 24px; }
+.aloha-catalog-grid .aloha-rental-related-card h3 { font-size: clamp(25px,2.4vw,30px); }
+.aloha-catalog-grid .aloha-related-facts { font-size: 13px; gap: 6px 12px; }
+.aloha-catalog-grid .aloha-related-arrow { width: 44px; height: 44px; min-height: 44px; }
+.aloha-catalog-grid .aloha-related-dots button { width: 30px; min-width: 30px; height: 44px; min-height: 44px; }
+.aloha-catalog-empty { padding: 40px 24px; border: 1px solid var(--aloha-color-border); border-radius: var(--aloha-radius-card); }
+.aloha-catalog-map { min-width: 0; align-self: stretch; }
+.aloha-catalog-map-sticky { position: sticky; top: 110px; min-height: 540px; height: min(740px,calc(100vh - 140px)); overflow: hidden; border-radius: 10px; background: linear-gradient(105deg,#a8ccd7 0 25%,#dce9e4 25% 100%); }
+[data-catalog-map-surface] { width: 100%; height: 100%; }
+[data-catalog-map-message] { padding: 40px; position: absolute; inset: 20% 0 auto; text-align: center; font-size: 15px; }
+.aloha-catalog-legend { position: absolute; inset: auto 12px 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px 14px; padding: 10px; border-radius: 6px; background: #fffffff2; font-size: 11px; pointer-events: none; }
+.aloha-catalog-legend small { flex-basis: 100%; text-align: center; }
+.aloha-catalog-marker { display: grid; place-items: center; max-width: 170px; min-height: 36px; padding: 8px 12px; border-radius: 99px; background: white; border: 1px solid #c5d4d6; box-shadow: 0 2px 5px #16232a30; color: #16232a; font: 600 12px/1.2 var(--wp--preset--font-family--outfit); text-decoration: none; }
+.aloha-catalog-marker.is-neutral { width: 14px; height: 14px; min-height: 14px; padding: 0; border: 2px solid white; background: #8ba4ab; }
+.aloha-catalog-marker.is-neutral::before { content: ''; position: absolute; width: 44px; height: 44px; }
+.aloha-catalog-help { margin-top: 20px; max-width: 660px; padding: 32px; border-radius: 8px; background: var(--aloha-color-brand); color: var(--aloha-color-page); }
+.aloha-catalog-help h2 { font-size: 32px; margin: 0 0 8px; }
+.aloha-catalog-help p { margin: 0 0 18px; font-size: 16px; }
+.aloha-catalog-benefits { padding-block: 90px 130px; }
+.aloha-catalog-benefits > h2 { font-size: clamp(40px,4vw,56px); margin-bottom: 44px; }
+.aloha-catalog-benefits .wp-block-column { border-top: 1px solid var(--aloha-color-border); padding-top: 20px; }
+.aloha-catalog-benefits h3 { font-family: var(--wp--preset--font-family--outfit); font-size: 20px; margin: 0 0 8px; }
+.aloha-catalog-benefits p { font-size: 16px; margin: 0; }
+@media(max-width:1199px) {
+ .aloha-catalog-filters { flex-wrap: wrap; border-radius: 20px; }
+ .aloha-catalog-dates { flex-basis: 100% !important; }
+ .aloha-catalog-layout { gap: 24px; grid-template-columns: minmax(0,1.3fr) minmax(0,1fr); }
+}
+@media(max-width:1023px) {
+ .aloha-catalog-layout { grid-template-columns: minmax(0,1fr); }
+ .aloha-catalog-map-sticky { position: relative; top: 0; height: 420px; min-height: 420px; }
+ .aloha-catalog-map { grid-row: 2; }
+}
+@media(max-width:599px) {
+ .aloha-catalog { padding-top: 24px; }
+ .aloha-catalog-filters { gap: 16px; padding: 20px; align-items: stretch; }
+ .aloha-catalog-filters > label, .aloha-catalog-guests { flex: 1 1 100%; }
+ .aloha-catalog-filters > button { flex: 1 1 100%; }
+ .aloha-catalog-filters fieldset { width: 100%; }
+ .aloha-catalog-grid { grid-template-columns: minmax(0,1fr); }
+ .aloha-catalog-map-sticky { height: 350px; min-height: 350px; }
+ .aloha-catalog-benefits { padding-block: 60px 80px; }
+}

@@ -17,14 +17,14 @@ add_filter( 'wp_preload_resources', function ( $resources ) {
 add_action( 'wp_enqueue_scripts', function () {
 	if ( ! is_singular( 'rental' ) ) { return; }
 	$path = 'assets/css/rental.css';
-	wp_enqueue_style( 'aloha-rental', get_theme_file_uri( $path ), array( 'aloha-foundation', 'aloha-media-gallery' ), (string) filemtime( get_theme_file_path( $path ) ) );
+	wp_enqueue_style( 'aloha-rental', get_theme_file_uri( $path ), array( 'aloha-foundation', 'aloha-media-gallery', 'aloha-rental-cards' ), (string) filemtime( get_theme_file_path( $path ) ) );
 	wp_enqueue_style( 'aloha-media-gallery' );
 	wp_enqueue_style( 'aloha-media-dialog' );
 	wp_enqueue_script( 'aloha-media-dialog' );
 	$js = 'assets/js/rental-gallery.js';
 	wp_enqueue_script( 'aloha-rental-gallery', get_theme_file_uri( $js ), array( 'aloha-media-dialog' ), (string) filemtime( get_theme_file_path( $js ) ), true );
 	$content = 'assets/js/rental-content.js';
-	wp_enqueue_script( 'aloha-rental-content', get_theme_file_uri( $content ), array( 'aloha-embla' ), (string) filemtime( get_theme_file_path( $content ) ), true );
+	wp_enqueue_script( 'aloha-rental-content', get_theme_file_uri( $content ), array( 'aloha-embla', 'aloha-rental-cards' ), (string) filemtime( get_theme_file_path( $content ) ), true );
 	wp_enqueue_style( 'aloha-flatpickr', get_theme_file_uri( 'assets/lib/flatpickr/flatpickr.min.css' ), array(), '4.6.13' );
 	wp_enqueue_script( 'aloha-flatpickr', get_theme_file_uri( 'assets/lib/flatpickr/flatpickr.min.js' ), array(), '4.6.13', true );
 	wp_enqueue_style( 'aloha-rental-booking', get_theme_file_uri( 'assets/css/rental-booking.css' ), array( 'aloha-rental', 'aloha-flatpickr' ), (string) filemtime( get_theme_file_path( 'assets/css/rental-booking.css' ) ) );
@@ -173,22 +173,24 @@ function aloha_rental_related( array $rental ): string {
 	return (string) ob_get_clean();
 }
 
-function aloha_rental_related_card( array $item ): void {
+function aloha_rental_related_card( array $item, array $options = array() ): void {
+	$sizes = $options['sizes'] ?? '(min-width: 1280px) 382px, (min-width: 1024px) calc((100vw - 136px) / 3), (min-width: 600px) calc((100vw - 88px) / 2), calc(100vw - 40px)';
+	$catalog = $options['catalog'] ?? null;
 	$images = array_slice( array_column( $item['gallery']['photos'], 'image' ), 0, 6 );
 	if ( ! $images && is_array( $item['featuredImage'] ) ) { $images[] = $item['featuredImage']; }
 	$count = count( $images );
 	$id = wp_unique_id( 'aloha-related-' );
 	?>
-	<article class="aloha-rental-related-card">
+	<article class="aloha-rental-related-card"<?php if ( $catalog ) : ?> data-catalog-item="<?php echo esc_attr( $item['id'] ); ?>" data-catalog-fields="<?php echo esc_attr( wp_json_encode( $catalog ) ); ?>"<?php echo ! empty( $options['hidden'] ) ? ' hidden' : ''; ?><?php endif; ?>>
 		<div class="aloha-related-gallery"<?php echo $count > 1 ? ' data-related-carousel' : ''; ?>>
 			<?php if ( $count ) : ?>
 				<div class="aloha-related-viewport"<?php if ( $count > 1 ) : ?> data-related-viewport tabindex="0" role="region" aria-label="<?php echo esc_attr( sprintf( __( '%s photos', 'aloha-hello' ), $item['title'] ) ); ?>"<?php endif; ?>>
 					<div class="aloha-related-slides">
 						<?php foreach ( $images as $index => $image ) : ?>
 							<a class="aloha-related-slide" href="<?php echo esc_url( $item['url'] ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'View %s', 'aloha-hello' ), $item['title'] ) ); ?>"<?php echo $index ? ' tabindex="-1"' : ''; ?>>
-								<img <?php echo $index ? 'data-src' : 'src'; ?>="<?php echo esc_url( $image['src'] ); ?>" alt="<?php echo esc_attr( $image['alt'] ); ?>"
+								<img <?php echo ( $index || ! empty( $options['hidden'] ) ) ? 'data-src' : 'src'; ?>="<?php echo esc_url( $image['src'] ); ?>" alt="<?php echo esc_attr( $image['alt'] ); ?>"
 									width="<?php echo esc_attr( $image['width'] ); ?>" height="<?php echo esc_attr( $image['height'] ); ?>" loading="lazy" decoding="async"
-									<?php if ( $image['srcset'] ) : ?><?php echo $index ? 'data-srcset' : 'srcset'; ?>="<?php echo esc_attr( $image['srcset'] ); ?>" sizes="(min-width: 1280px) 382px, (min-width: 1024px) calc((100vw - 136px) / 3), (min-width: 600px) calc((100vw - 88px) / 2), calc(100vw - 40px)"<?php endif; ?>>
+									<?php if ( $image['srcset'] ) : ?><?php echo ( $index || ! empty( $options['hidden'] ) ) ? 'data-srcset' : 'srcset'; ?>="<?php echo esc_attr( $image['srcset'] ); ?>" sizes="<?php echo esc_attr( $sizes ); ?>"<?php endif; ?>>
 							</a>
 						<?php endforeach; ?>
 					</div>
