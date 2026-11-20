@@ -77,6 +77,7 @@ function aloha_rental_booking( array $rental ): void {
 			<p class="screen-reader-text" data-calendar-help role="status" aria-live="polite"></p>
 			<div class="aloha-calendar-loading" data-calendar-loading hidden><span class="aloha-booking-spinner" aria-hidden="true"></span><?php esc_html_e( 'Loading availability…', 'aloha-hello' ); ?></div>
 			<div data-calendar-surface><input data-calendar-input type="text" tabindex="-1" aria-hidden="true" hidden></div>
+			<p data-calendar-note>Minimum stay varies by date</p>
 			<button type="button" class="aloha-booking-text-button" data-calendar-retry hidden><?php esc_html_e( 'Retry', 'aloha-hello' ); ?></button>
 		</div>
 	</aside>

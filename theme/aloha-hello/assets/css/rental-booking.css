@@ -53,10 +53,10 @@
 .aloha-booking-calendar .flatpickr-rContainer, .aloha-booking-calendar .flatpickr-days { width: 100% !important; }
 .aloha-booking-calendar .dayContainer { min-width: 0; width: 50%; max-width: none; box-shadow: none; gap: 0; padding: 0 2px; }
 .aloha-booking-calendar .flatpickr-day { display: flex; align-items: center; justify-content: center; height: 36px; max-width: 14.2857%; flex-basis: 14.2857%; line-height: 1; border: 2px solid #fff; border-radius: 6px; margin: 0; background: #E5F5E9; color: #16232A; }
-.aloha-booking-calendar .flatpickr-day.flatpickr-disabled { color: #929DA2; background: #ECEFF0; text-decoration: line-through; }
+.aloha-booking-calendar .flatpickr-day.flatpickr-disabled { color: #929DA2; background: #ECEFF0; text-decoration: none; }
 .aloha-booking-calendar .flatpickr-day.aloha-unknown { background: #f7f8f8; color: #929DA2; text-decoration: none; }
 .aloha-booking-calendar .flatpickr-day.aloha-checkout-only { background: linear-gradient(135deg,#E5F5E9 65%,#ECEFF0 65%); color: #075056; box-shadow: inset 0 -2px #075056; text-decoration: none; }
-.aloha-booking-calendar .flatpickr-day.aloha-in-range { background: #D7EAE4; color: #16232A; text-decoration: none; }
+.aloha-booking-calendar .flatpickr-day.aloha-in-range { background: #075056; color: #FFFFFF; text-decoration: none; }
 .aloha-booking-calendar .flatpickr-day:is(.aloha-range-start,.aloha-range-end) { background: #075056; color: #FFFFFF; text-decoration: none; box-shadow: none; }
 .aloha-booking-calendar .flatpickr-day:focus-visible { outline-offset: -3px; outline: 2px solid #075056; }
 @media (max-width: 767px) {
@@ -87,3 +87,14 @@
 .aloha-booking-stepper button:disabled { opacity: .35; }
 [data-booking-price] > .aloha-booking-disclaimer { font-size: .78rem; line-height: 1.4; color: #59666c; margin-block: 10px 0; }
 .aloha-booking-stepper input[type=number] { width: 36px !important; flex: 0 0 36px; }
+
+/* One decorative arrow follows the active date field, outside the scrollable panel. */
+.aloha-calendar-arrow { position: fixed; z-index: 1001; width: 10px; height: 10px; background: #fff; border: 1px solid #d8e2e3; transform: rotate(45deg); pointer-events: none; }
+.aloha-calendar-arrow[hidden] { display: none; }
+.aloha-calendar-arrow[data-side="top"] { border-right: 0; border-bottom: 0; }
+.aloha-calendar-arrow[data-side="bottom"] { border-left: 0; border-top: 0; }
+.aloha-booking-calendar [data-calendar-note] { font-size: 12px !important; color: #64737A; text-align: center; line-height: 1.4; margin: 6px 0 0 !important; }
+.aloha-booking-calendar .flatpickr-day { position: relative; pointer-events: auto; }
+.aloha-booking-calendar .flatpickr-day.aloha-unavailable:not(.aloha-checkout-only):not(.aloha-in-range)::before,
+.aloha-booking-calendar .flatpickr-day.aloha-unavailable:not(.aloha-checkout-only):not(.aloha-in-range)::after { content: ''; position: absolute; left: -8%; top: 50%; width: 116%; height: 1px; background: #929da280; transform: rotate(42deg); pointer-events: none; }
+.aloha-booking-calendar .flatpickr-day.aloha-unavailable:not(.aloha-checkout-only):not(.aloha-in-range)::after { transform: rotate(-42deg); }

@@ -20,6 +20,18 @@ for($d=$today;$d<=Calendar::add($today,364);$d=Calendar::add($d,1))$days[]=['dat
 $data['source']['calendar']=['version'=>1,'status'=>'partial','from'=>$today,'to'=>Calendar::add($today,364),'syncedAt'=>gmdate(DATE_ATOM),
     'identity'=>\AlohaWPBridge\Pricing\LocalCalendar::identity($mapping['provider_environment'],$mapping['guesty_listing_id']),
     'openSettings'=>$settings,'bookingSettings'=>['capacity'=>11,'currency'=>'USD','minNights'=>3,'maxNights'=>28,'suitableForChildren'=>true],'days'=>$days];
+if(($args[1]??'')==='range'){
+    $future=(new DateTimeImmutable(substr($today,0,7).'-01'))->modify('+4 months')->format('Y-m-');
+    $blocked=Calendar::add($future.'25',7);
+    foreach($data['source']['calendar']['days'] as &$day){
+        $day['status']=in_array($day['date'],[$future.'04',$blocked],true)?'unavailable':($day['date']===$future.'08'?'unknown':'available');
+        $day['bookingConfirmed']=$day['status']!=='unknown';$day['reason']=$day['status']==='unavailable'?'already_booked':null;
+        $day['cta']=$day['date']===$future.'07';$day['ctd']=in_array($day['date'],[$future.'19',$future.'20'],true);
+        $day['minNights']=[$future.'05'=>1,$future.'10'=>2,$future.'15'=>3,$future.'20'=>4,$future.'25'=>7,$future.'18'=>1][$day['date']]??3;
+        $day['maxNights']=$day['date']===$future.'18'?2:90;
+    }unset($day);
+    $data['source']['calendar']['openSettings']['maxNights']=90;$data['source']['calendar']['bookingSettings']['maxNights']=90;
+}
 if(($args[1]??'')==='clear-calendar')unset($data['source']['calendar']);
 if(!RentalEditor::writeSourceMeta($post->ID,RentalSourceSync::META,$data))exit(1);
 echo 'PASS: synthetic minimum nightly rate.';

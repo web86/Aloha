@@ -5,7 +5,7 @@ const {mkdirSync, writeFileSync} = require('node:fs');
 const {join} = require('node:path');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = 'http://127.0.0.1:8088', key = 'm24-fixture-' + randomBytes(8).toString('hex');
-const evidence = process.env.RENTAL_BOOKING_SCREENSHOTS || '.local/evidence/m2-4c1a';
+const evidence = process.env.RENTAL_BOOKING_SCREENSHOTS || '.local/evidence/m2-4c1b';
 function wp(file, ...args) {
     const r = spawnSync('./bin/local', ['wp', 'eval-file', '/var/www/m24-tests/' + file, ...args], {encoding: 'utf8', timeout: 60000});
     assert.equal(r.status, 0, r.stdout + r.stderr); return r.stdout.trim();
@@ -58,12 +58,14 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
             assert.equal(await dialog.locator('[data-calendar-loading]').isVisible(), false);
             assert.equal(await dialog.evaluate(el => el.parentElement === document.body), true);
             assert.equal(await dialog.locator('header,footer,small,[data-calendar-apply]').count(), 0);
+            assert.equal(await dialog.locator('[data-calendar-note]').innerText(),'Minimum stay varies by date');
+            assert.equal(await page.locator('.aloha-calendar-arrow').getAttribute('data-side'),'top');
             const placement = await dialog.evaluate(el => {
                 const r=el.getBoundingClientRect(), anchor=document.querySelector('[data-booking-dates="in"]').getBoundingClientRect();
                 return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,anchorBottom:anchor.bottom,header:parseFloat(document.querySelector('.aloha-rental-booking').style.getPropertyValue('--aloha-booking-offset'))};
             });
             assert.ok(placement.left>=7 && placement.right<=width-7 && placement.top>=placement.header-1 && placement.bottom<=1000-7, JSON.stringify(placement));
-            assert.ok(Math.abs(placement.top-placement.anchorBottom-6)<2, 'Calendar is directly anchored below the date fields');
+            assert.ok(Math.abs(placement.top-placement.anchorBottom-10)<2, 'Calendar is directly anchored below the date fields');
             assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).overflow), 'hidden');
             await dialog.screenshot({path: join(evidence, `calendar-${width}.png`)});
             await page.screenshot({path: join(evidence, `calendar-anchored-${width}.png`)});
@@ -86,9 +88,14 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
             assert.equal(await cell(add(today, 1)).getAttribute('aria-disabled'), 'true');
             assert.equal(await cell(add(today, 9)).getAttribute('aria-disabled'), 'true','Arrival minimum greater than maximum is disabled');
             assert.equal(await cell(start).evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(229, 245, 233)');
-            assert.equal(await cell(add(today,7)).evaluate(el => getComputedStyle(el).textDecorationLine), 'line-through');
+            assert.equal(await cell(add(today,7)).evaluate(el => getComputedStyle(el).textDecorationLine), 'none');
             assert.equal(await dialog.locator(`.flatpickr-day[data-date="${add(today,12)}"]`).first().evaluate(el => getComputedStyle(el).textDecorationLine), 'none');
             await cell(start).click();
+            await cell(add(start,5)).hover();
+            assert.equal(await dialog.locator('.aloha-in-range').count()>=6,true,'Hover paints both bounds');
+            await cell(add(start,1)).hover();
+            assert.equal(await dialog.locator('.aloha-in-range').count(),0,'Invalid range has no preview');
+            assert.equal(await dialog.locator('[data-calendar-note]').innerText(),'Min 3 nights');
             assert.equal(await cell(start).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(7, 80, 86)');
             assert.equal(await cell(add(start, 1)).getAttribute('aria-disabled'), 'true');
             await page.getByText('Choose checkout. Minimum stay: 3 nights.', {exact: true}).waitFor();
@@ -101,7 +108,7 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
             assert.equal(await dialog.isVisible(), false, 'Checkout closes calendar automatically');
             assert.equal(await dialog.locator('.aloha-range-start').count(), 1);
             assert.equal(await dialog.locator('.aloha-range-end').count(), 1);
-            assert.equal(await cell(add(start,1)).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(215, 234, 228)');
+            assert.equal(await cell(add(start,1)).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(7, 80, 86)');
             await widget.getByText('Calculating total…', {exact: true}).first().waitFor();
             if ([390,1440].includes(width)) await widget.screenshot({path: join(evidence, `booking-loading-${width}.png`)});
             await widget.locator('[data-total-amount]').getByText(/4,542/).waitFor();

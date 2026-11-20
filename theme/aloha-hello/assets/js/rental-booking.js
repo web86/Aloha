@@ -7,6 +7,7 @@
     const dialog = root.querySelector('.aloha-booking-calendar');
     const find = selector => root.querySelector(selector) || dialog.querySelector(selector);
     document.body.append(dialog); // Escape the sticky card's overflow container.
+    const arrow = document.createElement('span'); arrow.className = 'aloha-calendar-arrow'; arrow.setAttribute('aria-hidden', 'true'); arrow.hidden = true; document.body.append(arrow);
     const surface = find('[data-calendar-surface]');
     const action = find('[data-booking-action]');
     const guestDetails = find('.aloha-booking-guests');
@@ -15,6 +16,8 @@
     const state = {in: '', out: '', stage: 'in', days: new Map(), rules: null, total: null, busy: false, calendarBusy: false,
         priceGeneration: 0, calendarGeneration: 0, priceController: null, calendarController: null};
     let picker;
+    let preview = '';
+    const arrivals = new Map(), departures = new Map();
     let returnFocus;
     const lookupDay = value => state.days.get(value); // Stable observation for this page; pricing rechecks the chosen stay.
     const iso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -64,34 +67,85 @@
         inputs[kind].value = String(Number(inputs[kind].value) + Number(direction));
         inputs[kind].dispatchEvent(new Event('input', {bubbles: true}));
     }));
-    function disabled(day) {
-        const d = iso(day), row = lookupDay(d), rules = state.rules;
-        if (state.calendarBusy || !rules || !row || d < rules.earliestCheckIn || d > rules.windowEnd) return true;
-        if (state.stage === 'in' || !state.in) {
-            if (row.status !== 'available' || row.cta !== false || !row.minNights) return true;
-            if (add(d, row.minNights) > rules.windowEnd || row.minNights > Math.min(row.maxNights ?? rules.maxNights, rules.maxNights)) return true;
-            for (let i = 1; i < row.minNights; i++) { const next = lookupDay(add(d, i)); if (next?.status !== 'available') return true; }
-            return false;
+    function stayReason(start, end) {
+        const rules = state.rules, arrival = lookupDay(start), departure = lookupDay(end);
+        if (!rules || !arrival || !departure || arrival.status === 'unknown' || departure.status === 'unknown') return 'Availability not confirmed';
+        if (start < rules.earliestCheckIn || end > rules.windowEnd) return 'Outside booking window';
+        if (arrival.cta !== false) return 'Check-in not allowed';
+        const count = nights(start, end);
+        if (!arrival.minNights) return 'Availability not confirmed';
+        if (count < arrival.minNights) return `Min ${arrival.minNights} nights`;
+        if (count > Math.min(arrival.maxNights ?? rules.maxNights, rules.maxNights)) return 'Maximum stay exceeded';
+        if (departure.ctd !== false) return 'Checkout not allowed';
+        for (let night = start; night < end; night = add(night, 1)) {
+            const row = lookupDay(night);
+            if (!row || row.status === 'unknown') return 'Availability not confirmed';
+            if (row.status !== 'available') return row.reason === 'already_booked' ? 'Unavailable — already booked' : 'Unavailable';
         }
-        const arrival = lookupDay(state.in), length = nights(state.in, d);
-        if (!arrival || length < arrival.minNights || length > Math.min(arrival.maxNights ?? rules.maxNights, rules.maxNights) || row.status === 'unknown' || row.ctd !== false) return true;
-        for (let night = state.in; night < d; night = add(night, 1)) if (lookupDay(night)?.status !== 'available') return true;
-        return false;
+        return '';
+    }
+    function arrivalReason(value) {
+        if (arrivals.has(value)) return arrivals.get(value);
+        const row = lookupDay(value), rules = state.rules;
+        let reason = '';
+        if (!row || row.status === 'unknown' || !rules) reason = 'Availability not confirmed';
+        else if (value < rules.earliestCheckIn || value >= rules.windowEnd) reason = 'Outside booking window';
+        else if (row.status !== 'available') reason = row.reason === 'already_booked' ? 'Unavailable — already booked' : 'Unavailable';
+        else if (row.cta !== false) reason = 'Check-in not allowed';
+        else if (!row.minNights) reason = 'Availability not confirmed';
+        else {
+            reason = `Min ${row.minNights} nights`;
+            const max = Math.min(row.maxNights ?? rules.maxNights, rules.maxNights);
+            for (let n = 1; n <= max && add(value, n) <= rules.windowEnd; n++) {
+                if (n >= row.minNights && !stayReason(value, add(value, n))) { reason = ''; break; }
+                // A closed night can be checkout, but cannot be crossed to reach a later one.
+                if (lookupDay(add(value, n))?.status !== 'available') break;
+            }
+        }
+        arrivals.set(value, reason); return reason;
+    }
+    function reasonFor(value) {
+        if (state.calendarBusy) return 'Loading availability…';
+        if (state.stage !== 'out' || !state.in) return arrivalReason(value);
+        if (!departures.has(value)) departures.set(value, stayReason(state.in, value));
+        return departures.get(value);
+    }
+    const disabled = day => Boolean(reasonFor(iso(day)));
+    function minimumNote(reason = '') {
+        find('[data-calendar-note]').textContent = reason || (state.in ? `Min ${lookupDay(state.in)?.minNights ?? '—'} nights` : 'Minimum stay varies by date');
+    }
+    function paintRange() {
+        const end = preview || state.out;
+        surface.querySelectorAll('.flatpickr-day').forEach(cell => {
+            const d = cell.dataset.date;
+            cell.classList.toggle('aloha-in-range', Boolean(state.in && end && d >= state.in && d <= end));
+            cell.classList.toggle('aloha-range-start', d === state.in);
+            cell.classList.toggle('aloha-range-end', d === state.out);
+        });
+    }
+    function previewDay(value) {
+        const reason = reasonFor(value);
+        preview = state.stage === 'out' && !reason ? value : '';
+        paintRange(); minimumNote(reason);
     }
     function dayCell(_dates, _text, _fp, cell) {
         const d = iso(cell.dateObj), row = lookupDay(d);
         cell.dataset.date = d;
         const unknown = !row || row.status === 'unknown';
+        cell.tabIndex = -1;
+        const reason = reasonFor(d); cell.title = reason || (state.stage === 'in' && row?.minNights ? `Min ${row.minNights} nights` : 'Select checkout');
+        cell.setAttribute('aria-label', `${cell.getAttribute('aria-label')}, ${cell.title}`);
+        cell.classList.toggle('aloha-unavailable', row?.status === 'unavailable');
         cell.classList.toggle('aloha-unknown', unknown);
         const checkoutOnly = state.stage === 'out' && row?.status === 'unavailable' && !disabled(cell.dateObj);
         cell.classList.toggle('aloha-checkout-only', checkoutOnly);
         if (checkoutOnly) {
-            cell.title = 'Checkout only. This night is unavailable.';
+            cell.title = 'Checkout only';
             cell.setAttribute('aria-label', `${cell.getAttribute('aria-label')}, checkout only; night unavailable`);
-        } else if (unknown) cell.setAttribute('aria-label', `${cell.getAttribute('aria-label')}, availability unknown`);
+        } else if (unknown) cell.setAttribute('aria-label', `${cell.getAttribute('aria-label')}, Availability not confirmed`);
         cell.classList.toggle('aloha-range-start', d === state.in);
         cell.classList.toggle('aloha-range-end', d === state.out);
-        cell.classList.toggle('aloha-in-range', Boolean(state.in && state.out && d > state.in && d < state.out));
+        cell.classList.toggle('aloha-in-range', Boolean(state.in && (preview || state.out) && d >= state.in && d <= (preview || state.out)));
         if (d === state.in || d === state.out) cell.setAttribute('aria-selected', 'true');
         if (cell.classList.contains('flatpickr-disabled')) cell.setAttribute('aria-disabled', 'true');
     }
@@ -105,6 +159,7 @@
     }
     function receiveCalendar(payload) {
         if (payload.rentalId !== config.rentalId || !payload.rules || !Array.isArray(payload.days)) throw new Error('Calendar temporarily unavailable.');
+        arrivals.clear(); departures.clear();
         state.rules = payload.rules;
         payload.days.forEach(row => state.days.set(row.date, row));
         inputs.adults.max = String(payload.rules.capacity); inputs.children.max = String(payload.rules.capacity);
@@ -116,7 +171,9 @@
     }
     function focusDay() {
         const enabled = [...surface.querySelectorAll('.flatpickr-day:not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay)')];
-        const first = enabled.find(cell => cell.dataset.date === (state.stage === 'out' ? state.out : state.in)) || enabled[0];
+        const chosen = state.stage === 'out' ? (state.out || state.in) : state.in;
+        const selected = [...surface.querySelectorAll('.flatpickr-day:not(.prevMonthDay):not(.nextMonthDay)')].find(cell => cell.dataset.date === chosen);
+        const first = selected || enabled[0];
         if (first) { first.tabIndex = 0; first.focus({preventScroll: true}); }
         else find('[data-calendar-close]').focus({preventScroll: true});
     }
@@ -148,14 +205,17 @@
         }
     }
     function chooseDay(value) {
-        if (disabled(date(value))) return;
+        if (disabled(date(value))) { previewDay(value); calendarHelp(reasonFor(value)); return; }
         invalidate();
         const complete = state.stage === 'out' && Boolean(state.in);
         if (!complete) {
             state.in = value; state.out = ''; state.stage = 'out';
             calendarHelp(`Choose checkout. Minimum stay: ${lookupDay(value).minNights} nights.`);
         } else state.out = value;
-        picker.clear(false); picker.redraw(); updateDates();
+        preview = ''; departures.clear();
+        // flatpickr.clear() resets currentMonth to its initial date. Restore the visible pair.
+        const year = picker.currentYear, month = picker.currentMonth;
+        picker.clear(false); picker.jumpToDate(new Date(year, month, 1, 12), false); picker.redraw(); updateDates(); minimumNote();
         if (complete) { closeCalendar(); calculate(); }
         else focusDay();
     }
@@ -165,7 +225,7 @@
         const anchor = returnFocus?.getBoundingClientRect() || fields;
         const safeTop = parseFloat(root.style.getPropertyValue('--aloha-booking-offset')) || 20;
         if (anchor.bottom < safeTop || anchor.top > window.innerHeight) { closeCalendar(false); return; }
-        const margin = 8, gap = 6;
+        const margin = 8, gap = 10;
         dialog.style.width = `${Math.min(window.innerWidth >= 768 ? 644 : 332, window.innerWidth - margin * 2)}px`;
         dialog.style.maxHeight = `${Math.max(120, window.innerHeight - safeTop - margin)}px`;
         const height = dialog.getBoundingClientRect().height;
@@ -175,15 +235,21 @@
             : above >= safeTop ? above : Math.max(safeTop, Math.min(below, window.innerHeight - margin - height));
         dialog.style.left = `${Math.max(margin, Math.min(fields.right - dialog.offsetWidth, window.innerWidth - dialog.offsetWidth - margin))}px`;
         dialog.style.top = `${top}px`;
+        const under = top >= anchor.bottom, over = top + height <= anchor.top;
+        arrow.hidden = !(under || over);
+        arrow.dataset.side = under ? 'top' : 'bottom';
+        const center = Math.max(dialog.offsetLeft + 18, Math.min(anchor.left + anchor.width / 2, dialog.offsetLeft + dialog.offsetWidth - 18));
+        arrow.style.left = `${center - 5}px`; arrow.style.top = `${under ? top - 5 : top + height - 5}px`;
+
     }
     function closeCalendar(restoreFocus = true) {
         if (dialog.hidden) return;
-        dialog.hidden = true;
+        dialog.hidden = true; arrow.hidden = true; preview = '';
         root.querySelectorAll('[data-booking-dates]').forEach(button => button.setAttribute('aria-expanded', 'false'));
         if (restoreFocus) returnFocus?.focus({preventScroll: true});
     }
     function openCalendar(stage = 'in', trigger = action) {
-        returnFocus = trigger; guestDetails.open = false;
+        returnFocus = trigger; guestDetails.open = false; preview = ''; departures.clear();
         state.stage = stage === 'out' && state.in ? 'out' : 'in';
         if (!picker) picker = window.flatpickr(find('[data-calendar-input]'), {
             inline: true, appendTo: surface, disableMobile: true, mode: 'single', dateFormat: 'Y-m-d',
@@ -191,16 +257,36 @@
             minDate: state.rules?.today || config.today, maxDate: state.rules?.windowEnd,
             disable: [disabled], ariaDateFormat: 'F j, Y',
             onDayCreate: dayCell, onChange: (_dates, value) => chooseDay(value),
-            onMonthChange: () => { picker.redraw(); positionCalendar(); },
-            onYearChange: () => { picker.redraw(); positionCalendar(); },
+            onMonthChange: () => { preview = ''; picker.redraw(); minimumNote(); positionCalendar(); },
+            onYearChange: () => { preview = ''; picker.redraw(); minimumNote(); positionCalendar(); },
         });
         dialog.hidden = false;
         root.querySelectorAll('[data-booking-dates]').forEach(button => button.setAttribute('aria-expanded', 'true'));
         picker.jumpToDate((state.stage === 'out' && state.out) || state.in || config.today, false);
         calendarHelp(state.stage === 'out' ? `Choose checkout. Minimum stay: ${lookupDay(state.in)?.minNights ?? '—'} nights.` : 'Choose check-in, then checkout.');
-        positionCalendar();
+        minimumNote(); positionCalendar();
         if (state.rules) { picker.redraw(); focusDay(); } else loadCalendar();
     }
+    surface.addEventListener('pointerover', event => { const cell = event.target.closest('.flatpickr-day'); if (cell) previewDay(cell.dataset.date); });
+    surface.addEventListener('pointerleave', () => { preview = ''; paintRange(); minimumNote(); });
+    surface.addEventListener('focusin', event => { const cell = event.target.closest('.flatpickr-day'); if (cell) previewDay(cell.dataset.date); });
+    surface.addEventListener('click', event => {
+        const cell = event.target.closest('.flatpickr-day');
+        if (cell && disabled(cell.dateObj)) { event.preventDefault(); event.stopImmediatePropagation(); previewDay(cell.dataset.date); calendarHelp(reasonFor(cell.dataset.date)); }
+    }, true);
+    surface.addEventListener('keydown', event => {
+        const cell = event.target.closest('.flatpickr-day'); if (!cell) return;
+        const step = {ArrowRight: 1, ArrowLeft: -1, ArrowDown: 7, ArrowUp: -7}[event.key];
+        if (step || event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault(); event.stopImmediatePropagation();
+            if (!step) { chooseDay(cell.dataset.date); return; }
+            const value = add(cell.dataset.date, step);
+            if (value < state.rules.today || value > state.rules.windowEnd) return;
+            let next = [...surface.querySelectorAll('.flatpickr-day:not(.prevMonthDay):not(.nextMonthDay)')].find(el => el.dataset.date === value);
+            if (!next) { picker.jumpToDate(value, false); next = [...surface.querySelectorAll('.flatpickr-day')].find(el => el.dataset.date === value); positionCalendar(); }
+            if (next) { next.tabIndex = 0; next.focus({preventScroll: true}); }
+        }
+    }, true);
     document.addEventListener('keydown', event => {
         if (!dialog.hidden && event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeCalendar(); }
     }, true);
