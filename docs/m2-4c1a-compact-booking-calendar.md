@@ -1,5 +1,7 @@
 # M2.4C.1a — Compact local-first booking calendar
 
+> Full range interaction, month preservation, arrows and block feedback are extended by [M2.4C.1b](m2-4c1b-range-calendar-ux.md). This report preserves the M2.4C.1a baseline.
+
 Extends M2.4C.1 at `4e0f7ae` on the existing `feature/m2-4b-rental-template` remote branch, with AlohaWPBridge **0.3.16**. Changes were made in the clean `codex/m2-4-theme-integration` worktree. The root Aloha checkout's uncommitted Rental work was preserved. Main and production were not changed.
 
 ## Calendar presentation and interaction
