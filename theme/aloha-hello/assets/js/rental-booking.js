@@ -19,7 +19,7 @@
         priceGeneration: 0, calendarGeneration: 0, priceController: null, calendarController: null};
     let picker;
     let preview = '';
-    let visibleMonth, monthAnimation;
+    let visibleMonth, monthAnimation, healedMonth;
     const arrivals = new Map(), departures = new Map();
     let returnFocus;
     const lookupDay = value => state.days.get(value); // Stable observation for this page; pricing rechecks the chosen stay.
@@ -176,12 +176,13 @@
         for (const [key, value] of Object.entries({...params, ...config.preview})) url.searchParams.set(key, String(value));
         const response = await fetch(url, {signal, credentials: 'same-origin', headers: config.nonce ? {'X-WP-Nonce': config.nonce} : {}});
         const payload = await response.json();
-        if (!response.ok || payload.status === 'unavailable') throw new Error(payload.message || 'Temporarily unavailable. Please retry.');
+        if (!response.ok || payload.status === 'unavailable') throw Object.assign(new Error(payload.message || 'Temporarily unavailable. Please retry.'), {payload});
         return payload;
     }
-    function receiveCalendar(payload) {
+    function receiveCalendar(payload, replace = false) {
         if (payload.rentalId !== config.rentalId || !payload.rules || !Array.isArray(payload.days)) throw new Error('Calendar temporarily unavailable.');
         arrivals.clear(); departures.clear();
+        if (replace) state.days.clear();
         state.rules = payload.rules;
         payload.days.forEach(row => state.days.set(row.date, row));
         inputs.adults.max = String(payload.rules.capacity); inputs.children.max = String(payload.rules.capacity);
@@ -305,7 +306,7 @@
         });
         dialog.hidden = false;
         root.querySelectorAll('[data-booking-dates]').forEach(button => button.setAttribute('aria-expanded', 'true'));
-        picker.jumpToDate((state.stage === 'out' && state.out) || state.in || config.today, false);
+        picker.jumpToDate((state.stage === 'out' && state.out) || state.in || healedMonth || config.today, false);
         visibleMonth = picker.currentYear * 12 + picker.currentMonth;
         calendarHelp(state.stage === 'out' ? `Choose checkout. Minimum stay: ${lookupDay(state.in)?.minNights ?? '—'} nights.` : 'Choose check-in, then checkout.');
         minimumNote(); positionCalendar();
@@ -395,6 +396,17 @@
             renderPrice(payload);
         } catch (error) {
             if (generation !== state.priceGeneration || error.name === 'AbortError') return;
+            if (error.payload?.calendarUpdated === true) {
+                const month = picker ? iso(new Date(picker.currentYear, picker.currentMonth, 1, 12)) : state.in;
+                try { receiveCalendar(error.payload.calendar, true); }
+                catch { message('Calendar could not be updated. Please retry the check.'); find('[data-action-text]').textContent = 'Retry'; return; }
+                healedMonth = month; invalidate(); state.in = state.out = ''; state.stage = 'in'; preview = '';
+                state.calendarController?.abort(); state.calendarGeneration++; state.calendarBusy = false;
+                find('[data-calendar-loading]').hidden = true; surface.setAttribute('aria-busy', 'false');
+                updateDates();
+                if (picker) { picker.jumpToDate(month, false); visibleMonth = picker.currentYear * 12 + picker.currentMonth; refreshDays(); positionCalendar(); }
+                message('These dates are no longer available. Please choose new dates.'); return;
+            }
             message(error.message || 'Price temporarily unavailable. Please retry.'); find('[data-action-text]').textContent = 'Retry';
         } finally {
             if (generation === state.priceGeneration) { state.busy = false; action.disabled = false; action.querySelector('.aloha-booking-spinner').hidden = true; }
