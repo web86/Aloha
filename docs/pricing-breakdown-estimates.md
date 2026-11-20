@@ -1,5 +1,7 @@
 # Independent price components and visible estimates
 
+Follow-up: [M2.4C.1e — immediate calendar self-healing](m2-4c1e-calendar-self-healing.md) adds availability-error handling while preserving the component pricing behavior below.
+
 Aloha baseline: **`8fc7036`**, remote feature branch **`feature/m2-4b-rental-template`**. Paired Bridge: **0.3.19 / `bb0c8a7`**, published to **`codex/m2-3-rental-data-editor`**. See the [Bridge calculation/verification report](https://github.com/web86/AlohaWPBridge/blob/bb0c8a7/docs/pricing-breakdown-kiss.md).
 
 The backend now computes each supported component independently. An unknown additional fee no longer suppresses all taxes. Null inclusivity is preserved and produces explicitly estimated tax rows when their needed inputs are available; a matching total alone does not verify that they were added for this channel. Missing or conflicting inputs qualify the overall breakdown as Partial while other supported lines stay visible. The old combination search and global calculation gate are removed.
