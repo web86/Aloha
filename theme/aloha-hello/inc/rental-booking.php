@@ -19,7 +19,7 @@ function aloha_rental_booking( array $rental ): void {
 	try { $zone = new DateTimeZone( $rental['facts']['timezone']['value'] ?? 'UTC' ); } catch ( Throwable $error ) { $zone = new DateTimeZone( 'UTC' ); }
 	$config = array( 'rentalId' => $id, 'today' => ( new DateTimeImmutable( 'now', $zone ) )->format( 'Y-m-d' ), 'api' => rest_url( 'aloha-bridge/v1/rentals/' . $id . '/' ), 'preview' => array(), 'nonce' => '' );
 	$config['locale'] = str_replace( '_', '-', get_locale() );
-	$config['partialNotice'] = __( 'Some charges are not itemized yet', 'aloha-hello' );
+	$config['partialNotice'] = __( 'Some charges are estimated or not itemized', 'aloha-hello' );
 	if ( is_preview() && current_user_can( 'edit_post', $id ) ) {
 		foreach ( array( 'preview_id', 'preview_nonce', 'awb_preview_id', 'awb_preview_nonce' ) as $key ) {
 			if ( isset( $_GET[ $key ] ) && is_string( $_GET[ $key ] ) ) { $config['preview'][ $key ] = sanitize_text_field( wp_unslash( $_GET[ $key ] ) ); }

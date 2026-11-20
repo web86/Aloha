@@ -135,7 +135,7 @@ const add = (value, days) => { const d = new Date(value + 'T12:00:00Z'); d.setUT
                 await widget.locator('[data-guests-done]').click(); await widget.locator('[data-total-amount]').getByText(/4,121.44/).waitFor();
                 assert.equal(await widget.locator('[data-marketing-amount]').innerText(), '€618');
                 assert.equal(await widget.locator('[data-booking-status]').isVisible(), false);
-                await widget.locator('.aloha-booking-breakdown summary').click(); assert.match(await widget.locator('[data-price-detail-note]').innerText(), /Some charges are not itemized yet/);
+                await widget.locator('.aloha-booking-breakdown summary').click(); assert.match(await widget.locator('[data-price-detail-note]').innerText(), /Some charges are estimated or not itemized/);
                 mode = 'error'; await widget.locator('.aloha-booking-guests summary').click(); await widget.locator('[data-guests="adults"]').fill('4'); await widget.locator('[data-guests-done]').click();
                 await widget.getByText('These dates are unavailable. Choose another stay.', {exact: true}).waitFor(); assert.equal(await widget.locator('[data-marketing-amount]').count(), 0);
                 mode = 'reconciled'; amount = '987'; await widget.locator('[data-booking-action]').click(); await widget.locator('[data-marketing-amount]').getByText('€987', {exact: true}).waitFor();

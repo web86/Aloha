@@ -44,6 +44,8 @@
 .aloha-booking-breakdown dl { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; font-size: 1rem; }
 .aloha-booking-breakdown dt, .aloha-booking-breakdown dd { margin: 0; overflow-wrap: anywhere; }
 .aloha-booking-breakdown dd { text-align: right; }
+.aloha-booking-breakdown .aloha-price-estimated { color: #59666c; }
+.aloha-booking-breakdown .aloha-price-estimated-start { padding-top: 12px; border-top: 1px solid #d8e2e3; }
 .aloha-booking-breakdown .aloha-price-total { padding-top: 15px; border-top: 1px solid #d8e2e3; font-weight: 700; }
 .aloha-booking-breakdown p { color: #59666c; font-size: .8rem; line-height: 1.5; }
 .aloha-booking-spinner { display: inline-block; flex: 0 0 auto; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: aloha-booking-spin .8s linear infinite; }

@@ -82,7 +82,7 @@ function wp(file, ...args) {
             mode = 'partial'; await widget.locator('.aloha-booking-guests summary').click(); await widget.locator('[data-guests="adults"]').fill('3'); await widget.locator('[data-guests-done]').click();
             await widget.locator('[data-total-amount]').getByText(/4.*542/).waitFor(); await widget.locator('.aloha-booking-breakdown summary').click(); await shot('partial');
             if (!baseline) {
-                assert.equal(await widget.locator('[data-price-detail-note]').innerText(), 'Some charges are not itemized yet');
+                assert.equal(await widget.locator('[data-price-detail-note]').innerText(), 'Some charges are estimated or not itemized');
                 assert.equal(await widget.locator('[data-booking-status]').isVisible(), false);
                 assert.equal(await widget.locator('[data-price-lines] dt').filter({hasText: /TAT|GET/}).count(), 0);
                 assert.equal(await widget.locator('[data-marketing-amount]').innerText(), '$681');

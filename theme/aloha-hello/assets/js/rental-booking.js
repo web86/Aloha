@@ -350,9 +350,15 @@
         state.total = payload;
         find('[data-total-amount]').textContent = money(payload.estimatedTotal, payload.currency);
         const lines = find('[data-price-lines]'); lines.replaceChildren();
-        for (const item of payload.items) {
+        const items = [...payload.items.filter(item => !item.estimated), ...payload.items.filter(item => item.estimated)];
+        let firstEstimate = true;
+        for (const item of items) {
             const label = document.createElement('dt'); label.textContent = item.label;
             const amount = document.createElement('dd'); amount.textContent = money(item.amount, payload.currency);
+            if (item.estimated) {
+                label.classList.add('aloha-price-estimated'); amount.classList.add('aloha-price-estimated');
+                if (firstEstimate) { label.classList.add('aloha-price-estimated-start'); amount.classList.add('aloha-price-estimated-start'); firstEstimate = false; }
+            }
             lines.append(label, amount);
         }
         const label = document.createElement('dt'); label.textContent = 'Total'; label.className = 'aloha-price-total';

@@ -1,5 +1,7 @@
 # M2.4C.1d — Date header and Price details
 
+Current price-component behavior: [Independent rows and explicit estimates](pricing-breakdown-estimates.md) supersedes the tax gate and Partial caption described below.
+
 Aloha baseline: **`325fb50`**, existing remote branch **`feature/m2-4b-rental-template`**. Paired Bridge: **0.3.18 / `2000ffc`**, published to **`codex/m2-3-rental-data-editor`**. Bridge's financial analysis and sanitized source projection are in its [financial report](https://github.com/web86/AlohaWPBridge/blob/2000ffc/docs/m2-4c1d-price-breakdown-fix.md). The separate root checkout's original WIP is preserved; main and production are unchanged.
 
 ## Date heading
