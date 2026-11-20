@@ -13,10 +13,13 @@
     const guestDetails = find('.aloha-booking-guests');
     const inputs = {adults: find('[data-guests="adults"]'), children: find('[data-guests="children"]')};
     const originalHeading = find('[data-booking-heading]').cloneNode(true);
+    const originalSave = find('[data-booking-save]').cloneNode(true);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const state = {in: '', out: '', stage: 'in', days: new Map(), rules: null, total: null, busy: false, calendarBusy: false,
         priceGeneration: 0, calendarGeneration: 0, priceController: null, calendarController: null};
     let picker;
     let preview = '';
+    let visibleMonth, monthAnimation;
     const arrivals = new Map(), departures = new Map();
     let returnFocus;
     const lookupDay = value => state.days.get(value); // Stable observation for this page; pricing rechecks the chosen stay.
@@ -37,7 +40,9 @@
         find('.aloha-booking-breakdown').open = false;
         action.disabled = false; action.querySelector('.aloha-booking-spinner').hidden = true;
         find('[data-action-text]').textContent = 'Check availability';
-        find('[data-booking-disclaimer]').textContent = 'Online reservations and payments are not enabled yet.';
+        find('[data-booking-charge]').hidden = true;
+        const save = find('[data-booking-save]');
+        save.replaceChildren(...[...originalSave.childNodes].map(node => node.cloneNode(true))); save.hidden = false;
         message('');
     }
     function updateDates() {
@@ -132,8 +137,16 @@
         const d = iso(cell.dateObj), row = lookupDay(d);
         cell.dataset.date = d;
         const unknown = !row || row.status === 'unknown';
+        cell.dataset.calendarLabel ??= cell.getAttribute('aria-label');
+        cell.setAttribute('aria-label', cell.dataset.calendarLabel);
         cell.tabIndex = -1;
-        const reason = reasonFor(d); cell.title = reason || (state.stage === 'in' && row?.minNights ? `Min ${row.minNights} nights` : 'Select checkout');
+        const canClear = d === state.in;
+        const reason = canClear ? 'Clear selected dates' : reasonFor(d);
+        const blocked = !canClear && disabled(cell.dateObj);
+        cell.classList.toggle('flatpickr-disabled', blocked);
+        if (blocked) cell.setAttribute('aria-disabled', 'true'); else cell.removeAttribute('aria-disabled');
+        cell.classList.toggle('aloha-available', row?.status === 'available');
+        cell.title = reason || (state.stage === 'in' && row?.minNights ? `Min ${row.minNights} nights` : 'Select checkout');
         cell.setAttribute('aria-label', `${cell.getAttribute('aria-label')}, ${cell.title}`);
         cell.classList.toggle('aloha-unavailable', row?.status === 'unavailable');
         cell.classList.toggle('aloha-unknown', unknown);
@@ -146,8 +159,7 @@
         cell.classList.toggle('aloha-range-start', d === state.in);
         cell.classList.toggle('aloha-range-end', d === state.out);
         cell.classList.toggle('aloha-in-range', Boolean(state.in && (preview || state.out) && d >= state.in && d <= (preview || state.out)));
-        if (d === state.in || d === state.out) cell.setAttribute('aria-selected', 'true');
-        if (cell.classList.contains('flatpickr-disabled')) cell.setAttribute('aria-disabled', 'true');
+        if (d === state.in || d === state.out) cell.setAttribute('aria-selected', 'true'); else cell.removeAttribute('aria-selected');
     }
     async function get(endpoint, params, signal) {
         const url = new URL(config.api + endpoint);
@@ -204,7 +216,17 @@
             }
         }
     }
+    function refreshDays() {
+        surface.querySelectorAll('.flatpickr-day').forEach(cell => dayCell([], '', picker, cell));
+        minimumNote();
+    }
     function chooseDay(value) {
+        // The selected arrival is a cancellation action, even when a zero-night stay is disabled.
+        if (state.in && value === state.in) {
+            invalidate(); state.in = state.out = ''; state.stage = 'in';
+            preview = ''; departures.clear(); refreshDays(); updateDates();
+            calendarHelp('Choose check-in, then checkout.'); focusDay(); return;
+        }
         if (disabled(date(value))) { previewDay(value); calendarHelp(reasonFor(value)); return; }
         invalidate();
         const complete = state.stage === 'out' && Boolean(state.in);
@@ -213,12 +235,25 @@
             calendarHelp(`Choose checkout. Minimum stay: ${lookupDay(value).minNights} nights.`);
         } else state.out = value;
         preview = ''; departures.clear();
-        // flatpickr.clear() resets currentMonth to its initial date. Restore the visible pair.
-        const year = picker.currentYear, month = picker.currentMonth;
-        picker.clear(false); picker.jumpToDate(new Date(year, month, 1, 12), false); picker.redraw(); updateDates(); minimumNote();
+        // Selection belongs to our existing state machine. Keep the visible month DOM intact.
+        refreshDays(); updateDates();
         if (complete) { closeCalendar(); calculate(); }
         else focusDay();
     }
+    function monthChanged() {
+        preview = ''; refreshDays(); positionCalendar();
+        const next = picker.currentYear * 12 + picker.currentMonth;
+        const direction = visibleMonth === undefined || next > visibleMonth ? 1 : -1;
+        const changed = next !== visibleMonth; visibleMonth = next;
+        if (changed) monthAnimation?.cancel();
+        if (changed && !dialog.hidden && !reducedMotion.matches) {
+            monthAnimation = surface.querySelector('.flatpickr-rContainer').animate([
+                {opacity: .5, transform: `translateX(${direction * 8}px)`},
+                {opacity: 1, transform: 'translateX(0)'},
+            ], {duration: 200, easing: 'cubic-bezier(.2,.7,.3,1)'});
+        }
+    }
+    reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) monthAnimation?.cancel(); });
     function positionCalendar() {
         if (dialog.hidden) return;
         const fields = find('.aloha-booking-fields').getBoundingClientRect();
@@ -244,7 +279,7 @@
     }
     function closeCalendar(restoreFocus = true) {
         if (dialog.hidden) return;
-        dialog.hidden = true; arrow.hidden = true; preview = '';
+        dialog.hidden = true; arrow.hidden = true; preview = ''; monthAnimation?.cancel();
         root.querySelectorAll('[data-booking-dates]').forEach(button => button.setAttribute('aria-expanded', 'false'));
         if (restoreFocus) returnFocus?.focus({preventScroll: true});
     }
@@ -256,13 +291,12 @@
             showMonths: window.innerWidth >= 768 ? 2 : 1, monthSelectorType: 'static',
             minDate: state.rules?.today || config.today, maxDate: state.rules?.windowEnd,
             disable: [disabled], ariaDateFormat: 'F j, Y',
-            onDayCreate: dayCell, onChange: (_dates, value) => chooseDay(value),
-            onMonthChange: () => { preview = ''; picker.redraw(); minimumNote(); positionCalendar(); },
-            onYearChange: () => { preview = ''; picker.redraw(); minimumNote(); positionCalendar(); },
+            onDayCreate: dayCell, onMonthChange: monthChanged, onYearChange: monthChanged,
         });
         dialog.hidden = false;
         root.querySelectorAll('[data-booking-dates]').forEach(button => button.setAttribute('aria-expanded', 'true'));
         picker.jumpToDate((state.stage === 'out' && state.out) || state.in || config.today, false);
+        visibleMonth = picker.currentYear * 12 + picker.currentMonth;
         calendarHelp(state.stage === 'out' ? `Choose checkout. Minimum stay: ${lookupDay(state.in)?.minNights ?? '—'} nights.` : 'Choose check-in, then checkout.');
         minimumNote(); positionCalendar();
         if (state.rules) { picker.redraw(); focusDay(); } else loadCalendar();
@@ -272,7 +306,10 @@
     surface.addEventListener('focusin', event => { const cell = event.target.closest('.flatpickr-day'); if (cell) previewDay(cell.dataset.date); });
     surface.addEventListener('click', event => {
         const cell = event.target.closest('.flatpickr-day');
-        if (cell && disabled(cell.dateObj)) { event.preventDefault(); event.stopImmediatePropagation(); previewDay(cell.dataset.date); calendarHelp(reasonFor(cell.dataset.date)); }
+        if (cell) {
+            // Capture before flatpickr's single-date handler can change the displayed month.
+            event.preventDefault(); event.stopImmediatePropagation(); chooseDay(cell.dataset.date);
+        }
     }, true);
     surface.addEventListener('keydown', event => {
         const cell = event.target.closest('.flatpickr-day'); if (!cell) return;
@@ -313,8 +350,15 @@
         find('[data-price-detail-note]').textContent = payload.notices.join(' ');
         find('[data-booking-price]').hidden = false;
         find('[data-action-text]').textContent = 'Book now';
-        find('[data-booking-disclaimer]').textContent = 'You won’t be charged yet. Booking checkout is not enabled.';
-        message(payload.status === 'partial' ? 'Detailed price breakdown is temporarily unavailable.' : 'Estimated total. Final amount is confirmed during booking.');
+        find('[data-booking-charge]').hidden = false;
+        const save = find('[data-booking-save]'), marketing = payload.marketing;
+        // Display-only amount comes from Bridge. Comparison approval remains a production policy decision.
+        if (marketing?.percent === 15 && marketing.displayOnly === true && typeof marketing.amount === 'string' && /^\d+$/.test(marketing.amount)) {
+            const amount = document.createElement('strong'); amount.dataset.marketingAmount = '';
+            amount.textContent = money(marketing.amount, payload.currency, true);
+            save.replaceChildren('You save ', amount, ' vs the same dates on Airbnb'); save.hidden = false;
+        } else save.hidden = true;
+        message('');
     }
     async function calculate() {
         invalidate(); const guests = party();

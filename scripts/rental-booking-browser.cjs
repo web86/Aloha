@@ -5,7 +5,7 @@ const {mkdirSync, writeFileSync} = require('node:fs');
 const {join} = require('node:path');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = 'http://127.0.0.1:8088', key = 'm24-fixture-' + randomBytes(8).toString('hex');
-const evidence = process.env.RENTAL_BOOKING_SCREENSHOTS || '.local/evidence/m2-4c1b';
+const evidence = process.env.RENTAL_BOOKING_SCREENSHOTS || '.local/evidence/m2-4c1c-booking';
 function wp(file, ...args) {
     const r = spawnSync('./bin/local', ['wp', 'eval-file', '/var/www/m24-tests/' + file, ...args], {encoding: 'utf8', timeout: 60000});
     assert.equal(r.status, 0, r.stdout + r.stderr); return r.stdout.trim();
@@ -41,6 +41,7 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
                 return route.fulfill({json: {...json, ...(requestedMode === 'stale' ? {expiresAt: new Date(Date.now() - 1000).toISOString()} : {}), status: requestedMode === 'stale' ? 'reconciled' : requestedMode, currency: 'USD', estimatedTotal: requestedMode === 'partial' ? '4600.00' : '4542.11',
                     dates: {checkIn, checkOut, nights: 5}, guests: {adults: Number(q.get('adults')), children: Number(q.get('children'))},
                     items: [{kind: 'accommodation', label: '5 nights (calendar rates)', amount: '3238.00'}, {kind: 'cleaning', label: 'Cleaning fee', amount: '595.00'}, {kind: 'tax', label: 'Taxes (TAT + GET + HITAT)', amount: '709.11'}],
+                    marketing: {percent: 15, amount: requestedMode === 'partial' ? '690' : '681', displayOnly: true, comparisonApproved: false},
                     notices: [requestedMode === 'partial' ? 'Detailed price breakdown is temporarily unavailable.' : 'Estimated total. Final amount is confirmed during booking.'], bookingEnabled: false}});
             });
             const page = await context.newPage(), errors = [];
@@ -50,8 +51,8 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
             const widget = page.locator('.aloha-rental-booking'), dialog = page.locator('.aloha-booking-calendar');
             await widget.scrollIntoViewIfNeeded();
             assert.match(await widget.locator('[data-booking-heading]').innerText(), /345/);
-            assert.equal(await widget.getByText('Book direct with Aloha', {exact: true}).count(), 1);
-            assert.equal(await widget.getByText(/15%|vs Airbnb/).count(), 0);
+            assert.equal(await widget.getByText('Book direct and save 15%', {exact: true}).count(), 1);
+            assert.equal(await widget.locator('.aloha-booking-save').innerText(), 'Book direct and save 15% compared to Airbnb');
             await widget.screenshot({path: join(evidence, `booking-default-${width}.png`)});
             await widget.locator('[data-booking-dates="in"]').click();
             assert.equal(calendarCalls, 0, 'Embedded snapshot opens without any network request');
@@ -59,13 +60,18 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
             assert.equal(await dialog.evaluate(el => el.parentElement === document.body), true);
             assert.equal(await dialog.locator('header,footer,small,[data-calendar-apply]').count(), 0);
             assert.equal(await dialog.locator('[data-calendar-note]').innerText(),'Minimum stay varies by date');
-            assert.equal(await page.locator('.aloha-calendar-arrow').getAttribute('data-side'),'top');
             const placement = await dialog.evaluate(el => {
                 const r=el.getBoundingClientRect(), anchor=document.querySelector('[data-booking-dates="in"]').getBoundingClientRect();
-                return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,anchorBottom:anchor.bottom,header:parseFloat(document.querySelector('.aloha-rental-booking').style.getPropertyValue('--aloha-booking-offset'))};
+                return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,anchorTop:anchor.top,anchorBottom:anchor.bottom,header:parseFloat(document.querySelector('.aloha-rental-booking').style.getPropertyValue('--aloha-booking-offset'))};
             });
             assert.ok(placement.left>=7 && placement.right<=width-7 && placement.top>=placement.header-1 && placement.bottom<=1000-7, JSON.stringify(placement));
-            assert.ok(Math.abs(placement.top-placement.anchorBottom-10)<2, 'Calendar is directly anchored below the date fields');
+            if (placement.top >= placement.anchorBottom) {
+                assert.ok(Math.abs(placement.top-placement.anchorBottom-10)<2, 'Calendar anchors below when space permits');
+                assert.equal(await page.locator('.aloha-calendar-arrow').getAttribute('data-side'),'top');
+            } else {
+                assert.ok(Math.abs(placement.anchorTop-placement.bottom-10)<2, 'Calendar anchors above when below does not fit');
+                assert.equal(await page.locator('.aloha-calendar-arrow').getAttribute('data-side'),'bottom');
+            }
             assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).overflow), 'hidden');
             await dialog.screenshot({path: join(evidence, `calendar-${width}.png`)});
             await page.screenshot({path: join(evidence, `calendar-anchored-${width}.png`)});
@@ -76,8 +82,11 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
             assert.ok(await page.evaluate(previous=>scrollY!==previous,beforeScroll),'Page scroll stays enabled');
             assert.equal(await dialog.isVisible(),true);
             await page.setViewportSize({width,height:650}); await page.waitForTimeout(50);
+            await widget.locator('[data-booking-dates="in"]').scrollIntoViewIfNeeded();
+            if (!await dialog.isVisible()) await widget.locator('[data-booking-dates="in"]').click();
             const short=await dialog.boundingBox();assert.ok(short.x>=7&&short.x+short.width<=width-7&&short.y>=placement.header-1&&short.y+short.height<=643,JSON.stringify(short));
             await page.setViewportSize({width,height:1000}); await page.evaluate(previous=>window.scrollTo(0,previous),beforeScroll);await page.waitForTimeout(50);
+            if (!await dialog.isVisible()) await widget.locator('[data-booking-dates="in"]').click();
             assert.equal(calendarCalls,0,'Scroll/resize does not refresh calendar');
             const keyboardDay = dialog.locator('.flatpickr-day[tabindex="0"]').first();
             await keyboardDay.focus(); await page.keyboard.press('ArrowRight');
@@ -127,7 +136,9 @@ const add = (d, n) => { const v = new Date(d + 'T12:00:00Z'); v.setUTCDate(v.get
             if ([390,1440].includes(width)) await widget.screenshot({path: join(evidence, `booking-guests-${width}.png`)});
             assert.equal(await widget.locator('[data-booking-price]').isVisible(), false);
             mode = 'partial'; await widget.locator('[data-guests-done]').click();
-            await widget.locator('[data-booking-status]').getByText('Detailed price breakdown is temporarily unavailable.', {exact: true}).waitFor();
+            await widget.locator('[data-total-amount]').getByText(/4,600/).waitFor();
+            assert.equal(await widget.locator('[data-booking-status]').isVisible(), false);
+            assert.match(await widget.locator('[data-price-detail-note]').textContent(), /Detailed price breakdown is temporarily unavailable/);
             await widget.screenshot({path: join(evidence, `booking-partial-${width}.png`)});
             // Error never retains the previous confirmed amount.
             mode = 'unavailable'; await widget.locator('.aloha-booking-guests summary').click();

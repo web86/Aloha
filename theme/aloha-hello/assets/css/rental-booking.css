@@ -1,21 +1,21 @@
 /* Rental-only widget and body-mounted, nonmodal calendar. */
 .aloha-rental-booking { top: var(--aloha-booking-offset, 20px); }
 .aloha-rental-booking-card { padding: clamp(20px,2.1vw,30px); border: 0; border-radius: 20px; box-shadow: 0 12px 48px #16232a10; max-height: calc(100dvh - var(--aloha-booking-offset, 20px) - 20px); overflow: auto; scrollbar-width: thin; }
-.aloha-booking-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
-.aloha-booking-top p { margin: 0; font-size: 1.05rem; line-height: 1.4; }
-.aloha-booking-top strong { font-size: 1.8rem; letter-spacing: -.04em; }
-.aloha-booking-from { font-size: 1rem; color: #59666c; }
-.aloha-booking-instant { display: inline-flex; align-items: center; gap: 5px; color: var(--aloha-color-brand); font-size: .85rem; font-weight: 600; white-space: nowrap; }
-.aloha-booking-instant > span { color: #ffb522; font-size: 1.4rem; line-height: 1; }
+.aloha-booking-top { display: flex; flex-wrap: nowrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 18px; }
+.aloha-booking-top p { flex: 1; min-width: 0; margin: 0; font-size: 1rem; line-height: 1.3; }
+.aloha-booking-top strong { font-size: 1.65rem; letter-spacing: -.04em; }
+.aloha-booking-from { font-size: .85rem; color: #59666c; }
+.aloha-booking-instant { display: inline-flex; flex: 0 0 auto; align-items: baseline; gap: 4px; color: var(--aloha-color-brand); font-size: .75rem; line-height: 1.3; font-weight: 600; white-space: nowrap; }
+.aloha-booking-instant > span { color: #ffb522; font-size: 1.1rem; line-height: 1; }
 .aloha-booking-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); border: 1px solid #b9c9ce; border-radius: 12px; overflow: clip; }
-.aloha-booking-fields > button, .aloha-booking-guests summary { border: 0; background: transparent; color: inherit; padding: 17px; text-align: left; font: inherit; cursor: pointer; min-height: 84px; }
+.aloha-booking-fields > button, .aloha-booking-guests summary { border: 0; background: transparent; color: inherit; padding: 12px 14px; text-align: left; font: inherit; line-height: 1.3; cursor: pointer; min-height: 72px; box-sizing: border-box; }
 .aloha-booking-fields > button + button { border-left: 1px solid #b9c9ce; }
-.aloha-booking-fields > button > span, .aloha-booking-guests summary > span:first-child { display: block; text-transform: uppercase; letter-spacing: .1em; color: #52636b; font-size: .72rem; font-weight: 650; margin-bottom: 7px; }
+.aloha-booking-fields > button > span, .aloha-booking-guests summary > span:first-child { display: block; text-transform: uppercase; letter-spacing: .1em; color: #52636b; font-size: .72rem; font-weight: 650; margin-bottom: 5px; }
 .aloha-booking-fields strong { display: block; font-size: 1.12rem; font-weight: 500; }
 .aloha-booking-guests { grid-column: 1/-1; border-top: 1px solid #b9c9ce; }
 .aloha-booking-guests summary { position: relative; list-style: none; }
 .aloha-booking-guests summary::-webkit-details-marker { display: none; }
-.aloha-booking-chevron { position: absolute; right: 18px; top: 40%; }
+.aloha-booking-chevron { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); }
 .aloha-booking-party { padding: 0 17px 17px; }
 .aloha-booking-party label { display: grid; grid-template-columns: 1fr 80px; align-items: center; gap: 6px; margin-block: 14px; }
 .aloha-booking-party label small { grid-column: 1; color: #59666c; font-size: .8rem; }
@@ -26,14 +26,15 @@
 .aloha-booking-primary:disabled { opacity: .55; cursor: default; }
 .aloha-booking-text-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 10px; background: transparent; color: var(--aloha-color-brand); font: 600 .95rem/1.4 var(--wp--preset--font-family--outfit); border: 0; text-decoration: underline; cursor: pointer; }
 .aloha-rental-booking :is(button,input,summary):focus-visible, .aloha-booking-calendar :is(button,.flatpickr-day):focus-visible { outline: 2px solid var(--aloha-color-brand); outline-offset: 3px; }
-.aloha-booking-status { font-size: .85rem; line-height: 1.45; min-height: 1.45em; margin: 16px 0 10px; color: #52636b; }
-.aloha-rental-booking-card > .aloha-booking-disclaimer { font-size: .8rem; line-height: 1.4; text-align: center; color: #59666c; margin-block: 12px 0; }
-.aloha-rental-booking-card > .aloha-booking-direct { margin-block: 20px 0; padding: 16px; background: #e5eef0; border-radius: 8px; font-size: .95rem; font-weight: 600; }
-.aloha-booking-total { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 22px; }
-.aloha-booking-total > div > strong { font-size: 1.2rem; }
-.aloha-booking-total small { display: block; color: #59666c; font-size: .8rem; margin-top: 4px; }
-.aloha-booking-total > strong { font-size: clamp(1.5rem,2.4vw,2rem); white-space: nowrap; letter-spacing: -.035em; }
-.aloha-booking-breakdown { margin-top: 12px; }
+.aloha-rental-booking-card > .aloha-booking-status { font-size: .85rem; line-height: 1.45; margin: 10px 0 0; color: #52636b; }
+.aloha-booking-status:empty { display: none; }
+.aloha-rental-booking-card > .aloha-booking-charge { text-align: center; font-size: 14px; line-height: 1.45; margin: 10px 0 0; color: #59666c; }
+.aloha-booking-save { margin: 14px 0 0; padding: 12px 14px; background: #e5eef0; border-radius: 8px; font-size: .95rem; line-height: 1.4; }
+[data-booking-action] { margin-top: 14px; }
+.aloha-booking-total { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 18px; }
+.aloha-booking-total > strong:first-child { font-size: 1.2rem; }
+.aloha-booking-total > [data-total-amount] { font-size: clamp(1.5rem,2.4vw,2rem); white-space: nowrap; letter-spacing: -.035em; }
+.aloha-booking-breakdown { margin-top: 8px; }
 .aloha-booking-breakdown > summary { color: var(--aloha-color-brand); cursor: pointer; font-size: .95rem; text-decoration: underline; width: fit-content; }
 .aloha-booking-breakdown > div { padding: 18px 0 4px; }
 .aloha-booking-breakdown h3 { font-size: 1.15rem; margin: 0 0 15px; }
@@ -51,15 +52,18 @@
 .aloha-calendar-loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px; color: #075056; font-size: .85rem; }
 .aloha-booking-calendar .flatpickr-calendar { box-shadow: none; background: transparent; border: 0; font-family: inherit; margin-inline: auto; width: 100% !important; }
 .aloha-booking-calendar .flatpickr-rContainer, .aloha-booking-calendar .flatpickr-days { width: 100% !important; }
-.aloha-booking-calendar .dayContainer { min-width: 0; width: 50%; max-width: none; box-shadow: none; gap: 0; padding: 0 2px; }
+.aloha-booking-calendar .dayContainer { min-height: 216px; align-content: flex-start; min-width: 0; width: 50%; max-width: none; box-shadow: none; gap: 0; padding: 0 2px; }
 .aloha-booking-calendar .flatpickr-day { display: flex; align-items: center; justify-content: center; height: 36px; max-width: 14.2857%; flex-basis: 14.2857%; line-height: 1; border: 2px solid #fff; border-radius: 6px; margin: 0; background: #E5F5E9; color: #16232A; }
-.aloha-booking-calendar .flatpickr-day.flatpickr-disabled { color: #929DA2; background: #ECEFF0; text-decoration: none; }
+.aloha-booking-calendar .flatpickr-day.flatpickr-disabled { cursor: not-allowed; }
+.aloha-booking-calendar .flatpickr-day.aloha-available { background: #E5F5E9; color: #16232A; }
+.aloha-booking-calendar .flatpickr-day.aloha-unavailable { background: #ECEFF0; color: #929DA2; }
 .aloha-booking-calendar .flatpickr-day.aloha-unknown { background: #f7f8f8; color: #929DA2; text-decoration: none; }
 .aloha-booking-calendar .flatpickr-day.aloha-checkout-only { background: linear-gradient(135deg,#E5F5E9 65%,#ECEFF0 65%); color: #075056; box-shadow: inset 0 -2px #075056; text-decoration: none; }
 .aloha-booking-calendar .flatpickr-day.aloha-in-range { background: #075056; color: #FFFFFF; text-decoration: none; }
 .aloha-booking-calendar .flatpickr-day:is(.aloha-range-start,.aloha-range-end) { background: #075056; color: #FFFFFF; text-decoration: none; box-shadow: none; }
 .aloha-booking-calendar .flatpickr-day:focus-visible { outline-offset: -3px; outline: 2px solid #075056; }
 @media (max-width: 767px) {
+ .aloha-booking-top { flex-wrap: wrap; }
  .aloha-rental-booking { position: static; }
  .aloha-rental-booking-card { max-height: none; overflow: visible; }
  .aloha-booking-calendar { padding: 10px; }
@@ -68,7 +72,7 @@
 @media (prefers-reduced-motion: reduce) { .aloha-booking-spinner { animation: none; border-right-color: currentColor; } }
 
 /* Reset global pill-button/form geometry inside this compact control. */
-.aloha-booking-fields > button { display: block; border-radius: 0; width: 100%; line-height: 1.3; padding: 17px 14px; }
+.aloha-booking-fields > button { display: block; border-radius: 0; width: 100%; line-height: 1.3; padding: 12px 14px; }
 .aloha-booking-calendar .flatpickr-current-month { font-size: 1rem; height: 34px; line-height: 34px; padding: 0; }
 .aloha-booking-calendar .flatpickr-current-month input.cur-year { min-height: 0; height: 30px; padding: 0 0 0 4px; border: 0; background: transparent; border-radius: 0; font-size: 1rem; line-height: 30px; }
 .aloha-booking-calendar .flatpickr-current-month .numInputWrapper { width: 6ch; }
@@ -85,7 +89,6 @@
 .aloha-booking-stepper input[type=number] { width: 36px; height: 44px; min-height: 44px !important; padding: 0 !important; margin: 0 !important; border: 0 !important; background: transparent; text-align: center; appearance: textfield; }
 .aloha-booking-stepper input::-webkit-outer-spin-button, .aloha-booking-stepper input::-webkit-inner-spin-button { appearance: none; margin: 0; }
 .aloha-booking-stepper button:disabled { opacity: .35; }
-[data-booking-price] > .aloha-booking-disclaimer { font-size: .78rem; line-height: 1.4; color: #59666c; margin-block: 10px 0; }
 .aloha-booking-stepper input[type=number] { width: 36px !important; flex: 0 0 36px; }
 
 /* One decorative arrow follows the active date field, outside the scrollable panel. */

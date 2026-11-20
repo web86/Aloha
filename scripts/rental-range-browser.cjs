@@ -5,7 +5,7 @@ const {mkdirSync,writeFileSync}=require('node:fs');
 const {join,resolve}=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const base='http://127.0.0.1:8088',key='m24-fixture-'+randomBytes(8).toString('hex');
-const evidence=process.env.RENTAL_RANGE_SCREENSHOTS||'.local/evidence/m2-4c1b-range';
+const evidence=process.env.RENTAL_RANGE_SCREENSHOTS||'.local/evidence/m2-4c1c-range';
 function wp(file,...args){const r=spawnSync('./bin/local',['wp','eval-file','/var/www/m24-tests/'+file,...args],{encoding:'utf8',timeout:60000});assert.equal(r.status,0,r.stdout+r.stderr);return r.stdout.trim();}
 const add=(d,n)=>{const v=new Date(d+'T12:00:00Z');v.setUTCDate(v.getUTCDate()+n);return v.toISOString().slice(0,10);};
 (async()=>{
@@ -22,7 +22,7 @@ const add=(d,n)=>{const v=new Date(d+'T12:00:00Z');v.setUTCDate(v.getUTCDate()+n
    await ctx.route('**/aloha-bridge/v1/rentals/*/*',r=>{
     const u=new URL(r.request().url()),q=u.searchParams;assert.equal(r.request().method(),'GET');
     if(u.pathname.endsWith('/availability')){availability++;throw new Error('Unexpected availability fetch');}
-    prices++;return r.fulfill({json:{version:1,rentalId:fixture.public.id,status:'partial',currency:'USD',estimatedTotal:'1234.00',items:[],notices:['Synthetic estimate'],dates:{checkIn:q.get('checkIn'),checkOut:q.get('checkOut')},guests:{adults:Number(q.get('adults')),children:Number(q.get('children'))},expiresAt:new Date(Date.now()+60000).toISOString()}});
+    prices++;return r.fulfill({json:{version:1,rentalId:fixture.public.id,status:'partial',currency:'USD',estimatedTotal:'1234.00',items:[],marketing:{percent:15,amount:'185',displayOnly:true,comparisonApproved:false},notices:['Synthetic estimate'],dates:{checkIn:q.get('checkIn'),checkOut:q.get('checkOut')},guests:{adults:Number(q.get('adults')),children:Number(q.get('children'))},expiresAt:new Date(Date.now()+60000).toISOString()}});
    });
    const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(fixture.public.url);
    const widget=page.locator('.aloha-rental-booking'),dialog=page.locator('.aloha-booking-calendar'),arrow=page.locator('.aloha-calendar-arrow');

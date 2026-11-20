@@ -62,14 +62,13 @@ function aloha_rental_booking( array $rental ): void {
 				</details>
 			</div>
 			<div data-booking-price hidden>
-				<div class="aloha-booking-total"><div><strong><?php esc_html_e( 'Total', 'aloha-hello' ); ?></strong><small><?php esc_html_e( 'Estimated total', 'aloha-hello' ); ?></small><small><?php esc_html_e( 'Includes taxes and mandatory fees', 'aloha-hello' ); ?></small></div><strong data-total-amount></strong></div>
+				<div class="aloha-booking-total"><strong><?php esc_html_e( 'Total', 'aloha-hello' ); ?></strong><strong data-total-amount aria-live="polite"></strong></div>
 				<details class="aloha-booking-breakdown"><summary><?php esc_html_e( 'View details', 'aloha-hello' ); ?></summary><div><h3><?php esc_html_e( 'Price details', 'aloha-hello' ); ?></h3><dl data-price-lines></dl><p data-price-detail-note></p></div></details>
-				<p class="aloha-booking-disclaimer"><?php esc_html_e( 'Guest-specific pricing is confirmed during booking.', 'aloha-hello' ); ?></p>
 			</div>
 			<p class="aloha-booking-status" data-booking-status role="status" aria-live="polite"></p>
 			<button type="button" class="aloha-booking-primary" data-booking-action><span class="aloha-booking-spinner" aria-hidden="true" hidden></span><span data-action-text><?php esc_html_e( 'Check availability', 'aloha-hello' ); ?></span></button>
-			<p class="aloha-booking-disclaimer" data-booking-disclaimer><?php esc_html_e( 'Online reservations and payments are not enabled yet.', 'aloha-hello' ); ?></p>
-			<p class="aloha-booking-direct"><?php esc_html_e( 'Book direct with Aloha', 'aloha-hello' ); ?></p>
+			<p class="aloha-booking-charge" data-booking-charge hidden><?php esc_html_e( 'You won’t be charged yet', 'aloha-hello' ); ?></p>
+			<div class="aloha-booking-save" data-booking-save><strong><?php esc_html_e( 'Book direct and save 15%', 'aloha-hello' ); ?></strong> <?php esc_html_e( 'compared to Airbnb', 'aloha-hello' ); ?></div>
 			<noscript><p><?php esc_html_e( 'Enable JavaScript to check dates and estimated prices.', 'aloha-hello' ); ?></p></noscript>
 		</div>
 		<div id="aloha-booking-calendar" class="aloha-booking-calendar" role="dialog" aria-modal="false" aria-label="<?php esc_attr_e( 'Booking dates', 'aloha-hello' ); ?>" hidden>
