@@ -1,5 +1,7 @@
 # M2.4C.1b — Range calendar UX
 
+Follow-up: [M2.4C.1c — in-place selection and booking widget polish](m2-4c1c-booking-widget-polish.md) supersedes the selection redraw and widget presentation described below.
+
 Extends `e1f9c12` on the existing `feature/m2-4b-rental-template` remote branch, paired with Bridge **0.3.17**. The verified integration worktree was clean before implementation. The root checkout's WIP, main and production remain unchanged.
 
 ## Selection model and month stability
