@@ -82,7 +82,9 @@ function mockMaps() {
         page.on('request', request => requests.push({type: request.resourceType(), url: request.url()}));
         await form.locator('[name="area_id"]').selectOption(area);
         await form.locator('[name="bedrooms"][value="3"]').check();
+        await catalog.locator('[data-guest-toggle]').click();
         await form.locator('[name="adults"]').fill('6'); await form.locator('[name="children"]').fill('2');
+        await catalog.locator('[data-guest-done]').click();
         await form.getByRole('button', {name: 'Search', exact: true}).click();
         assert.deepEqual(await ids(), [data.public.id]);
         assert.match(page.url(), /area_id=/); assert.match(page.url(), /adults=6/); assert.match(page.url(), /children=2/);
@@ -105,7 +107,9 @@ function mockMaps() {
             assert.equal((await ids()).includes(prepared.empty.id), false, 'Unknown bedrooms matched');
             await catalog.locator('[data-catalog-clear]').click();
         }
+        await catalog.locator('[data-guest-toggle]').click();
         await form.locator('[name="children"]').fill('1');
+        await catalog.locator('[data-guest-done]').click();
         await form.getByRole('button', {name: 'Search', exact: true}).click();
         assert.equal((await ids()).includes(prepared['related-gallery'].id), false, 'Confirmed child restriction ignored');
         assert.equal((await ids()).includes(prepared.empty.id), false, 'Unknown capacity matched');

@@ -1,74 +1,177 @@
-.aloha-catalog { padding-block: 28px 0; }
+/* Catalog-only form normalization. Shared shell and Single Rental styles stay intact. */
+.wp-site-blocks > .aloha-catalog-main { margin-block-start: 0; }
+.aloha-catalog { --catalog-sticky-top: 92px; padding-block: 28px 0; }
 .aloha-catalog [hidden] { display: none !important; }
-.aloha-catalog-breadcrumb { font-size: 13px; margin-bottom: 20px; }
+.aloha-catalog-breadcrumb { font-size: 14px; line-height: 1.6; margin-bottom: 18px; color: #4b5a60; }
 .aloha-catalog-breadcrumb a { color: inherit; }
-.aloha-catalog h1 { margin: 0 0 14px; font: 400 clamp(2.8rem,4.6vw,4.5rem)/1.04 var(--wp--preset--font-family--instrument-serif); }
-.aloha-catalog-intro { max-width: 760px; margin: 0 0 18px; line-height: 1.65; }
-.aloha-catalog-filters { display: flex; align-items: center; gap: 16px; background: var(--aloha-color-surface); padding: 14px 16px 14px 24px; border-radius: 38px; box-shadow: 0 7px 24px #16232a0c; }
-.aloha-catalog-filters > label, .aloha-catalog-guests { flex: 1; min-width: 0; }
-.aloha-catalog-filters label, .aloha-catalog-filters legend { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
-.aloha-catalog-filters input, .aloha-catalog-filters select { display: block; width: 100%; min-height: 44px; border: 0; background: transparent; color: var(--aloha-color-text); font-size: 14px; letter-spacing: normal; }
-.aloha-catalog-filters input:disabled { opacity: .65; }
-.aloha-catalog-guests { display: flex; gap: 12px; }
-.aloha-catalog-guests label { min-width: 0; width: 50%; }
-.aloha-catalog-filters fieldset { flex: 0 0 auto; border: 0; padding: 0; margin: 0; min-width: 0; }
-.aloha-catalog-filters legend { margin-bottom: 6px; }
-.aloha-catalog-filters fieldset label { display: inline-block; position: relative; }
-.aloha-catalog-filters fieldset input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-.aloha-catalog-filters fieldset span { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 1px solid var(--aloha-color-border); border-radius: 99px; font-size: 13px; letter-spacing: normal; }
-.aloha-catalog-filters input:checked + span { color: white; background: var(--aloha-color-text); }
-.aloha-catalog-filters input:focus-visible + span { outline: 3px solid var(--aloha-color-brand); outline-offset: 2px; }
-.aloha-catalog-note { font-size: 12px; color: var(--wp--custom--color--muted); margin: 12px 0 24px; }
-.aloha-catalog-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.aloha-catalog h1 { margin: 0 0 14px; font: 400 clamp(44px,5vw,72px)/1 var(--wp--preset--font-family--instrument-serif); letter-spacing: -.01em; }
+.aloha-catalog-intro { max-width: 760px; margin: 0 0 32px; font-size: 20px; line-height: 1.6; color: #39454b; }
+.aloha-catalog-filter-sticky { position: sticky; top: var(--catalog-sticky-top); z-index: 30; background: var(--aloha-color-page); padding-block: 12px 16px; }
+.aloha-catalog-filters { display: flex; align-items: center; gap: 0; background: #fff; padding: 6px 6px 6px 8px; border-radius: 40px; box-shadow: 0 6px 24px #16232a14; }
+.aloha-catalog .aloha-catalog-filters :is(input,select,button), .aloha-catalog-sort select { appearance: none; -webkit-appearance: none; box-sizing: border-box; font-family: var(--wp--preset--font-family--outfit); letter-spacing: 0; text-transform: none; margin: 0; }
+/* Border-box bases include the reference field's 32px padding + 1px separator. */
+.aloha-catalog .aloha-catalog-field { position: relative; display: flex; flex: 1 1 143px; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 16px; border-right: 1px solid #cdd8db; }
+.aloha-catalog .aloha-catalog-field > span, .aloha-catalog-bedrooms legend { font-size: 12px; line-height: 1.6; text-transform: uppercase; letter-spacing: .12em; color: #4b5a60; }
+.aloha-catalog .aloha-catalog-dates { flex: 1.3 1 163px; }
+.aloha-catalog .aloha-catalog-field :is(select,.aloha-catalog-guest-toggle), .aloha-catalog .aloha-catalog-dates button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; min-height: 30px; height: 30px; border: 0; border-radius: 0; padding: 0; background: transparent; color: #16232a; font-size: 17px; font-weight: 400; line-height: 30px; text-align: left; white-space: nowrap; }
+.aloha-catalog .aloha-catalog-dates button:disabled { color: #647279; cursor: not-allowed; opacity: 1; }
+.aloha-catalog-dates small { position: absolute; right: 16px; top: 8px; font-size: 10px; line-height: 19px; color: #647279; }
+.aloha-catalog .aloha-catalog-field:is(:hover,:focus-within) { background: #f3f6f680; }
+.aloha-catalog .aloha-catalog-field :is(select,.aloha-catalog-guest-toggle), .aloha-catalog-sort select { padding-right: 24px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%2316232A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-position: right center; background-size: 16px; background-repeat: no-repeat; cursor: pointer; }
+.aloha-catalog .aloha-catalog-field select:open { background-color: #e4eef0; }
+.aloha-catalog .aloha-catalog-bedrooms { flex: 0 0 auto; min-width: 0; padding: 9px 16px; border: 0; margin: 0; }
+.aloha-catalog-bedrooms legend { float: left; width: 100%; margin: 0 0 6px; padding: 0; }
+.aloha-catalog-bedrooms > div { display: flex; clear: both; gap: 6px; margin-top: 2px; }
+.aloha-catalog-bedrooms label { display: block; position: relative; }
+.aloha-catalog-bedrooms input { position: absolute; inset: -5px 0; width: 100%; height: 44px; opacity: 0; cursor: pointer; z-index: 1; }
+.aloha-catalog-bedrooms span { display: grid; place-items: center; height: 34px; width: 66px; min-width: 40px; padding: 0 12px; border: 1px solid #cdd8db; border-radius: 999px; font-size: 15px; line-height: 1; background: white; }
+.aloha-catalog-bedrooms input:checked + span { background: #16232a; border-color: #16232a; color: white; }
+.aloha-catalog-bedrooms input:hover + span { border-color: #075056; }
+.aloha-catalog-bedrooms input:focus-visible + span { outline: 3px solid #075056; outline-offset: 3px; }
+.aloha-catalog button.aloha-catalog-search { flex: 0 0 auto; min-height: 56px; height: 56px; margin-left: 8px; padding: 0 32px; border: 1px solid transparent; border-radius: 999px; background: #ff5b04; color: white; font-size: 19px; font-weight: 700; line-height: 1; }
+.aloha-catalog button.aloha-catalog-search:hover { background: #e84f00; color: white; }
+.aloha-catalog button.aloha-catalog-search:active { background: #c94300; color: white; }
+.aloha-catalog button.aloha-catalog-search:disabled { background: #e4eef0; color: #647279; cursor: not-allowed; }
+.aloha-catalog :is(button,a,select,input):focus-visible { outline: 2px solid #075056; outline-offset: 3px; }
+.aloha-catalog-note { font-size: 12px; line-height: 1.5; color: #4b5a60; margin: 0 0 16px; }
+.aloha-catalog-guest-popover { display: flex; flex-wrap: wrap; gap: 12px; }
+.aloha-catalog-guest-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; }
+.aloha-catalog-guest-row label { font-size: 16px; color: #16232a; }
+.aloha-catalog-stepper { display: flex; align-items: center; gap: 8px; }
+.aloha-catalog #catalog-guests .aloha-catalog-stepper input { flex: 0 0 42px; width: 42px; min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: 4px; background: transparent; font-size: 17px; line-height: 1; text-align: center; appearance: textfield; -moz-appearance: textfield; }
+.aloha-catalog-stepper input::-webkit-inner-spin-button, .aloha-catalog-stepper input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.aloha-catalog .aloha-catalog-filters .aloha-catalog-stepper button { flex: 0 0 44px; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #cdd8db; border-radius: 50%; background: #fff; color: #16232a; font-size: 24px; font-weight: 400; line-height: 1; }
+.aloha-catalog .aloha-catalog-stepper button:hover { background: #e4eef0; }
+.aloha-catalog .aloha-catalog-stepper button:disabled { opacity: .35; cursor: not-allowed; }
+.aloha-catalog.is-enhanced .aloha-catalog-guest-popover { position: absolute; top: calc(100% + 16px); left: 0; width: 320px; max-width: calc(100vw - 40px); max-height: calc(100dvh - var(--catalog-sticky-top) - 130px); overflow: auto; padding: 20px; border: 1px solid #dbe4e6; border-radius: 12px; background: #fff; box-shadow: 0 12px 36px #16232a24; z-index: 3; }
+.aloha-catalog .aloha-catalog-filters .aloha-catalog-guest-done { min-height: 44px; padding: 8px 22px; margin-left: auto; font-size: 15px; background: #075056; color: #fff; }
+.aloha-catalog-layout { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,1fr); gap: 40px; align-items: start; }
 .aloha-catalog-layout.is-map-hidden { grid-template-columns: minmax(0,1fr); }
 .aloha-catalog-results { min-width: 0; }
-.aloha-catalog-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; font-size: 14px; }
+.aloha-catalog-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; font-size: 16px; }
 .aloha-catalog-toolbar p { margin: 0 auto 0 0; font-weight: 600; }
-.aloha-catalog-sort { font-size: 12px; }
-.aloha-catalog-toolbar button { font-size: 12px; min-height: 44px; padding: 8px 16px; }
-.aloha-catalog-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 14px; font-size: 12px; }
-.aloha-catalog-chips a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 12px; background: var(--aloha-color-surface-soft); border-radius: 99px; color: inherit; text-decoration: none; }
-.aloha-catalog-chips [data-catalog-clear] { background: transparent; padding-inline: 0; text-decoration: underline; }
-.aloha-catalog-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 24px; }
-.aloha-catalog-grid .aloha-rental-related-card h3 { font-size: clamp(25px,2.4vw,30px); }
-.aloha-catalog-grid .aloha-related-facts { font-size: 13px; gap: 6px 12px; }
-.aloha-catalog-grid .aloha-related-arrow { width: 44px; height: 44px; min-height: 44px; }
-.aloha-catalog-grid .aloha-related-dots button { width: 30px; min-width: 30px; height: 44px; min-height: 44px; }
-.aloha-catalog-empty { padding: 40px 24px; border: 1px solid var(--aloha-color-border); border-radius: var(--aloha-radius-card); }
+.aloha-catalog-sort, .aloha-catalog .aloha-catalog-toolbar button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid #cdd8db; border-radius: 999px; background: #fff; color: #16232a; font-size: 15px; line-height: 1.6; white-space: nowrap; }
+.aloha-catalog .aloha-catalog-sort select { min-height: 24px; height: 24px; min-width: 0; max-width: 150px; width: 150px; padding-block: 0; padding-left: 0; border: 0; border-radius: 0; color: inherit; font-size: 15px; font-weight: 600; line-height: 1.6; }
+.aloha-catalog .aloha-catalog-toolbar button:hover { background: #e4eef0; }
+.aloha-catalog-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 24px; font-size: 14px; }
+.aloha-catalog-chips:empty { margin-bottom: 24px; }
+.aloha-catalog-chips a { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 12px; border-radius: 999px; background: #e4eef0; color: #16232a; font-size: 14px; line-height: 1.6; text-decoration: none; }
+.aloha-catalog-chips a::before { content: ''; position: absolute; inset: -5px 0; min-height: 44px; }
+.aloha-catalog-chips a:hover { background: #d4e3e6; }
+.aloha-catalog-chips a:active { background: #c6d9dd; }
+.aloha-catalog-chips [data-catalog-clear] { padding-inline: 4px; background: transparent; color: #075056; font-weight: 500; text-decoration: underline; }
+.aloha-catalog-chips [data-catalog-clear]:hover { background: transparent; color: #16232a; }
+.aloha-catalog-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 22px; }
+.aloha-catalog-grid .aloha-rental-related-card { padding-bottom: 40px; }
+.aloha-catalog-grid .aloha-rental-related-card h3 { font-size: 26px; }
+.aloha-catalog-grid .aloha-related-area { margin-top: 16px; }
+.aloha-catalog-grid .aloha-related-usp { font-size: 15px; }
+.aloha-catalog-grid .aloha-related-facts { font-size: 15px; gap: 4px 16px; }
+.aloha-catalog-grid .aloha-related-arrow { isolation: isolate; width: 44px; height: 44px; min-height: 44px; padding: 0; background: transparent; font-size: 18px; }
+.aloha-catalog-grid .aloha-related-arrow::before { content: ''; position: absolute; inset: 5px; z-index: -1; border-radius: 50%; background: #ffffffeb; }
+.aloha-catalog-grid .aloha-related-arrow.is-prev { left: 5px; }
+.aloha-catalog-grid .aloha-related-arrow.is-next { right: 5px; }
+.aloha-catalog-grid .aloha-related-arrow:hover::before { background: #fff; }
+.aloha-catalog-grid .aloha-related-dots { bottom: -7px; gap: 0; }
+.aloha-catalog-grid .aloha-related-dots button { width: 24px; min-width: 24px; height: 44px; min-height: 44px; }
+.aloha-catalog-grid .aloha-related-slide img { transition: none; }
+.aloha-catalog-grid .aloha-related-slide:focus-visible { outline: 2px solid #075056; outline-offset: -3px; }
+.aloha-catalog-feature-tag { display: inline-block; margin: 8px 6px 0 0; padding: 4px 12px; border-radius: 999px; background: #e4eef0; font-size: 13px; }
+.aloha-catalog-empty { padding: 40px 24px; border: 1px solid #cdd8db; border-radius: 10px; }
 .aloha-catalog-map { min-width: 0; align-self: stretch; }
-.aloha-catalog-map-sticky { position: sticky; top: 110px; min-height: 540px; height: min(740px,calc(100vh - 140px)); overflow: hidden; border-radius: 10px; background: linear-gradient(105deg,#a8ccd7 0 25%,#dce9e4 25% 100%); }
+.aloha-catalog-map-sticky { position: sticky; top: var(--catalog-map-top,204px); height: max(400px,calc(100dvh - var(--catalog-map-top,204px) - 16px)); min-height: 400px; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg,#cfe0e3,#e3ece4 50%,#bcd6dd); }
 [data-catalog-map-surface] { width: 100%; height: 100%; }
-[data-catalog-map-message] { padding: 40px; position: absolute; inset: 20% 0 auto; text-align: center; font-size: 15px; }
-.aloha-catalog-legend { position: absolute; inset: auto 12px 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px 14px; padding: 10px; border-radius: 6px; background: #fffffff2; font-size: 11px; pointer-events: none; }
+[data-catalog-map-message] { position: absolute; inset: 30% 0 auto; padding: 32px; text-align: center; font-size: 15px; }
+.aloha-catalog-map-tools { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 2; text-align: center; }
+.aloha-catalog .aloha-catalog-move { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 16px; border: 0; border-radius: 999px; background: #fffffff2; color: #4b5a60; font-size: 14px; line-height: 1.4; font-weight: 400; white-space: nowrap; box-shadow: 0 3px 10px #16232a26; cursor: not-allowed; }
+.aloha-catalog-map-tools small { display: block; width: max-content; margin: 3px auto 0; padding: 0 6px; border-radius: 4px; font-size: 10px; background: #fffffff2; color: #4b5a60; }
+.aloha-catalog-map-zoom { position: absolute; right: 14px; top: 14px; z-index: 3; display: grid; gap: 6px; }
+.aloha-catalog .aloha-catalog-map-zoom button { width: 40px; height: 40px; min-height: 40px; padding: 0; border: 1px solid #cdd8db; border-radius: 50%; background: #fff; color: #16232a; font-size: 21px; font-weight: 400; line-height: 1; }
+.aloha-catalog .aloha-catalog-map-zoom button:disabled { color: #9ba9ae; cursor: not-allowed; }
+.aloha-catalog .aloha-catalog-map-zoom button:hover:not(:disabled) { background: #e4eef0; }
+.aloha-catalog-marker { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 7px 12px; min-height: 34px; max-width: 180px; border: 1.5px solid #16232a; border-radius: 999px; background: #fff; color: #16232a; font: 700 14px/1.3 var(--wp--preset--font-family--outfit); box-shadow: 0 3px 10px #16232a38; white-space: nowrap; cursor: pointer; }
+.aloha-catalog-marker::after { content: ''; position: absolute; inset: -5px; min-height: 44px; }
+.aloha-catalog-marker svg { width: 12px; height: 12px; flex-shrink: 0; }
+.aloha-catalog-marker.is-selected { background: #16232a; color: #fff; }
+.aloha-catalog-marker.is-neutral { width: 14px; height: 14px; min-height: 14px; padding: 0; border: 2px solid white; background: #9fb1b6; }
+.aloha-catalog-marker.is-neutral svg { display: none; }
+.aloha-catalog-marker.is-neutral::after { inset: -15px; }
+.aloha-catalog-map-preview { position: absolute; left: 5%; bottom: 110px; width: 250px; max-width: calc(100% - 36px); z-index: 4; overflow: hidden; border-radius: 10px; background: white; box-shadow: 0 10px 30px #16232a40; }
+.aloha-catalog-map-preview > a { display: block; color: #16232a; text-decoration: none; }
+.aloha-catalog-map-preview img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.aloha-catalog-map-preview .aloha-catalog-preview-text { padding: 12px 14px; }
+.aloha-catalog-map-preview strong { font-size: 16px; }
+.aloha-catalog-map-preview p { margin: 2px 0 0; font-size: 14px; line-height: 1.5; color: #4b5a60; }
+.aloha-catalog .aloha-catalog-preview-close { position: absolute; right: 8px; top: 8px; width: 32px; min-height: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: #fff; color: #16232a; font-size: 20px; line-height: 1; box-shadow: 0 2px 8px #16232a26; }
+.aloha-catalog-legend { position: absolute; inset: auto 14px 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 3px 10px; justify-content: center; padding: 8px 12px; border-radius: 6px; background: #fffffff2; color: #4b5a60; font-size: 12px; line-height: 1.6; pointer-events: none; }
+.aloha-catalog-legend span { display: flex; align-items: center; gap: 5px; }
+.aloha-catalog-legend i { width: 10px; height: 10px; border-radius: 50%; background: #9fb1b6; }
+.aloha-catalog-legend i.is-match { border: 1px solid #16232a; background: white; }
 .aloha-catalog-legend small { flex-basis: 100%; text-align: center; }
-.aloha-catalog-marker { display: grid; place-items: center; max-width: 170px; min-height: 36px; padding: 8px 12px; border-radius: 99px; background: white; border: 1px solid #c5d4d6; box-shadow: 0 2px 5px #16232a30; color: #16232a; font: 600 12px/1.2 var(--wp--preset--font-family--outfit); text-decoration: none; }
-.aloha-catalog-marker.is-neutral { width: 14px; height: 14px; min-height: 14px; padding: 0; border: 2px solid white; background: #8ba4ab; }
-.aloha-catalog-marker.is-neutral::before { content: ''; position: absolute; width: 44px; height: 44px; }
-.aloha-catalog-help { margin-top: 20px; max-width: 660px; padding: 32px; border-radius: 8px; background: var(--aloha-color-brand); color: var(--aloha-color-page); }
-.aloha-catalog-help h2 { font-size: 32px; margin: 0 0 8px; }
-.aloha-catalog-help p { margin: 0 0 18px; font-size: 16px; }
-.aloha-catalog-benefits { padding-block: 90px 130px; }
-.aloha-catalog-benefits > h2 { font-size: clamp(40px,4vw,56px); margin-bottom: 44px; }
-.aloha-catalog-benefits .wp-block-column { border-top: 1px solid var(--aloha-color-border); padding-top: 20px; }
-.aloha-catalog-benefits h3 { font-family: var(--wp--preset--font-family--outfit); font-size: 20px; margin: 0 0 8px; }
-.aloha-catalog-benefits p { font-size: 16px; margin: 0; }
-@media(max-width:1199px) {
- .aloha-catalog-filters { flex-wrap: wrap; border-radius: 20px; }
- .aloha-catalog-dates { flex-basis: 100% !important; }
- .aloha-catalog-layout { gap: 24px; grid-template-columns: minmax(0,1.3fr) minmax(0,1fr); }
-}
+.aloha-catalog-help { position: relative; margin-top: 48px; max-width: 660px; padding: 28px 32px 28px 130px; border-radius: 10px; background: #075056; color: #f3f6f6; }
+.aloha-catalog-team-icon { position: absolute; top: 28px; left: 32px; width: 80px; height: 80px; display: grid; place-items: center; border-radius: 50%; background: #ffffff18; }
+.aloha-catalog-help h2 { margin: 0 0 2px; font-size: 30px; line-height: 1.25; }
+.aloha-catalog-help p { margin: 0; font-size: 16px; line-height: 1.6; opacity: .85; }
+.aloha-catalog-help button, .aloha-catalog-help .aloha-button { margin-top: 20px; min-height: 52px; padding: 0 28px; border: 1.5px solid #f3f6f6; border-radius: 999px; background: transparent; color: #f3f6f6; font-size: 16px; }
+.aloha-catalog-help button:disabled { border-color: #f3f6f6; background: transparent; color: #f3f6f6; opacity: .65; }
+.aloha-catalog-help #catalog-contact-pending { margin-top: 8px; font-size: 12px; }
+.aloha-catalog-benefits { padding-block: 110px 120px; }
+.aloha-catalog-benefits > h2 { font-size: clamp(40px,5vw,60px); line-height: 1.04; margin: 0 0 44px; }
+.aloha-catalog-benefits .wp-block-columns { gap: 40px; }
+.aloha-catalog-benefits .wp-block-column { border-top: 1px solid #cdd8db; padding-top: 22px; }
+.aloha-catalog-benefits h3 { margin: 0 0 6px; font: 600 22px/1.25 var(--wp--preset--font-family--outfit); }
+.aloha-catalog-benefits p { margin: 0; font-size: 16px; line-height: 1.6; color: #39454b; }
+@media(prefers-reduced-motion:no-preference) { .aloha-catalog-grid .aloha-related-slide img { transition: transform .6s ease; } .aloha-catalog-grid .aloha-related-gallery:is(:hover,:focus-within) img { transform: scale(1.03); } }
+@media(max-width:1279px) { .aloha-catalog .aloha-catalog-field { padding-inline: 12px; } .aloha-catalog .aloha-catalog-bedrooms { padding-inline: 12px; } .aloha-catalog button.aloha-catalog-search { padding-inline: 24px; } }
 @media(max-width:1023px) {
+ .aloha-catalog { --catalog-sticky-top: 68px; }
+ .aloha-catalog-filters { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-radius: 24px; row-gap: 12px; padding: 12px; }
+ .aloha-catalog .aloha-catalog-area { border-right: 0; }
+ .aloha-catalog-bedrooms { grid-column: span 2; }
+ .aloha-catalog button.aloha-catalog-search { margin: 0; }
+ .aloha-catalog-filter-sticky { position: relative; top: auto; }
  .aloha-catalog-layout { grid-template-columns: minmax(0,1fr); }
- .aloha-catalog-map-sticky { position: relative; top: 0; height: 420px; min-height: 420px; }
+ .aloha-catalog-map-sticky { position: relative; top: auto; height: 440px; min-height: 440px; }
  .aloha-catalog-map { grid-row: 2; }
+ .aloha-catalog.is-enhanced .aloha-catalog-guest-popover { left: 50%; transform: translateX(-50%); }
 }
 @media(max-width:599px) {
- .aloha-catalog { padding-top: 24px; }
- .aloha-catalog-filters { gap: 16px; padding: 20px; align-items: stretch; }
- .aloha-catalog-filters > label, .aloha-catalog-guests { flex: 1 1 100%; }
- .aloha-catalog-filters > button { flex: 1 1 100%; }
- .aloha-catalog-filters fieldset { width: 100%; }
+ .aloha-catalog h1 { font-size: clamp(40px,11vw,48px); }
+ .aloha-catalog-intro { font-size: 17px; margin-bottom: 16px; }
+ .aloha-catalog-filters { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 8px; gap: 8px 0; border-radius: 22px; }
+ .aloha-catalog .aloha-catalog-dates { border-right: 1px solid #cdd8db; }
+ .aloha-catalog .aloha-catalog-guests { border-right: 0; }
+ .aloha-catalog .aloha-catalog-field { padding: 8px 10px; }
+ .aloha-catalog-dates small { position: static; font-size: 10px; line-height: 1; }
+ .aloha-catalog-area { grid-column: 1 / -1; }
+ .aloha-catalog-bedrooms { grid-column: auto; }
+ .aloha-catalog-bedrooms span { width: 40px; }
+ .aloha-catalog .aloha-catalog-bedrooms { padding-inline: 10px; }
+ .aloha-catalog button.aloha-catalog-search { padding-inline: 14px; margin: 6px; }
+ .aloha-catalog.is-enhanced .aloha-catalog-guest-popover { left: auto; right: 0; transform: none; width: min(320px,calc(100vw - 40px)); }
+ .aloha-catalog-toolbar { gap: 8px; font-size: 14px; }
+ .aloha-catalog-toolbar p { width: 100%; }
+ .aloha-catalog-sort { flex: 1; justify-content: space-between; padding-inline: 12px; }
+ .aloha-catalog-sort select { width: 140px; max-width: 140px; }
+ .aloha-catalog .aloha-catalog-toolbar button { padding-inline: 12px; font-size: 14px; }
  .aloha-catalog-grid { grid-template-columns: minmax(0,1fr); }
- .aloha-catalog-map-sticky { height: 350px; min-height: 350px; }
- .aloha-catalog-benefits { padding-block: 60px 80px; }
+ .aloha-catalog-map-sticky { height: 440px; min-height: 440px; }
+ .aloha-catalog-map-tools { left: 12px; transform: none; right: 62px; }
+ .aloha-catalog .aloha-catalog-move { width: 100%; padding-inline: 10px; white-space: normal; font-size: 12px; }
+ .aloha-catalog-help { padding: 28px 24px; }
+ .aloha-catalog-team-icon { position: static; margin-bottom: 18px; }
+ .aloha-catalog-benefits { padding-block: 70px 80px; }
+}
+
+.aloha-catalog-chip-close { font-size: 16px; line-height: 1; opacity: .7; }
+.aloha-catalog .aloha-catalog-field .aloha-catalog-guest-toggle { display: block; overflow: hidden; text-overflow: ellipsis; }
+.aloha-catalog-preview-close::after { content: ''; position: absolute; inset: -6px; }
+.aloha-catalog-map-zoom button::after { content: ''; position: absolute; inset: -2px; }
+.aloha-catalog-map-zoom button { position: relative; }
+.aloha-catalog-marker:hover { border-color: #075056; }
+.aloha-catalog .aloha-catalog-filters .aloha-catalog-guest-done:hover { background: #063e43; }
+
+.aloha-catalog-marker.is-selected.is-neutral { background: #16232a; }
+@media(max-width:359px) {
+ .aloha-catalog-bedrooms, .aloha-catalog button.aloha-catalog-search { grid-column: 1 / -1; }
 }

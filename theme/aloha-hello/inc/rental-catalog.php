@@ -99,7 +99,10 @@ function aloha_rental_catalog_render(): string {
 		if ( $item['publicMapLocation'] ) {
 			$price = $item['minimumNightlyPrice'];
 			$points[] = array( 'id' => $item['id'], 'title' => $item['title'], 'url' => $item['url'], 'position' => $item['publicMapLocation'],
-				'price' => 'available' === $price['status'] ? aloha_rental_money( $price ) : '' );
+				'price' => 'available' === $price['status'] ? aloha_rental_money( $price ) : '',
+				'image' => $item['gallery']['photos'][0]['image'] ?? null,
+				'facts' => array( 'bedrooms' => 'available' === ( $item['facts']['bedrooms']['status'] ?? '' ) ? aloha_rental_fact( $item, 'bedrooms' ) : null,
+					'guests' => 'available' === ( $item['facts']['guests']['status'] ?? '' ) ? aloha_rental_fact( $item, 'guests' ) : null ) );
 		}
 	}
 	$count = count( array_filter( $matches ) );
@@ -114,17 +117,30 @@ function aloha_rental_catalog_render(): string {
 		<nav class="aloha-catalog-breadcrumb" aria-label="<?php esc_attr_e( 'Breadcrumb', 'aloha-hello' ); ?>"><a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a> <span aria-hidden="true">›</span> Vacation Rentals</nav>
 		<h1>Big Island <em>vacation rentals</em></h1>
 		<p class="aloha-catalog-intro"><?php echo esc_html( sprintf( _n( '%d home on the Big Island, booked direct for 15%% less than Airbnb.', '%d homes on the Big Island, booked direct for 15%% less than Airbnb.', count( $items ), 'aloha-hello' ), count( $items ) ) ); ?></p>
+		<div class="aloha-catalog-filter-sticky" data-catalog-sticky>
 		<form method="get" action="<?php echo esc_url( get_post_type_archive_link( 'rental' ) ); ?>" class="aloha-catalog-filters" data-catalog-form aria-label="<?php esc_attr_e( 'Filter vacation rentals', 'aloha-hello' ); ?>">
-			<label class="aloha-catalog-dates">Dates<input type="text" disabled placeholder="Date search coming soon" aria-label="Dates — search coming soon"></label>
-			<div class="aloha-catalog-guests"><label>Adults<input name="adults" type="number" min="0" max="100" inputmode="numeric" value="<?php echo esc_attr( $filters['adults'] ); ?>" aria-describedby="catalog-capacity-note"></label><label>Children<input name="children" type="number" min="0" max="100" inputmode="numeric" value="<?php echo esc_attr( $filters['children'] ); ?>" aria-describedby="catalog-capacity-note"></label></div>
-			<label>Area<select name="area_id"><option value="0">All areas</option><?php foreach ( $areas as $id => $name ) : ?><option value="<?php echo esc_attr( $id ); ?>" <?php selected( $filters['area_id'], $id ); ?>><?php echo esc_html( $name ); ?></option><?php endforeach; ?></select></label>
-			<fieldset><legend>Bedrooms</legend><?php foreach ( array( '' => 'Any', '2' => '2', '3' => '3', '4' => '4+' ) as $value => $label ) : ?><label><input type="radio" name="bedrooms" value="<?php echo esc_attr( $value ); ?>" <?php checked( $filters['bedrooms'], (string) $value ); ?>><span><?php echo esc_html( $label ); ?></span></label><?php endforeach; ?></fieldset>
-			<button type="submit">Search</button>
+			<div class="aloha-catalog-field aloha-catalog-dates"><span>Dates</span><button type="button" disabled aria-describedby="catalog-dates-note"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M6 2v4m8-4v4M3 8h14"/></svg>Add dates</button><small id="catalog-dates-note">Coming soon</small></div>
+			<div class="aloha-catalog-field aloha-catalog-guests" data-guest-control>
+				<span>Guests</span><button type="button" class="aloha-catalog-guest-toggle" data-guest-toggle aria-expanded="false" aria-controls="catalog-guests" hidden>Add guests</button>
+				<div class="aloha-catalog-guest-popover" id="catalog-guests" data-guest-popover>
+					<?php foreach ( array( 'adults' => 'Adults', 'children' => 'Children' ) as $key => $label ) : ?>
+					<div class="aloha-catalog-guest-row"><label for="catalog-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label><div class="aloha-catalog-stepper">
+						<button type="button" data-guest-step="-1" data-guest-field="<?php echo esc_attr( $key ); ?>" aria-label="<?php echo esc_attr( 'Fewer ' . strtolower( $label ) ); ?>" hidden>−</button>
+						<input id="catalog-<?php echo esc_attr( $key ); ?>" name="<?php echo esc_attr( $key ); ?>" type="number" min="0" max="100" inputmode="numeric" value="<?php echo esc_attr( $filters[ $key ] ); ?>" aria-describedby="catalog-capacity-note">
+						<button type="button" data-guest-step="1" data-guest-field="<?php echo esc_attr( $key ); ?>" aria-label="<?php echo esc_attr( 'More ' . strtolower( $label ) ); ?>" hidden>+</button>
+					</div></div><?php endforeach; ?>
+					<button type="button" class="aloha-catalog-guest-done" data-guest-done hidden>Done</button>
+				</div>
+			</div>
+			<label class="aloha-catalog-field aloha-catalog-area"><span>Area</span><select name="area_id"><option value="0">All areas</option><?php foreach ( $areas as $id => $name ) : ?><option value="<?php echo esc_attr( $id ); ?>" <?php selected( $filters['area_id'], $id ); ?>><?php echo esc_html( $name ); ?></option><?php endforeach; ?></select></label>
+			<fieldset class="aloha-catalog-bedrooms"><legend>Bedrooms</legend><input type="radio" name="bedrooms" value="" aria-label="Any bedrooms" <?php checked( $filters['bedrooms'], '' ); ?> hidden><div><?php foreach ( array( '2' => '2', '3' => '3', '4' => '4+' ) as $value => $label ) : ?><label><input type="radio" name="bedrooms" value="<?php echo esc_attr( $value ); ?>" <?php checked( $filters['bedrooms'], (string) $value ); ?>><span><?php echo esc_html( $label ); ?></span></label><?php endforeach; ?></div></fieldset>
+			<button class="aloha-catalog-search" type="submit">Search</button>
 		</form>
+		</div>
 		<p class="aloha-catalog-note" id="catalog-capacity-note">Filters check local capacity only. Child suitability, availability and stay prices must be confirmed. Nightly rates are local calendar minimums.</p>
 		<div class="aloha-catalog-layout" data-catalog-layout>
 			<div class="aloha-catalog-results">
-				<div class="aloha-catalog-toolbar"><p role="status" aria-live="polite" aria-atomic="true" data-catalog-count><?php echo esc_html( sprintf( _n( '%d home in current results', '%d homes in current results', $count, 'aloha-hello' ), $count ) ); ?></p><span class="aloha-catalog-sort">Recommended</span><button type="button" class="aloha-button--secondary" data-catalog-toggle aria-controls="catalog-map" aria-expanded="true" hidden>Hide map</button></div>
+				<div class="aloha-catalog-toolbar"><p role="status" aria-live="polite" aria-atomic="true" data-catalog-count><?php echo esc_html( sprintf( _n( '%d home in current results', '%d homes in current results', $count, 'aloha-hello' ), $count ) ); ?></p><label class="aloha-catalog-sort"><span>Sort:</span><select aria-label="Sort vacation rentals"><option value="recommended">Recommended</option><option disabled>Price: low to high — coming soon</option><option disabled>Price: high to low — coming soon</option></select></label><button type="button" class="aloha-button--secondary" data-catalog-toggle aria-controls="catalog-map" aria-expanded="true" hidden>Hide map</button></div>
 				<nav class="aloha-catalog-chips" aria-label="Active filters" data-catalog-chips>
 					<?php foreach ( aloha_rental_catalog_chips( $filters, $areas ) as $key => $label ) : $without = $filters; $without[ $key ] = 'bedrooms' === $key ? '' : 0; ?><a href="<?php echo esc_url( aloha_rental_catalog_url( $without ) ); ?>" data-catalog-remove="<?php echo esc_attr( $key ); ?>" aria-label="<?php echo esc_attr( 'Remove ' . $label ); ?>"><?php echo esc_html( $label ); ?> <span aria-hidden="true">×</span></a><?php endforeach; ?>
 					<a href="<?php echo esc_url( get_post_type_archive_link( 'rental' ) ); ?>" data-catalog-clear<?php echo array_filter( $filters ) ? '' : ' hidden'; ?>>Clear all</a>
@@ -134,8 +150,8 @@ function aloha_rental_catalog_render(): string {
 				<p class="aloha-catalog-empty" data-catalog-empty<?php echo $count ? ' hidden' : ''; ?>><?php echo $items ? 'No homes match these filters. Try another area or fewer guests.' : 'Homes are being prepared. Please check back soon.'; ?></p>
 			</div>
 			<aside class="aloha-catalog-map" id="catalog-map" aria-label="Rental locations">
-				<div class="aloha-catalog-map-sticky"><div data-catalog-map-surface hidden></div><p data-catalog-map-message><?php echo esc_html( $points ? $map_config['error'] : __( 'Public map locations are not available yet. Explore the homes in the list.', 'aloha-hello' ) ); ?></p>
-				<div class="aloha-catalog-legend"><span>● Available in current results</span><span>○ Doesn't match your filters</span><small>Price from the local nightly minimum.</small></div></div>
+				<div class="aloha-catalog-map-sticky"><div data-catalog-map-surface hidden></div><div class="aloha-catalog-map-tools"><button type="button" class="aloha-catalog-move" disabled aria-describedby="catalog-move-note"><span aria-hidden="true">☐</span> Search as I move the map</button><small id="catalog-move-note">Coming soon</small></div><div class="aloha-catalog-map-zoom" aria-label="Map zoom"><button type="button" data-catalog-zoom="1" aria-label="Zoom in" disabled>+</button><button type="button" data-catalog-zoom="-1" aria-label="Zoom out" disabled>−</button></div><div class="aloha-catalog-map-preview" data-catalog-map-preview role="region" aria-label="Selected home" hidden></div><p data-catalog-map-message><?php echo esc_html( $points ? $map_config['error'] : __( 'Public map locations are not available yet. Explore the homes in the list.', 'aloha-hello' ) ); ?></p>
+				<div class="aloha-catalog-legend"><span><i class="is-match" aria-hidden="true"></i>Available in current results</span><span><i aria-hidden="true"></i>Doesn't match your filters</span><small>Price from the local nightly minimum.</small></div></div>
 			</aside>
 		</div>
 		<script type="application/json" data-catalog-map-config><?php echo wp_json_encode( $map_config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); ?></script>
