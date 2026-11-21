@@ -4,23 +4,9 @@ const {mkdirSync, writeFileSync} = require('node:fs');
 const {join} = require('node:path');
 const playwright = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = 'http://127.0.0.1:8088';
-const evidence = process.env.CATALOG_UI_EVIDENCE || '.local/evidence/m2-5a1';
-function mockMaps() {
-    window.catalogMapState = {zoom: 13, instances: 0, zoomCalls: 0};
-    class Map {
-        constructor(surface) { this.surface = surface; window.catalogMapState.instances++; }
-        fitBounds() {}
-        setCenter() {}
-        getZoom() { return window.catalogMapState.zoom; }
-        setZoom(zoom) { window.catalogMapState.zoom = zoom; window.catalogMapState.zoomCalls++; }
-    }
-    class AdvancedMarkerElement {
-        constructor({map}) { this.element = document.createElement('div'); map.surface.append(this.element); }
-        append(element) { this.element.append(element); }
-    }
-    class LatLngBounds { extend() {} }
-    window.google = {maps: {importLibrary: async name => ({maps: {Map}, marker: {AdvancedMarkerElement}, core: {LatLngBounds}}[name])}};
-}
+const evidence = process.env.CATALOG_UI_EVIDENCE || '.local/evidence/m2-5a2';
+const mockMaps = require('./lib/catalog-map-mock.cjs');
+
 (async () => {
     mkdirSync(evidence, {recursive: true});
     const results = [];
@@ -45,7 +31,7 @@ function mockMaps() {
             const guests = root.locator('[data-guest-toggle]');
             const popover = root.locator('[data-guest-popover]');
             const geometry = [];
-            for (const width of [320, 390, 768, 1024, 1280, 1440, 1920]) {
+            for (const width of [768, 1024, 1280, 1440, 1920]) {
                 await page.setViewportSize({width, height: 1000});
                 await page.evaluate(() => { window.scrollTo(0, 0); document.activeElement?.blur(); });
                 const measured = await page.evaluate(() => {
@@ -75,10 +61,10 @@ function mockMaps() {
                 geometry.push(measured);
             }
             await page.setViewportSize({width: 320, height: 568});
-            await guests.click();
-            const shortPopover = await popover.boundingBox();
-            assert.ok(shortPopover.y >= 68 && shortPopover.y + shortPopover.height <= 553, engine + ' short viewport popover');
-            await page.keyboard.press('Escape');
+            await root.locator('.aloha-catalog-mobile-filters').click();
+            const shortSheet = await root.locator('#catalog-filter-sheet').boundingBox();
+            assert.ok(shortSheet.y >= 11 && shortSheet.y + shortSheet.height <= 569, engine + ' short viewport sheet');
+            await page.keyboard.press('Escape'); await page.waitForTimeout(100);
             await page.setViewportSize({width: 1440, height: 1000});
             await guests.click();
             await popover.getByRole('button', {name:'More adults',exact:true}).click();
@@ -121,6 +107,7 @@ function mockMaps() {
             assert.ok(await preview.locator('a').getAttribute('href'));
             await preview.getByRole('button', {name:'Close home preview'}).click(); assert.equal(await preview.isVisible(), false);
             await marker.focus(); await page.keyboard.press('Enter'); assert.equal(await preview.isVisible(), true); await page.keyboard.press('Escape'); assert.equal(await preview.isVisible(), false);
+            await root.locator('[data-catalog-toggle]').scrollIntoViewIfNeeded();
             const scroll = await page.evaluate(() => window.scrollY); await root.locator('[data-catalog-toggle]').click();
             assert.equal(await root.locator('#catalog-map').isVisible(), false); assert.ok(Math.abs(await page.evaluate(() => window.scrollY)-scroll) <= 1);
             await root.locator('[data-catalog-toggle]').click(); assert.equal(await root.locator('#catalog-map').isVisible(), true);
@@ -137,7 +124,7 @@ function mockMaps() {
             assert.equal(new URL(plain.url()).searchParams.get('adults'),'100');assert.equal(await plain.locator('[data-catalog-item]:not([hidden])').count(),0);
             await noJS.close();
             results.push({engine,version:browser.version(),status:'PASS',geometry});
-            console.log('PASS',engine,browser.version(),'seven widths, normalized controls, guests keyboard/stepper/outside, bedrooms reset, sticky/admin offset, zoom/preview, map toggle, no-JS');
+            console.log('PASS',engine,browser.version(),'desktop/tablet geometry, normalized controls, guests keyboard/stepper/outside, bedrooms reset, sticky/admin offset, zoom/preview, map toggle, no-JS');
         } catch (error) {
             results.push({engine,status:'FAIL',error:error.message}); throw error;
         } finally {

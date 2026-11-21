@@ -40,9 +40,9 @@
 .aloha-catalog-stepper { display: flex; align-items: center; gap: 8px; }
 .aloha-catalog #catalog-guests .aloha-catalog-stepper input { flex: 0 0 42px; width: 42px; min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: 4px; background: transparent; font-size: 17px; line-height: 1; text-align: center; appearance: textfield; -moz-appearance: textfield; }
 .aloha-catalog-stepper input::-webkit-inner-spin-button, .aloha-catalog-stepper input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.aloha-catalog .aloha-catalog-filters .aloha-catalog-stepper button { flex: 0 0 44px; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #cdd8db; border-radius: 50%; background: #fff; color: #16232a; font-size: 24px; font-weight: 400; line-height: 1; }
-.aloha-catalog .aloha-catalog-stepper button:hover { background: #e4eef0; }
-.aloha-catalog .aloha-catalog-stepper button:disabled { opacity: .35; cursor: not-allowed; }
+.aloha-catalog #catalog-guests .aloha-catalog-stepper button { flex: 0 0 44px; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #cdd8db; border-radius: 50%; background: #fff; color: #16232a; font-size: 24px; font-weight: 400; line-height: 1; }
+.aloha-catalog #catalog-guests .aloha-catalog-stepper button:hover { background: #e4eef0; }
+.aloha-catalog #catalog-guests .aloha-catalog-stepper button:disabled { opacity: .35; cursor: not-allowed; }
 .aloha-catalog.is-enhanced .aloha-catalog-guest-popover { position: absolute; top: calc(100% + 16px); left: 0; width: 320px; max-width: calc(100vw - 40px); max-height: calc(100dvh - var(--catalog-sticky-top) - 130px); overflow: auto; padding: 20px; border: 1px solid #dbe4e6; border-radius: 12px; background: #fff; box-shadow: 0 12px 36px #16232a24; z-index: 3; }
 .aloha-catalog .aloha-catalog-filters .aloha-catalog-guest-done { min-height: 44px; padding: 8px 22px; margin-left: auto; font-size: 15px; background: #075056; color: #fff; }
 .aloha-catalog-layout { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,1fr); gap: 40px; align-items: start; }
@@ -175,3 +175,52 @@
 @media(max-width:359px) {
  .aloha-catalog-bedrooms, .aloha-catalog button.aloha-catalog-search { grid-column: 1 / -1; }
 }
+/* M2.5A.2: one field tree, native modal enhancements and a transparent sticky edge. */
+.aloha-catalog-filter-fields { display: contents; }
+.aloha-catalog-filter-sticky { background: transparent; isolation: isolate; }
+.aloha-catalog-filter-sticky::before { content: ''; position: absolute; inset: 0 -12px -14px; z-index: -1; background: linear-gradient(#f3f6f6fa 0%,#f3f6f6ed 65%,#f3f6f600); pointer-events: none; }
+.aloha-catalog-results > .wp-block-template-part { margin: 0; }
+.aloha-catalog-results .aloha-catalog-help { max-width: none; margin-top: 8px; }
+.aloha-catalog-move svg { width: 16px; height: 16px; flex: 0 0 16px; }
+.aloha-catalog-dialog { color: #16232a; background: #f3f6f6; border: 0; padding: 0; }
+.aloha-catalog-dialog::backdrop { background: #16232a80; }
+.aloha-catalog-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(16px,env(safe-area-inset-top)) 20px 16px; background: #fff; border-bottom: 1px solid #cdd8db; }
+.aloha-catalog-dialog-heading h2 { font: 400 28px/1.1 var(--wp--preset--font-family--instrument-serif); margin: 0; }
+.aloha-catalog .aloha-catalog-dialog-close { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; min-height: 44px; padding: 8px; border: 0; background: transparent; color: #16232a; font-size: 15px; }
+.aloha-catalog-dialog.is-map { width: 100%; max-width: none; height: 100dvh; max-height: 100%; margin: 0; border-radius: 0; overflow: hidden; }
+.aloha-catalog-dialog.is-map[open] { display: flex; flex-direction: column; }
+.aloha-catalog-dialog.is-map .aloha-catalog-map { flex: 1; width: 100%; min-height: 0; }
+.aloha-catalog-dialog.is-map .aloha-catalog-map-sticky { position: relative; top: auto; height: 100%; min-height: 0; border-radius: 0; padding-bottom: env(safe-area-inset-bottom); }
+.aloha-catalog-dialog.is-filters { width: 100%; max-width: 600px; max-height: calc(100dvh - max(12px,env(safe-area-inset-top))); margin: auto auto 0; border-radius: 18px 18px 0 0; overflow: hidden; }
+.aloha-catalog-dialog.is-filters[open] { display: flex; flex-direction: column; }
+.aloha-catalog-sheet-body { overflow-y: auto; min-height: 0; padding: 20px; }
+.aloha-catalog-sheet-body .aloha-catalog-filter-fields { display: flex; flex-direction: column; gap: 24px; }
+.aloha-catalog .aloha-catalog-sheet-body .aloha-catalog-field, .aloha-catalog .aloha-catalog-sheet-body .aloha-catalog-bedrooms { flex: none; width: 100%; padding: 0; border: 0; }
+.aloha-catalog .aloha-catalog-sheet-body .aloha-catalog-field > span, .aloha-catalog-sheet-body .aloha-catalog-bedrooms legend { margin-bottom: 10px; }
+.aloha-catalog .aloha-catalog-sheet-body .aloha-catalog-guest-popover { position: static; width: 100%; max-width: none; max-height: none; padding: 0; border: 0; background: transparent; box-shadow: none; transform: none; }
+.aloha-catalog .aloha-catalog-sheet-body .aloha-catalog-area select { height: 48px; min-height: 48px; padding: 8px 32px 8px 12px; border: 1px solid #cdd8db; border-radius: 8px; background-position: right 10px center; }
+.aloha-catalog-sheet-body .aloha-catalog-bedrooms span { width: 66px; }
+.aloha-catalog-sheet-actions { display: flex; align-items: center; gap: 16px; padding: 16px 20px max(16px,env(safe-area-inset-bottom)); border-top: 1px solid #cdd8db; background: #fff; }
+.aloha-catalog .aloha-catalog-sheet-clear { flex: 1; min-height: 48px; padding: 10px; background: transparent; color: #075056; text-decoration: underline; font-size: 16px; }
+.aloha-catalog .aloha-catalog-sheet-apply { flex: 2; min-height: 52px; padding: 10px 16px; background: #ff5b04; color: white; font-size: 18px; }
+@media(min-width:1024px) { .aloha-catalog-layout.is-map-hidden .aloha-catalog-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media(max-width:767px) {
+ .aloha-catalog-grid { grid-template-columns: minmax(0,1fr); }
+ .aloha-catalog.is-enhanced .aloha-catalog-filters { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 999px; }
+ .aloha-catalog.is-enhanced .aloha-catalog-filters .aloha-catalog-dates { flex: 1; min-width: 0; padding: 0 6px; border-right: 1px solid #cdd8db; }
+ .aloha-catalog.is-enhanced .aloha-catalog-filters .aloha-catalog-dates > span, .aloha-catalog.is-enhanced .aloha-catalog-filters .aloha-catalog-dates small { display: none; }
+ .aloha-catalog.is-enhanced .aloha-catalog-dates button { min-height: 44px; height: 44px; gap: 5px; font-size: 15px; }
+ .aloha-catalog.is-enhanced .aloha-catalog-dates svg { width: 15px; height: 15px; }
+ .aloha-catalog.is-enhanced .aloha-catalog-search { flex: 0 0 auto; min-height: 48px; height: 48px; margin: 0; padding: 0 16px; font-size: 16px; }
+ .aloha-catalog .aloha-catalog-mobile-filters { flex: 1; min-width: 0; min-height: 44px; padding: 0 4px; border: 0; border-radius: 0; background: transparent; color: #16232a; font-size: 15px; line-height: 1.2; white-space: nowrap; }
+ .aloha-catalog-filter-sticky { position: sticky; top: var(--catalog-sticky-top); }
+ .aloha-catalog-note { font-size: 11px; }
+}
+
+/* The local preview is now content of the provider's anchored InfoWindow. */
+.aloha-catalog-map-preview { position: relative; left: auto; bottom: auto; width: 250px; max-width: 100%; overflow-y: auto; border-radius: 6px; box-shadow: none; }
+.aloha-catalog-map-preview strong { overflow-wrap: anywhere; }
+.aloha-catalog-map-sticky .gm-style-iw-c { padding: 0; }
+.aloha-catalog-map-sticky .gm-style-iw-d { overflow: auto; }
+
+.aloha-catalog .aloha-catalog-sheet-body select { appearance: none; -webkit-appearance: none; }

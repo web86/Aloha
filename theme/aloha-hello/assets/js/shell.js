@@ -17,8 +17,64 @@
  const media = matchMedia('(max-width: 1279px)');
  const footerMedia = matchMedia('(min-width: 768px)');
  let menuWasOpen = false, historyEntry = false, suppressBack = false, returnFocus;
- const scroll = () => header?.classList.toggle('is-scrolled', scrollY > 8);
- addEventListener('scroll', scroll, {passive: true}); scroll();
+ // Keep the sticky wrapper in flow. Only the closed, unfocused header may transform.
+ if (header) {
+  const wrapper = header.closest('.wp-block-template-part') || header;
+  const admin = document.getElementById('wpadminbar');
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  let previousY = Math.max(0, scrollY), direction = 0, travel = 0, hidden = false;
+  let frame = 0, animateUntil = 0, holdUntil = 0, published = '', keyboardFocus = true;
+  const pinned = () => (keyboardFocus && header.contains(document.activeElement)) || !!header.querySelector('.is-menu-open, .is-aloha-open') || !!document.querySelector('dialog[open]');
+  const schedule = () => { if (!frame) frame = requestAnimationFrame(updateHeader); };
+  function updateHeader(now) {
+   frame = 0;
+   const y = Math.max(0, scrollY), delta = y - previousY;
+   const adminBottom = Math.max(0, admin?.getBoundingClientRect().bottom || 0);
+   const height = header.offsetHeight;
+   const locked = pinned();
+   const before = hidden;
+   if (locked || y <= 48 || now < holdUntil) { hidden = false; travel = 0; direction = 0; }
+   else if (Math.abs(delta) > .5) {
+    const next = Math.sign(delta);
+    if (next !== direction) { direction = next; travel = 0; }
+    travel += Math.abs(delta);
+    if (direction > 0 && y > height + 48 && travel >= 24) hidden = true;
+    if (direction < 0 && travel >= 12) hidden = false;
+   }
+   previousY = y;
+   header.classList.toggle('is-scrolled', y > 8);
+   header.classList.toggle('is-smart-pinned', locked);
+   header.classList.toggle('is-smart-hidden', hidden);
+   if (before !== hidden) animateUntil = now + (motion.matches || locked ? 0 : 280);
+   wrapper.style.top = adminBottom + 'px';
+   const bottom = Math.max(adminBottom, header.getBoundingClientRect().bottom, 0);
+   header.style.setProperty('--aloha-header-bottom', bottom + 'px');
+   document.documentElement.style.setProperty('--aloha-header-height', height + 'px');
+   document.documentElement.style.setProperty('--aloha-admin-bottom', adminBottom + 'px');
+   document.documentElement.style.setProperty('--aloha-header-visible-bottom', bottom + 'px');
+   const value = `${bottom.toFixed(2)}:${height}:${hidden}`;
+   if (value !== published) {
+    published = value;
+    document.dispatchEvent(new CustomEvent('aloha:header-change', {detail: {bottom, height, hidden, adminBottom}}));
+   }
+   if (now < animateUntil) schedule();
+  }
+  const reveal = () => { holdUntil = performance.now() + 350; schedule(); };
+  addEventListener('scroll', schedule, {passive: true});
+  addEventListener('resize', schedule);
+  addEventListener('pageshow', reveal);
+  addEventListener('hashchange', reveal);
+  document.addEventListener('aloha:catalog-overlay', reveal);
+  document.addEventListener('keydown', () => { keyboardFocus = true; schedule(); }, true);
+  document.addEventListener('pointerdown', () => { keyboardFocus = false; schedule(); }, {capture: true, passive: true});
+  document.addEventListener('focusin', event => { if (keyboardFocus && header.contains(event.target)) reveal(); else schedule(); });
+  document.addEventListener('focusout', schedule);
+  document.addEventListener('click', event => { if (event.target.closest('a[href^="#"]')) reveal(); }, true);
+  new MutationObserver(schedule).observe(header, {subtree: true, attributes: true, attributeFilter: ['class', 'aria-expanded']});
+  const observer = new ResizeObserver(schedule); observer.observe(header); if (admin) observer.observe(admin);
+  motion.addEventListener('change', schedule);
+  schedule();
+ }
  const footer = () => document.querySelectorAll('.aloha-footer-group').forEach(group => {
   group.open = footerMedia.matches;
   group.querySelector('summary').tabIndex = footerMedia.matches ? -1 : 0;
@@ -158,10 +214,6 @@
   });
   if (overlay) new MutationObserver(() => { if (!overlay.classList.contains('is-menu-open')) close(); }).observe(overlay, {attributes:true, attributeFilter:['class']});
   media.addEventListener('change', () => close());
-  new ResizeObserver(() => {
-   header.style.setProperty('--aloha-header-bottom', `${Math.max(0, header.getBoundingClientRect().bottom)}px`);
-  }).observe(header);
-  addEventListener('scroll', () => header.style.setProperty('--aloha-header-bottom', `${Math.max(0, header.getBoundingClientRect().bottom)}px`), {passive:true});
   // Resize clears touch arming even if the desktop breakpoint has not changed.
   addEventListener('resize', () => close());
   nav.classList.add('aloha-nav-ready');

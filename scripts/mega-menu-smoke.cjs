@@ -9,6 +9,8 @@ fs.mkdirSync(out, {recursive:true});
  const report = {browser:type.name(), widths:[], checks:[], errors:[], consoleErrors:[], external:[], failed:[]};
  try {
   const context = await browser.newContext({viewport:{width:1440,height:1000},hasTouch:true});
+  // This suite owns shell navigation; opt out of optional third-party Maps on destination pages.
+  await context.addInitScript(() => Object.defineProperty(navigator, 'globalPrivacyControl', {value:true}));
   const p = await context.newPage();
   p.on('console', m => {if(m.type()==='error')report.consoleErrors.push(m.text())});
   p.on('pageerror', e => report.errors.push(e.message));
@@ -55,7 +57,7 @@ fs.mkdirSync(out, {recursive:true});
    if(width===1440)await p.screenshot({path:`${out}/keyboard-focus.png`});
    await p.keyboard.press('Escape');await expanded('rentals',false);assert.ok(await parent('rentals').evaluate(el=>el===document.activeElement));
    await settle();await expanded('rentals',false); // Escape under pointer must stay closed.
-   await parent('island').press('ArrowDown');await panel('island').locator('li:not(.aloha-mega-editorial) > a').first().click();await dismiss();
+   await parent('island').press('ArrowDown');await panel('island').locator('.aloha-mega-links-list a[data-aloha-destination]').first().click();await dismiss();
    await p.evaluate(()=>{document.activeElement.blur();scrollTo(0,950)});await settle();
    await parent('rentals').hover();await settle();
    const sticky=await p.locator('.aloha-site-header').boundingBox(), pr=await panel('rentals').boundingBox();
@@ -91,7 +93,7 @@ fs.mkdirSync(out, {recursive:true});
    await p.screenshot({path:`${out}/mobile-overlay-${width}.png`});
    await tap(parent('rentals'));await dismiss();assert.ok(await overlay.evaluate(el=>el.classList.contains('is-menu-open')));
    await tap(parent('island'));await expanded('island',true);await expanded('rentals',false);
-   await tap(panel('island').locator('li:not(.aloha-mega-editorial) > a').first());await dismiss();
+   await tap(panel('island').locator('.aloha-mega-links-list a[data-aloha-destination]').first());await dismiss();
    await p.keyboard.press('Escape');await expanded('island',false);assert.ok(await parent('island').evaluate(el=>el===document.activeElement));
    const y=await p.evaluate(()=>scrollY);await p.mouse.wheel(0,400);await p.waitForTimeout(70);assert.equal(await p.evaluate(()=>scrollY),y);
    await overlay.locator('.aloha-mega-item > button').last().focus();await p.keyboard.press('Tab');assert.ok(await overlay.locator('.wp-block-navigation__responsive-container-close').evaluate(el=>el===document.activeElement));

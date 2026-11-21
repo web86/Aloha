@@ -12,20 +12,8 @@ function wp(path, ...args) {
     return result.stdout.trim();
 }
 const fixture = (...args) => wp('/var/www/m24-tests/rental-template-browser-fixture.php', ...args.slice(0, 1), key, ...args.slice(1));
-function mockMaps() {
-    window.catalogMapCreations = 0;
-    class Map {
-        constructor(surface) { this.surface = surface; window.catalogMapCreations++; }
-        fitBounds() {}
-        setCenter() {}
-    }
-    class AdvancedMarkerElement {
-        constructor({map}) { this.element = document.createElement('div'); map.surface.append(this.element); }
-        append(element) { this.element.append(element); }
-    }
-    class LatLngBounds { extend() {} }
-    window.google = {maps: {importLibrary: async name => ({maps: {Map}, marker: {AdvancedMarkerElement}, core: {LatLngBounds}}[name])}};
-}
+const mockMaps = require('./lib/catalog-map-mock.cjs');
+
 (async () => {
     const browser = await chromium.launch();
     try {
@@ -73,6 +61,18 @@ function mockMaps() {
         assert.match(await target.locator('img').first().getAttribute('alt'), /Local photo 2/);
         assert.equal(await target.locator('img[alt="Local photo 6"]').count(), 0);
         assert.match(await target.locator('.aloha-related-price').innerText(), /345/);
+        for(const [mode,label] of [['related-gallery','NEW'],['related-single','LUXE']]){
+            const card=catalog.locator(`[data-catalog-item="${prepared[mode].id}"]`),badge=card.locator('.aloha-related-badge');
+            assert.equal(await badge.innerText(),label);assert.equal(await badge.isVisible(),true);
+            const b=await badge.boundingBox(),g=await card.locator('.aloha-related-gallery').boundingBox();
+            assert.ok(b.x>=g.x&&b.y>=g.y&&b.x+b.width<=g.x+g.width&&b.y+b.height<=g.y+g.height,'Badge clipped');
+            assert.equal(await badge.evaluate(e=>getComputedStyle(e).opacity),'1');
+        }
+        assert.equal(await catalog.locator(`[data-catalog-item="${prepared.empty.id}"] .aloha-related-badge`).count(),0);
+        fixture('related-expire');await page.reload();
+        assert.equal(await catalog.locator(`[data-catalog-item="${prepared['related-gallery'].id}"] .aloha-related-badge`).count(),0,'Expired NEW leaked');
+        assert.equal(await catalog.locator(`[data-catalog-item="${prepared['related-single'].id}"] .aloha-related-badge`).innerText(),'LUXE');
+
         assert.equal(await catalog.locator(`[data-catalog-item="${prepared['related-single'].id}"] .aloha-related-price`).innerText(), 'Check dates for pricing');
         assert.match(await catalog.locator(`[data-catalog-item="${prepared.empty.id}"] .aloha-related-placeholder`).innerText(), /Photos coming soon/);
         await page.waitForFunction(() => window.catalogMapCreations === 1);
@@ -144,9 +144,16 @@ function mockMaps() {
             if (width === 1440) assert.equal(await catalog.locator('.aloha-catalog-map-sticky').evaluate(element => getComputedStyle(element).position), 'sticky');
             const next = target.locator('[data-related-next]');
             const touch = await next.boundingBox(); assert.ok(touch.width >= 44 && touch.height >= 44);
-            const toggle = catalog.locator('[data-catalog-toggle]'); await toggle.click();
-            assert.equal(await catalog.locator('#catalog-map').isVisible(), false);
-            await toggle.click(); assert.equal(await catalog.locator('#catalog-map').isVisible(), true);
+            const toggle = catalog.locator('[data-catalog-toggle]');
+            if(width<768){
+                assert.equal(await catalog.locator('#catalog-map').isVisible(),false);await toggle.click();
+                assert.equal(await catalog.locator('#catalog-map-dialog').isVisible(),true);
+                await catalog.getByRole('button',{name:'Close map',exact:true}).click();
+                await page.waitForTimeout(80);
+            }else{
+                await toggle.click();assert.equal(await catalog.locator('#catalog-map').isVisible(),false);
+                await toggle.click();assert.equal(await catalog.locator('#catalog-map').isVisible(),true);
+            }
             if (process.env.CATALOG_SCREENSHOTS) {
                 mkdirSync(process.env.CATALOG_SCREENSHOTS, {recursive: true});
                 await page.evaluate(() => window.scrollTo(0, 0));

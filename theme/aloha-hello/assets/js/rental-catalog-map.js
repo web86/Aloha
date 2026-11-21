@@ -25,7 +25,7 @@
         clearTimeout(timeout); delete window.alohaCatalogMapsReady;
         try {
             const api = window.google.maps;
-            const [{Map}, {AdvancedMarkerElement}, {LatLngBounds}] = await Promise.all([
+            const [{Map, InfoWindow}, {AdvancedMarkerElement}, {LatLngBounds}] = await Promise.all([
                 api.importLibrary('maps'), api.importLibrary('marker'), api.importLibrary('core'),
             ]);
             if (failed) return;
@@ -33,6 +33,7 @@
             const map = new Map(surface, {mapId: config.mapId, center: config.points[0].position, zoom: 13,
                 disableDefaultUI: true, gestureHandling: 'cooperative', clickableIcons: false});
             const bounds = new LatLngBounds();
+            const info = new InfoWindow({headerDisabled: true, disableAutoPan: false, ariaLabel: 'Home preview', maxWidth: 280});
             let selected = null;
             const markers = config.points.map(point => {
                 bounds.extend(point.position);
@@ -55,13 +56,13 @@
             preview.id = 'catalog-map-preview';
             function close(restoreFocus = false) {
                 const previous = selected;
-                selected = null; preview.hidden = true; preview.replaceChildren();
+                selected = null; info.close(); preview.hidden = true; preview.replaceChildren();
                 update();
                 if (restoreFocus) previous?.button.focus({preventScroll: true});
             }
             function select(entry) {
                 if (selected === entry) { close(); return; }
-                selected = entry; update();
+                close(); selected = entry; update();
                 const {point} = entry;
                 preview.replaceChildren();
                 const link = document.createElement('a'); link.href = point.url;
@@ -82,7 +83,10 @@
                 const dismiss = document.createElement('button'); dismiss.type = 'button'; dismiss.className = 'aloha-catalog-preview-close'; dismiss.textContent = '×'; dismiss.setAttribute('aria-label', 'Close home preview');
                 dismiss.addEventListener('click', () => close(true));
                 preview.append(link, dismiss); preview.hidden = false;
-                // Selection does not pan/requery: preview stays inside the local map frame.
+                preview.style.maxHeight = Math.max(100, surface.clientHeight - 90) + 'px';
+                info.setOptions({maxWidth: Math.min(280, surface.clientWidth - 32)});
+                info.setContent(preview);
+                info.open({map, anchor: entry.marker, shouldFocus: true});
             }
             function update() {
                 markers.forEach(entry => {
@@ -96,10 +100,11 @@
                     marker.collisionBehavior = selected === entry ? 'REQUIRED_AND_HIDES_OPTIONAL' : 'OPTIONAL_AND_HIDES_LOWER_PRIORITY';
                 });
             }
-            preview.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); close(true); } });
-            surface.addEventListener('keydown', event => { if (event.key === 'Escape' && selected) { event.preventDefault(); close(true); } });
+            preview.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(true); } });
+            surface.addEventListener('keydown', event => { if (event.key === 'Escape' && selected) { event.preventDefault(); event.stopPropagation(); close(true); } }, true);
             const fit = () => {
                 if (aside.hidden || !surface.clientWidth) return;
+                if (selected) { preview.style.maxHeight = Math.max(100, surface.clientHeight - 90) + 'px'; info.open({map, anchor: selected.marker, shouldFocus: false}); return; }
                 if (markers.length > 1) map.fitBounds(bounds, {top: 100, right: 65, bottom: 90, left: 45});
                 else map.setCenter(config.points[0].position);
             };
@@ -109,8 +114,12 @@
             });
             update(); fit();
             document.addEventListener('aloha:catalog-filter', () => { close(); update(); });
-            document.addEventListener('aloha:catalog-map-toggle', () => { if (aside.hidden) close(); else fit(); });
-            if ('ResizeObserver' in window) new ResizeObserver(fit).observe(surface);
+            const resize = () => { if (!aside.hidden) { api.event?.trigger(map, 'resize'); requestAnimationFrame(fit); } };
+            document.addEventListener('aloha:catalog-map-toggle', () => { if (aside.hidden) close(); else resize(); });
+            if ('ResizeObserver' in window) {
+                let resizing;
+                new ResizeObserver(() => { clearTimeout(resizing); resizing = setTimeout(resize, 100); }).observe(surface);
+            }
         } catch { fail(); }
     }
     function show() {

@@ -195,3 +195,10 @@ nav.aloha-primary-nav:not(.aloha-nav-ready) .has-child > ul { display: none !imp
  /* The hover bridge must never cover the lower edge of the logo or header actions. */
  .aloha-site-header .aloha-brand, .aloha-header-actions { position: relative; z-index: 2; }
 }
+
+/* Smart header: no layout displacement, and no transformed containing block for menus. */
+html:has(.wp-site-blocks .aloha-site-header) { scroll-padding-top: calc(var(--aloha-header-height,92px) + var(--aloha-admin-bottom,0px) + 16px); }
+.wp-site-blocks main :where([id],a,button,input,select,textarea,[tabindex]) { scroll-margin-top: 16px; }
+.aloha-site-header.is-smart-hidden { transform: translateY(calc(-100% - 1px)); }
+.aloha-site-header.is-smart-pinned, .aloha-site-header:has(:focus-visible), .aloha-site-header:has(.is-menu-open), .aloha-site-header:has(.is-aloha-open) { transform: none; transition: none; }
+@media(prefers-reduced-motion:no-preference) { .aloha-site-header { transition: transform .24s ease; } .aloha-site-header.is-smart-pinned { transition: none; } }
